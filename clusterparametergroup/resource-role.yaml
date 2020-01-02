@@ -23,11 +23,13 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "initech:CreateReport"
-                - "initech:DeleteReport"
-                - "initech:DescribeReport"
-                - "initech:ListReports"
-                - "initech:UpdateReport"
+                - "redshift:CreateClusterParameterGroup"
+                - "redshift:CreateTags"
+                - "redshift:DeleteClusterParameterGroup"
+                - "redshift:DeleteTags"
+                - "redshift:DescribeTags"
+                - "redshift:ModifyClusterParameterGroup"
+                - "redshift:ResetClusterParameterGroup"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
