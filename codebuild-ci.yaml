@@ -8,9 +8,6 @@ Parameters:
   GitHubRepositoryShortName:
     Type: String
     Description: Short Name for this provider to avoid exceeding the 64char limit on IAM Resources
-  CFNSDKBucket:
-    Type: String
-    Description: S3 Location of CloudFormation SDK; should be removed when we can publish the latest client
 
 Resources:
   AWSCloudFormationResourceProviderCIPolicy:
@@ -29,16 +26,6 @@ Resources:
             Resource:
               - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${GitHubRepositoryName}-ci"
               - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/${GitHubRepositoryName}-ci:*"
-          - Effect: Allow
-            Action:
-              - s3:PutObject
-              - s3:GetObject
-              - s3:GetObjectVersion
-            Resource: !Sub "${CFNSDKBucket}/*"
-          - Effect: Allow
-            Action:
-              - s3:ListBucket
-            Resource: !Ref CFNSDKBucket
 
   AWSCloudFormationResourceProviderCIRole:
     Type: AWS::IAM::Role
