@@ -8,8 +8,6 @@ import software.amazon.awssdk.services.redshift.model.CreateClusterParameterGrou
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterParameterGroupRequest;
 import software.amazon.awssdk.services.redshift.model.Parameter;
@@ -38,16 +36,10 @@ public class Translator {
                 .collect(Collectors.toList());
     }
 
-    static List<Parameter> translateParametersToSdk(final List<software.amazon.redshift.clusterparametergroup.Parameter> parameters) {
+    private static List<Parameter> translateParametersToSdk(final List<software.amazon.redshift.clusterparametergroup.Parameter> parameters) {
         if (parameters == null) return null;
         return parameters.stream()
                 .map(param -> Parameter.builder().parameterName(param.getParameterName()).parameterValue(param.getParameterValue()).build())
-                .collect(Collectors.toList());
-    }
-
-    static List<software.amazon.redshift.clusterparametergroup.Parameter> translateParametersFromSdk(final List<Parameter> parameters) {
-        return parameters.stream()
-                .map(param -> software.amazon.redshift.clusterparametergroup.Parameter.builder().parameterName(param.parameterName()).parameterValue(param.parameterValue()).build())
                 .collect(Collectors.toList());
     }
 
@@ -77,13 +69,6 @@ public class Translator {
     static DeleteClusterParameterGroupRequest deleteClusterParameterGroupRequest(final ResourceModel model) {
         return DeleteClusterParameterGroupRequest.builder()
                 .parameterGroupName(model.getParameterGroupName())
-                .build();
-    }
-
-    static DescribeClusterParametersRequest describeClusterParametersRequest(final String parameterGroupName, final String marker) {
-        return DescribeClusterParametersRequest.builder()
-                .parameterGroupName(parameterGroupName)
-                .marker(marker)
                 .build();
     }
 
