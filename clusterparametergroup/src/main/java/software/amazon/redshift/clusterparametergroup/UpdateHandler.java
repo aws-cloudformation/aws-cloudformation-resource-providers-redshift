@@ -44,7 +44,7 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
         this.logger = logger;
 
         try {
-            if (!CollectionUtils.isEmpty(model.getParameters())) {
+            if (CollectionUtils.isEmpty(model.getParameters())) {
                 proxy.injectCredentialsAndInvokeV2(Translator.resetClusterParameterGroupRequest(model), client::resetClusterParameterGroup);
             } else {
                 proxy.injectCredentialsAndInvokeV2(Translator.modifyClusterParameterGroupRequest(model), client::modifyClusterParameterGroup);
