@@ -23,21 +23,18 @@ public class Translator {
     }
 
     static List<Tag> translateTagsToSdk(final Collection<software.amazon.redshift.clusterparametergroup.Tag> tags) {
-        if (tags == null) return null;
         return tags.stream()
                 .map(tag -> Tag.builder().key(tag.getKey()).value(tag.getValue()).build())
                 .collect(Collectors.toList());
     }
 
     static List<software.amazon.redshift.clusterparametergroup.Tag> translateTagsFromSdk(final List<Tag> tags) {
-        if (tags == null) return null;
         return tags.stream()
                 .map(tag -> new software.amazon.redshift.clusterparametergroup.Tag(tag.key(), tag.value()))
                 .collect(Collectors.toList());
     }
 
     private static List<Parameter> translateParametersToSdk(final List<software.amazon.redshift.clusterparametergroup.Parameter> parameters) {
-        if (parameters == null) return null;
         return parameters.stream()
                 .map(param -> Parameter.builder().parameterName(param.getParameterName()).parameterValue(param.getParameterValue()).build())
                 .collect(Collectors.toList());
@@ -82,7 +79,7 @@ public class Translator {
     static DeleteTagsRequest deleteTagsRequest(final Collection<Tag> tags, final String arn) {
         return DeleteTagsRequest.builder()
                 .resourceName(arn)
-                .tagKeys(tags.stream().map(tag -> tag.key()).collect(Collectors.toList()))
+                .tagKeys(tags.stream().map(Tag::key).collect(Collectors.toList()))
                 .build();
     }
 

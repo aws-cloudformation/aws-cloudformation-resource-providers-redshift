@@ -21,7 +21,7 @@
     <repositories>
         <repository>
             <id>central</id>
-            <url>http://central.maven.org/maven2</url>
+            <url>https://repo1.maven.org/maven2/</url>
         </repository>
     </repositories>
 
@@ -30,13 +30,13 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>redshift</artifactId>
-            <version>2.10.19</version>
+            <version>2.10.49</version>
         </dependency>
 	    <!-- https://mvnrepository.com/artifact/software.amazon.cloudformation/aws-cloudformation-rpdk-java-plugin -->
         <dependency>
             <groupId>software.amazon.cloudformation</groupId>
             <artifactId>aws-cloudformation-rpdk-java-plugin</artifactId>
-            <version>1.0.1</version>
+            <version>1.0.2</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>

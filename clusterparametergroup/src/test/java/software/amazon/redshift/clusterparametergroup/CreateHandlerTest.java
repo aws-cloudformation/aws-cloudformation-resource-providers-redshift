@@ -73,6 +73,7 @@ public class CreateHandlerTest {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
+                .desiredResourceTags(DESIRED_RESOURCE_TAGS)
                 .logicalResourceIdentifier("logicalId")
                 .clientRequestToken("CRT")
                 .region(AWS_REGION)
