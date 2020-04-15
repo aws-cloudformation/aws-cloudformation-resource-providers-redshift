@@ -1,0 +1,9 @@
+{
+    "CREATE": {
+        "/Description": "sam create test",
+        "/SubnetIds": [
+            "subnet-01065ae4f4f564369",
+            "subnet-01065ae4f4f564369"
+        ]
+    }
+}

@@ -1,0 +1,15 @@
+{
+    "typeName": "AWS::Redshift::ClusterSubnetGroup",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.redshift.clustersubnetgroup.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.redshift.clustersubnetgroup.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "redshift",
+            "clustersubnetgroup"
+        ]
+    }
+}
