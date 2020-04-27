@@ -38,6 +38,7 @@
         "SubnetIds": {
             "description": "The list of VPC subnet IDs",
             "type": "array",
+            "maxItems": 20,
             "items": {
                 "$ref": "#/definitions/SubnetId"
             }

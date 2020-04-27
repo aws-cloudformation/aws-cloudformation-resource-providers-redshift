@@ -29,7 +29,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
 
         try {
             response = proxy.injectCredentialsAndInvokeV2(Translator.listClusterSubnetGroupsRequest(model), client::describeClusterSubnetGroups);
-        } catch (ClusterSubnetGroupNotFoundException | InvalidTagException e) {
+        } catch (final ClusterSubnetGroupNotFoundException | InvalidTagException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getSubnetGroupName());
         }
 

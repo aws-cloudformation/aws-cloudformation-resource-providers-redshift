@@ -55,10 +55,10 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
 
         try {
             proxy.injectCredentialsAndInvokeV2(modifyRequest, client::modifyClusterSubnetGroup);
-        } catch (InvalidSubnetException | SubnetAlreadyInUseException | UnauthorizedOperationException
+        } catch (final InvalidSubnetException | SubnetAlreadyInUseException | UnauthorizedOperationException
                 | DependentServiceRequestThrottlingException | ClusterSubnetQuotaExceededException e ) {
             throw new CfnInvalidRequestException(modifyRequest.toString(), e);
-        } catch (ClusterSubnetGroupNotFoundException e){
+        } catch (final ClusterSubnetGroupNotFoundException e){
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getSubnetGroupName());
         }
 
@@ -90,9 +90,9 @@ public class UpdateHandler extends BaseHandler<CallbackContext> {
                 proxy.injectCredentialsAndInvokeV2(Translator.deleteTagsRequest(tagsKeyToDelete, arn), client::deleteTags);
             }
 
-        } catch (InvalidTagException | TagLimitExceededException e) {
+        } catch (final InvalidTagException | TagLimitExceededException e) {
             throw new CfnGeneralServiceException("updateTagging", e);
-        } catch (ResourceNotFoundException e) {
+        } catch (final ResourceNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getSubnetGroupName());
         }
     }

@@ -55,12 +55,12 @@ public class CreateHandler extends BaseHandler<CallbackContext> {
         try {
             proxy.injectCredentialsAndInvokeV2(createRequest, client::createClusterSubnetGroup);
             logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME, model.getSubnetGroupName()));
-        } catch (ClusterSubnetGroupAlreadyExistsException e) {
+        } catch (final ClusterSubnetGroupAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, model.getSubnetGroupName());
-        } catch (InvalidSubnetException | SubnetAlreadyInUseException | UnauthorizedOperationException
+        } catch (final InvalidSubnetException | SubnetAlreadyInUseException | UnauthorizedOperationException
                 | TagLimitExceededException | InvalidTagException | DependentServiceRequestThrottlingException e) {
             throw new CfnInvalidRequestException(createRequest.toString(), e);
-        } catch (ClusterSubnetQuotaExceededException | ClusterSubnetGroupQuotaExceededException e ) {
+        } catch (final ClusterSubnetQuotaExceededException | ClusterSubnetGroupQuotaExceededException e ) {
             throw new CfnServiceLimitExceededException(ResourceModel.TYPE_NAME, e.toString());
         }
 

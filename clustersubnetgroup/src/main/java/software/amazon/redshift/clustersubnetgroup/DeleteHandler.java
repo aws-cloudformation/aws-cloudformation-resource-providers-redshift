@@ -29,9 +29,9 @@ public class DeleteHandler extends BaseHandler<CallbackContext> {
         try {
             proxy.injectCredentialsAndInvokeV2(deleteRequest, client::deleteClusterSubnetGroup);
             logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, model.getSubnetGroupName()));
-        } catch (ClusterSubnetGroupNotFoundException e) {
+        } catch (final ClusterSubnetGroupNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getSubnetGroupName());
-        } catch (InvalidClusterSubnetGroupStateException | InvalidClusterSubnetStateException e) {
+        } catch (final InvalidClusterSubnetGroupStateException | InvalidClusterSubnetStateException e) {
             throw new CfnInvalidRequestException(deleteRequest.toString(), e);
         }
 
