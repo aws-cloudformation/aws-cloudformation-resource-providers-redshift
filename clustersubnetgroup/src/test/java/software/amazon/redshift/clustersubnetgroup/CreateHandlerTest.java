@@ -22,6 +22,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.AWS_REGION;
@@ -54,11 +55,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         proxyClient = MOCK_PROXY(proxy, sdkClient);
     }
 
-    @AfterEach
-    public void post_execute() {
-        verifyNoMoreInteractions(proxyClient.client());
-    }
-
     @Test
     public void handleRequest_SimpleSuccess() {
         final ResourceModel model = BASIC_MODEL;
@@ -82,17 +78,16 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .build());
 
 
-        final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, null, logger);
-
-        System.out.print(response.toString());
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).createClusterSubnetGroup(any(CreateClusterSubnetGroupRequest.class));
+        verify(proxyClient.client()).describeClusterSubnetGroups(any(DescribeClusterSubnetGroupsRequest.class));
     }
 }

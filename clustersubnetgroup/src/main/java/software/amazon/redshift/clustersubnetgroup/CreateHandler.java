@@ -53,9 +53,6 @@ public class CreateHandler extends BaseHandlerStd {
                 ).toLowerCase()
         );
 
-        //final List<Tag> tags = Translator.translateTagsToSdk(request.getDesiredResourceTags(), request.getDesiredResourceState().getTags());
-        //CreateClusterSubnetGroupRequest createRequest = Translator.translateToCreateRequest(model, tags);
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest((m) -> Translator.translateToCreateRequest(model, request.getDesiredResourceTags()))
