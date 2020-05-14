@@ -45,12 +45,12 @@ public class CreateHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
-        model.setSubnetGroupName("a"
-//                IdentifierUtils.generateResourceIdentifier(
-//                        request.getLogicalResourceIdentifier(),
-//                        request.getClientRequestToken(),
-//                        MAX_SUBNET_GROUP_NAME_LENGTH
-//                ).toLowerCase()
+        model.setSubnetGroupName(
+                IdentifierUtils.generateResourceIdentifier(
+                        request.getLogicalResourceIdentifier(),
+                        request.getClientRequestToken(),
+                        MAX_SUBNET_GROUP_NAME_LENGTH
+                ).toLowerCase()
         );
 
         //final List<Tag> tags = Translator.translateTagsToSdk(request.getDesiredResourceTags(), request.getDesiredResourceState().getTags());
@@ -60,8 +60,8 @@ public class CreateHandler extends BaseHandlerStd {
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest((m) -> Translator.translateToCreateRequest(model, request.getDesiredResourceTags()))
                         .makeServiceCall(this::createResource)
-                        .success());
-                //.then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+                        .progress())
+                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
     private CreateClusterSubnetGroupResponse createResource(
