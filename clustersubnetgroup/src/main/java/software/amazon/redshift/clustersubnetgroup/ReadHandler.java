@@ -1,43 +1,76 @@
 package software.amazon.redshift.clustersubnetgroup;
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
-import software.amazon.awssdk.services.redshift.model.InvalidTagException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import static software.amazon.redshift.clustersubnetgroup.Translator.buildReadResponseModel;
+public class ReadHandler extends BaseHandlerStd {
+    private Logger logger;
 
-public class ReadHandler extends BaseHandler<CallbackContext> {
-
-    @Override
-    public ProgressEvent<ResourceModel, CallbackContext> handleRequest(
+    protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
+        final ProxyClient<RedshiftClient> proxyClient,
         final Logger logger) {
 
+        this.logger = logger;
+
         final ResourceModel model = request.getDesiredResourceState();
-        final RedshiftClient client = ClientBuilder.getClient();
 
-        final DescribeClusterSubnetGroupsResponse response;
+        // TODO: Adjust Progress Chain according to your implementation
+        // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
 
+        // STEP 1 [initialize a proxy context]
+        return proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Read", proxyClient, model, callbackContext)
+
+            // STEP 2 [TODO: construct a body of a request]
+            .translateToServiceRequest(Translator::translateToReadRequest)
+
+            // STEP 3 [TODO: make an api call]
+            .makeServiceCall((awsRequest, sdkProxyClient) -> readResource(awsRequest, sdkProxyClient , model))
+
+
+            .done(this::constructResourceModelFromResponse);
+    }
+
+    /**
+     * Implement client invocation of the read request through the proxyClient, which is already initialised with
+     * caller credentials, correct region and retry settings
+     * @param awsRequest the aws service request to describe a resource
+     * @param proxyClient the aws service client to make the call
+     * @return describe resource response
+     */
+    private DescribeClusterSubnetGroupsResponse readResource(
+        final DescribeClusterSubnetGroupsRequest awsRequest,
+        final ProxyClient<RedshiftClient> proxyClient,
+        final ResourceModel model) {
+        DescribeClusterSubnetGroupsResponse awsResponse = null;
         try {
-            response = proxy.injectCredentialsAndInvokeV2(Translator.readClusterSubnetGroupsRequest(model), client::describeClusterSubnetGroups);
-        } catch (final ClusterSubnetGroupNotFoundException | InvalidTagException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getSubnetGroupName());
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterSubnetGroups);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e); // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/commit/2077c92299aeb9a68ae8f4418b5e932b12a8b186#diff-5761e3a9f732dc1ef84103dc4bc93399R56-R63
         }
 
-        // TODO : put your code here
+        logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
 
-        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-            .resourceModel(buildReadResponseModel(response))
-            .status(OperationStatus.SUCCESS)
-            .build();
+    /**
+     * Implement client invocation of the read request through the proxyClient, which is already initialised with
+     * caller credentials, correct region and retry settings
+     * @param awsResponse the aws service describe resource response
+     * @return progressEvent indicating success, in progress with delay callback or failed state
+     */
+    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromResponse(
+        final DescribeClusterSubnetGroupsResponse awsResponse) {
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse));
     }
 }

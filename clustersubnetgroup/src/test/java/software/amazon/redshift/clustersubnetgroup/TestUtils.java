@@ -1,7 +1,9 @@
 package software.amazon.redshift.clustersubnetgroup;
 
 import com.google.common.collect.ImmutableMap;
+import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroup;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
+import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
 import java.util.Arrays;
@@ -29,5 +31,11 @@ public class TestUtils {
 
     final static DescribeTagsResponse DESCRIBE_TAGS_RESPONSE = DescribeTagsResponse.builder()
             .taggedResources(TAGGED_RESOURCES)
+            .build();
+
+    final static ClusterSubnetGroup BASIC_CLUSTER_SUBNET_GROUP = ClusterSubnetGroup.builder()
+            .clusterSubnetGroupName("name")
+            .description("description")
+            .subnets(Subnet.builder().subnetIdentifier("subnet").build(), Subnet.builder().subnetIdentifier("subnet").build())
             .build();
 }

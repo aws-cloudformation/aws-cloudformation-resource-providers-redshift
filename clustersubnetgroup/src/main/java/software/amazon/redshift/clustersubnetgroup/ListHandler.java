@@ -1,6 +1,7 @@
 package software.amazon.redshift.clustersubnetgroup;
 
-import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
@@ -11,7 +12,8 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import static software.amazon.redshift.clustersubnetgroup.Translator.buildListResponseModel;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ListHandler extends BaseHandler<CallbackContext> {
 
@@ -22,22 +24,21 @@ public class ListHandler extends BaseHandler<CallbackContext> {
         final CallbackContext callbackContext,
         final Logger logger) {
 
-        final ResourceModel model = request.getDesiredResourceState();
-        final RedshiftClient client = ClientBuilder.getClient();
-
-        final DescribeClusterSubnetGroupsResponse response;
-
+        final List<ResourceModel> models = new ArrayList<>();
+        DescribeClusterSubnetGroupsResponse describeClusterSubnetGroupsResponse = null;
         try {
-            response = proxy.injectCredentialsAndInvokeV2(Translator.listClusterSubnetGroupsRequest(model), client::describeClusterSubnetGroups);
+            describeClusterSubnetGroupsResponse =
+                    proxy.injectCredentialsAndInvokeV2(Translator.translateToListRequest(request.getNextToken()),
+                            ClientBuilder.getClient()::describeClusterSubnetGroups);
+
         } catch (final ClusterSubnetGroupNotFoundException | InvalidTagException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getSubnetGroupName());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getSubnetGroupName());
         }
 
-        // TODO : put your code here
-
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                .resourceModels(buildListResponseModel(response))
-                .status(OperationStatus.SUCCESS)
-                .build();
+            .resourceModels(Translator.translateFromListResponse(describeClusterSubnetGroupsResponse))
+            .nextToken(describeClusterSubnetGroupsResponse.marker())
+            .status(OperationStatus.SUCCESS)
+            .build();
     }
 }
