@@ -24,10 +24,6 @@
                 "Value",
                 "Key"
             ]
-        },
-        "SubnetId": {
-            "description": "VPC subnet ID",
-            "type": "string"
         }
     },
     "properties": {
@@ -40,7 +36,7 @@
             "type": "array",
             "maxItems": 20,
             "items": {
-                "$ref": "#/definitions/SubnetId"
+                "type": "string"
             }
         },
         "Tags": {
@@ -52,7 +48,9 @@
             }
         },
         "SubnetGroupName": {
-            "type": "string"
+            "description": "This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be \"Default\". ",
+            "type": "string",
+            "maximum": 255
         }
     },
     "additionalProperties": false,

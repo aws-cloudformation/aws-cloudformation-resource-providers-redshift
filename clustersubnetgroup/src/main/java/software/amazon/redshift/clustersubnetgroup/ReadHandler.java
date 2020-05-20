@@ -25,19 +25,9 @@ public class ReadHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        // TODO: Adjust Progress Chain according to your implementation
-        // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
-
-        // STEP 1 [initialize a proxy context]
         return proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Read", proxyClient, model, callbackContext)
-
-            // STEP 2 [TODO: construct a body of a request]
             .translateToServiceRequest(Translator::translateToReadRequest)
-
-            // STEP 3 [TODO: make an api call]
-            .makeServiceCall((awsRequest, sdkProxyClient) -> readResource(awsRequest, sdkProxyClient , model))
-
-
+            .makeServiceCall((awsRequest, sdkProxyClient) -> readResource(awsRequest, sdkProxyClient))
             .done(this::constructResourceModelFromResponse);
     }
 
@@ -50,8 +40,7 @@ public class ReadHandler extends BaseHandlerStd {
      */
     private DescribeClusterSubnetGroupsResponse readResource(
         final DescribeClusterSubnetGroupsRequest awsRequest,
-        final ProxyClient<RedshiftClient> proxyClient,
-        final ResourceModel model) {
+        final ProxyClient<RedshiftClient> proxyClient) {
         DescribeClusterSubnetGroupsResponse awsResponse = null;
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterSubnetGroups);

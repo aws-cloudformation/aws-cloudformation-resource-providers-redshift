@@ -1,11 +1,8 @@
 package software.amazon.redshift.clustersubnetgroup;
 
 import java.time.Duration;
-import java.util.Collections;
 
-import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroup;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsRequest;
@@ -23,7 +20,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.AWS_REGION;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_MODEL;
@@ -86,7 +82,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
-
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         verify(proxyClient.client()).createClusterSubnetGroup(any(CreateClusterSubnetGroupRequest.class));
         verify(proxyClient.client()).describeClusterSubnetGroups(any(DescribeClusterSubnetGroupsRequest.class));
     }

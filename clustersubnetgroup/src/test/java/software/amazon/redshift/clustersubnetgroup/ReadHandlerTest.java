@@ -30,6 +30,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_CLUSTER_SUBNET_GROUP;
+import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_MODEL;
 
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest extends AbstractTestBase {
@@ -56,11 +57,7 @@ public class ReadHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final ResourceModel model = ResourceModel.builder().subnetIds(Collections.emptyList()).build();
-
-        final DescribeClusterSubnetGroupsResponse describeResponse = DescribeClusterSubnetGroupsResponse.builder()
-                .clusterSubnetGroups(ClusterSubnetGroup.builder().build())
-                .build();
+        final ResourceModel model = BASIC_MODEL;
 
         when(proxyClient.client().describeClusterSubnetGroups(any(DescribeClusterSubnetGroupsRequest.class)))
                 .thenReturn(DescribeClusterSubnetGroupsResponse.builder()
@@ -75,7 +72,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        //assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();

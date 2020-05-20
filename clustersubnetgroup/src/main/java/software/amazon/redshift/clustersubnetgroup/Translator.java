@@ -49,11 +49,11 @@ public class Translator {
             .clusterSubnetGroupName(model.getSubnetGroupName())
             .subnetIds(model.getSubnetIds())
             .description(model.getDescription())
-            .tags(translateTagsToSdk(tags))
+            .tags(translateTagsMapToTagCollection(tags))
             .build();
   }
 
-  static List<Tag> translateTagsToSdk(final Map<String, String> tags) {
+  static List<Tag> translateTagsMapToTagCollection(final Map<String, String> tags) {
     if (tags == null) return null;
     return tags.keySet().stream()
             .map(key -> Tag.builder().key(key).value(tags.get(key)).build())
@@ -184,7 +184,6 @@ public class Translator {
 
   static String getArn(final ResourceHandlerRequest<ResourceModel> request) {
     final String subnetGroupName = request.getDesiredResourceState().getSubnetGroupName();
-    // TODO: use request.getAwsPartition() once implemented
     String partition = "aws";
     if (request.getRegion().indexOf("us-gov-") == 0) partition = partition.concat("-us-gov");
     if (request.getRegion().indexOf("cn-") == 0) partition = partition.concat("-cn");

@@ -5,6 +5,8 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -22,7 +24,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static software.amazon.redshift.clustersubnetgroup.TestUtils.AWS_REGION;
+import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_MODEL;
+import static software.amazon.redshift.clustersubnetgroup.TestUtils.DESIRED_RESOURCE_TAGS;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest extends AbstractTestBase {
@@ -48,16 +55,21 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final DeleteHandler handler = new DeleteHandler();
 
-        final ResourceModel model = ResourceModel.builder().build();
+        final ResourceModel model = BASIC_MODEL;
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
+                .region(AWS_REGION)
+                .desiredResourceTags(DESIRED_RESOURCE_TAGS)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
                 .build();
 
+        when(proxyClient.client().deleteClusterSubnetGroup(any(DeleteClusterSubnetGroupRequest.class)))
+                .thenReturn(DeleteClusterSubnetGroupResponse.builder().build());
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        System.out.print(response.toString());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);

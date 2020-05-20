@@ -3,6 +3,7 @@ package software.amazon.redshift.clustersubnetgroup;
 import java.util.List;
 import java.util.Objects;
 
+import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupAlreadyExistsException;
@@ -44,14 +45,8 @@ public class CreateHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
+        prepareResourceModel(request);
         final ResourceModel model = request.getDesiredResourceState();
-        model.setSubnetGroupName(
-                IdentifierUtils.generateResourceIdentifier(
-                        request.getLogicalResourceIdentifier(),
-                        request.getClientRequestToken(),
-                        MAX_SUBNET_GROUP_NAME_LENGTH
-                ).toLowerCase()
-        );
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Create", proxyClient, model, callbackContext)
@@ -79,5 +74,22 @@ public class CreateHandler extends BaseHandlerStd {
 
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
         return createResponse;
+    }
+
+    private void prepareResourceModel(ResourceHandlerRequest<ResourceModel> request) {
+        if (request.getDesiredResourceState() == null) {
+            request.setDesiredResourceState(new ResourceModel());
+        }
+        final ResourceModel model = request.getDesiredResourceState();
+
+        if (StringUtils.isNullOrEmpty(model.getSubnetGroupName())) {
+            model.setSubnetGroupName(
+                    IdentifierUtils.generateResourceIdentifier(
+                            request.getLogicalResourceIdentifier(),
+                            request.getClientRequestToken(),
+                            MAX_SUBNET_GROUP_NAME_LENGTH
+                    ).toLowerCase()
+            );
+        }
     }
 }

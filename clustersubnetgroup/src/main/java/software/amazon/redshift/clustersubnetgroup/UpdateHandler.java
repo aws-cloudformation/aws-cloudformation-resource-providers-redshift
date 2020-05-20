@@ -82,7 +82,7 @@ public class UpdateHandler extends BaseHandlerStd {
         try {
             final String arn = Translator.getArn(request);
             final List<Tag> prevTags = Translator.getTags(arn, proxy, proxyClient);
-            final List<Tag> currTags = Translator.translateTagsToSdk(request.getDesiredResourceTags());
+            final List<Tag> currTags = Translator.translateTagsMapToTagCollection(request.getDesiredResourceTags());
             final Set<Tag> prevTagSet = CollectionUtils.isEmpty(prevTags) ? new HashSet<>() : new HashSet<>(prevTags);
             final Set<Tag> currTagSet = CollectionUtils.isEmpty(currTags) ? new HashSet<>() : new HashSet<>(currTags);
 
