@@ -1,14 +1,10 @@
 package software.amazon.redshift.clustersubnetgroup;
 
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.pagination.sync.SdkIterable;
+import org.junit.jupiter.api.AfterEach;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -20,12 +16,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.AWS_REGION;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_MODEL;
@@ -51,6 +48,12 @@ public class DeleteHandlerTest extends AbstractTestBase {
         sdkClient = mock(RedshiftClient.class);
         proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
         proxyClient = MOCK_PROXY(proxy, sdkClient);
+    }
+
+    @AfterEach
+    public void tear_down() {
+        verify(sdkClient, atLeastOnce()).serviceName();
+        verifyNoMoreInteractions(sdkClient);
     }
 
     @Test

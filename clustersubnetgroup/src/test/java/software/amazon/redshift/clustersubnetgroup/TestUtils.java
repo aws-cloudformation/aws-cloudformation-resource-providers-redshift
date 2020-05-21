@@ -1,6 +1,5 @@
 package software.amazon.redshift.clustersubnetgroup;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroup;
@@ -12,7 +11,6 @@ import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 

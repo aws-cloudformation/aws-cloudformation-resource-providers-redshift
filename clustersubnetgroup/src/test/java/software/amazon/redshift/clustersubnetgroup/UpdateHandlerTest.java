@@ -38,17 +38,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
 import static junit.framework.Assert.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.AWS_ACCOUNT_ID;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.AWS_REGION;
@@ -56,7 +50,6 @@ import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_CLUSTE
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.CREATE_TAGS_REQUEST;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.DELETE_TAGS_REQUEST;
-import static software.amazon.redshift.clustersubnetgroup.TestUtils.DESCRIBE_TAGS_REQUEST;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.DESCRIBE_TAGS_RESPONSE;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.DESCRIBE_TAGS_RESPONSE_CREATING;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.DESIRED_RESOURCE_TAGS;

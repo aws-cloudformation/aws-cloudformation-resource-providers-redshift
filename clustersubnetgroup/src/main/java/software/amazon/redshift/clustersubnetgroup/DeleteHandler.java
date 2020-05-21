@@ -1,16 +1,11 @@
 package software.amazon.redshift.clustersubnetgroup;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.awscore.AwsRequest;
-import software.amazon.awssdk.awscore.AwsResponse;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetStateException;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;

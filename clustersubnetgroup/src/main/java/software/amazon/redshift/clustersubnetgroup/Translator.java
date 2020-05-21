@@ -1,8 +1,6 @@
 package software.amazon.redshift.clustersubnetgroup;
 
-import com.amazonaws.util.CollectionUtils;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroup;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRequest;
@@ -19,7 +17,6 @@ import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
