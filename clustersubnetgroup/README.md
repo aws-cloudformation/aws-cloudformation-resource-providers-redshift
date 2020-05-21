@@ -10,4 +10,4 @@ The RPDK will automatically generate the correct resource model from the schema 
 The code uses [Lombok](https://projectlombok.org/), and [you may have to install IDE integrations](https://projectlombok.org/setup/overview) to enable auto-complete for Lombok-annotated classes.
 
 ##Sam Test
-Create two subnets using one VPC first, these can be used to test construct the subnet group. Follow [Manual testing guide](https://w.amazon.com/bin/view/AWS21/Design/Uluru/Onboarding_Guide/Uluru_OpenSource_And_Developing_In_Amazon/IntegrationTests/) to create it to test
+Create two subnets using one VPC first, these can be used to test construct the subnet group.

@@ -27,7 +27,7 @@ import software.amazon.cloudformation.resource.IdentifierUtils;
 
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
-    private static final int MAX_SUBNET_GROUP_NAME_LENGTH = 256;
+    private static final int MAX_SUBNET_GROUP_NAME_LENGTH = 255;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
