@@ -28,6 +28,8 @@ Resources:
                 - "initech:DescribeReport"
                 - "initech:ListReports"
                 - "initech:UpdateReport"
+                - "redshift:CreateClusterParameterGroup"
+                - "redshift:DescribeClusterParameterGroups"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

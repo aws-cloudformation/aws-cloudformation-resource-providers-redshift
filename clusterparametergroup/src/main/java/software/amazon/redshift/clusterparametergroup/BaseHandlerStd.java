@@ -1,6 +1,6 @@
 package software.amazon.redshift.clusterparametergroup;
 
-import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -29,6 +29,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final AmazonWebServicesClientProxy proxy,
     final ResourceHandlerRequest<ResourceModel> request,
     final CallbackContext callbackContext,
-    final ProxyClient<SdkClient> proxyClient,
+    final ProxyClient<RedshiftClient> proxyClient,
     final Logger logger);
+
 }

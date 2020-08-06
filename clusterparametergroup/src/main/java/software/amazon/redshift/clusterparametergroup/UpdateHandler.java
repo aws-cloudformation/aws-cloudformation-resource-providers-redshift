@@ -6,6 +6,7 @@ package software.amazon.redshift.clusterparametergroup;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
@@ -20,7 +21,7 @@ public class UpdateHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final ProxyClient<SdkClient> proxyClient,
+        final ProxyClient<RedshiftClient> proxyClient,
         final Logger logger) {
 
         this.logger = logger;

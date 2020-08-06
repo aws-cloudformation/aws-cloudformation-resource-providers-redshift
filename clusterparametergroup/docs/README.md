@@ -1,6 +1,6 @@
 # AWS::Redshift::ClusterParameterGroup
 
-An example resource schema demonstrating some basic constructs and validation rules.
+Resource Type definition for AWS::Redshift::ClusterParameterGroup
 
 ## Syntax
 
@@ -12,14 +12,10 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::Redshift::ClusterParameterGroup",
     "Properties" : {
-        "<a href="#title" title="Title">Title</a>" : <i>String</i>,
-        "<a href="#coversheetincluded" title="CoverSheetIncluded">CoverSheetIncluded</a>" : <i>Boolean</i>,
-        "<a href="#duedate" title="DueDate">DueDate</a>" : <i>String</i>,
-        "<a href="#approvaldate" title="ApprovalDate">ApprovalDate</a>" : <i>String</i>,
-        "<a href="#memo" title="Memo">Memo</a>" : <i><a href="memo.md">Memo</a></i>,
-        "<a href="#secondcopyofmemo" title="SecondCopyOfMemo">SecondCopyOfMemo</a>" : <i><a href="memo.md">Memo</a></i>,
-        "<a href="#testcode" title="TestCode">TestCode</a>" : <i>String</i>,
-        "<a href="#authors" title="Authors">Authors</a>" : <i>[ String, ... ]</i>
+        "<a href="#description" title="Description">Description</a>" : <i>String</i>,
+        "<a href="#parametergroupfamily" title="ParameterGroupFamily">ParameterGroupFamily</a>" : <i>String</i>,
+        "<a href="#parameters" title="Parameters">Parameters</a>" : <i>[ <a href="parameter.md">Parameter</a>, ... ]</i>,
+        "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>
     }
 }
 </pre>
@@ -29,90 +25,45 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::Redshift::ClusterParameterGroup
 Properties:
-    <a href="#title" title="Title">Title</a>: <i>String</i>
-    <a href="#coversheetincluded" title="CoverSheetIncluded">CoverSheetIncluded</a>: <i>Boolean</i>
-    <a href="#duedate" title="DueDate">DueDate</a>: <i>String</i>
-    <a href="#approvaldate" title="ApprovalDate">ApprovalDate</a>: <i>String</i>
-    <a href="#memo" title="Memo">Memo</a>: <i><a href="memo.md">Memo</a></i>
-    <a href="#secondcopyofmemo" title="SecondCopyOfMemo">SecondCopyOfMemo</a>: <i><a href="memo.md">Memo</a></i>
-    <a href="#testcode" title="TestCode">TestCode</a>: <i>String</i>
-    <a href="#authors" title="Authors">Authors</a>: <i>
-      - String</i>
+    <a href="#description" title="Description">Description</a>: <i>String</i>
+    <a href="#parametergroupfamily" title="ParameterGroupFamily">ParameterGroupFamily</a>: <i>String</i>
+    <a href="#parameters" title="Parameters">Parameters</a>: <i>
+      - <a href="parameter.md">Parameter</a></i>
+    <a href="#tags" title="Tags">Tags</a>: <i>
+      - <a href="tag.md">Tag</a></i>
 </pre>
 
 ## Properties
 
-#### Title
-
-The title of the TPS report is a mandatory element.
+#### Description
 
 _Required_: Yes
 
 _Type_: String
 
-_Minimum_: <code>20</code>
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
-_Maximum_: <code>250</code>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### CoverSheetIncluded
-
-Required for all TPS Reports submitted after 2/19/1999
-
-_Required_: No
-
-_Type_: Boolean
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### DueDate
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### ApprovalDate
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### Memo
-
-_Required_: No
-
-_Type_: <a href="memo.md">Memo</a>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### SecondCopyOfMemo
-
-_Required_: No
-
-_Type_: <a href="memo.md">Memo</a>
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### TestCode
+#### ParameterGroupFamily
 
 _Required_: Yes
 
 _Type_: String
 
-_Allowed Values_: <code>NOT_STARTED</code> | <code>CANCELLED</code>
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### Authors
+#### Parameters
 
 _Required_: No
 
-_Type_: List of String
+_Type_: List of <a href="parameter.md">Parameter</a>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Tags
+
+_Required_: No
+
+_Type_: List of <a href="tag.md">Tag</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -120,7 +71,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 ### Ref
 
-When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the TPSCode.
+When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the ParameterGroupName.
 
 ### Fn::GetAtt
 
@@ -128,7 +79,7 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### TPSCode
+#### ParameterGroupName
 
-A TPS Code is automatically generated on creation and assigned as the unique identifier.
+This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be "Default". 
 

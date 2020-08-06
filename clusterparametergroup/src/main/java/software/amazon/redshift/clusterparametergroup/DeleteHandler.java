@@ -1,12 +1,16 @@
 package software.amazon.redshift.clusterparametergroup;
 
-// TODO: replace all usage of SdkClient with your service client type, e.g; YourServiceAsyncClient
-// import software.amazon.awssdk.services.yourservice.YourServiceAsyncClient;
-
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
+import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupResponse;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetStateException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -20,7 +24,7 @@ public class DeleteHandler extends BaseHandlerStd {
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
-        final ProxyClient<SdkClient> proxyClient,
+        final ProxyClient<RedshiftClient> proxyClient,
         final Logger logger) {
 
         this.logger = logger;
@@ -77,38 +81,35 @@ public class DeleteHandler extends BaseHandlerStd {
 
                     // STEP 2.2 [TODO: make an api call]
                     .makeServiceCall((awsRequest, client) -> {
-                        AwsResponse awsResponse = null;
+                        DeleteClusterParameterGroupResponse awsResponse = null;
                         try {
 
                             // TODO: put your delete resource code here
-
-                        } catch (final AwsServiceException e) {
-                            /*
-                            * While the handler contract states that the handler must always return a progress event,
-                            * you may throw any instance of BaseHandlerException, as the wrapper map it to a progress event.
-                            * Each BaseHandlerException maps to a specific error code, and you should map service exceptions as closely as possible
-                            * to more specific error codes
-                            */
-                            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+                            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::deleteClusterParameterGroup);
+                            logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, awsRequest.parameterGroupName()));
+                        } catch (final ClusterSubnetGroupNotFoundException e) {
+                            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
+                        } catch (final InvalidClusterSubnetGroupStateException | InvalidClusterSubnetStateException e) {
+                            throw new CfnInvalidRequestException(awsRequest.toString(), e);
                         }
 
                         logger.log(String.format("%s successfully deleted.", ResourceModel.TYPE_NAME));
                         return awsResponse;
-                    })
+                    }).success());
 
                     // STEP 2.3 [TODO: stabilize step is not necessarily required but typically involves describing the resource until it is in a certain status, though it can take many forms]
                     // for more information -> https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test-contract.html
-                    .stabilize((awsRequest, awsResponse, client, model, context) -> {
-                        // TODO: put your stabilization code here
-
-                        final boolean stabilized = true;
-                        logger.log(String.format("%s [%s] deletion has stabilized: %s", ResourceModel.TYPE_NAME, model.getPrimaryIdentifier(), stabilized));
-                        return stabilized;
-                    })
-                    .progress()
-            )
-
-            // STEP 3 [TODO: return the successful progress event without resource model]
-            .then(progress -> ProgressEvent.defaultSuccessHandler(null));
+//                    .stabilize((awsRequest, awsResponse, client, model, context) -> {
+//                        // TODO: put your stabilization code here
+//
+//                        final boolean stabilized = true;
+//                        logger.log(String.format("%s [%s] deletion has stabilized: %s", ResourceModel.TYPE_NAME, model.getPrimaryIdentifier(), stabilized));
+//                        return stabilized;
+//                    })
+//                    .progress()
+//            )
+//
+//            // STEP 3 [TODO: return the successful progress event without resource model]
+//            .then(progress -> ProgressEvent.defaultSuccessHandler(null));
     }
 }

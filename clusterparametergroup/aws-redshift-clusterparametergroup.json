@@ -1,88 +1,76 @@
 {
-    "typeName": "AWS::Redshift::ClusterParameterGroup",
-    "description": "An example resource schema demonstrating some basic constructs and validation rules.",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
-    "definitions": {
-        "InitechDateFormat": {
-            "$comment": "Use the `definitions` block to provide shared resource property schemas",
+    "typeName" : "AWS::Redshift::ClusterParameterGroup",
+    "description" : "Resource Type definition for AWS::Redshift::ClusterParameterGroup",
+    "additionalProperties" : false,
+    "properties" : {
+        "ParameterGroupName" : {
+            "description": "This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be \"Default\". ",
             "type": "string",
-            "format": "date-time"
+            "maximum": 255
         },
-        "Memo": {
-            "type": "object",
-            "properties": {
-                "Heading": {
-                    "type": "string"
-                },
-                "Body": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": false
-        }
-    },
-    "properties": {
-        "TPSCode": {
-            "description": "A TPS Code is automatically generated on creation and assigned as the unique identifier.",
-            "type": "string",
-            "pattern": "^[A-Z]{3,5}[0-9]{8}-[0-9]{4}$"
+        "Description" : {
+            "type" : "string"
         },
-        "Title": {
-            "description": "The title of the TPS report is a mandatory element.",
-            "type": "string",
-            "minLength": 20,
-            "maxLength": 250
+        "ParameterGroupFamily" : {
+            "type" : "string"
         },
-        "CoverSheetIncluded": {
-            "description": "Required for all TPS Reports submitted after 2/19/1999",
-            "type": "boolean"
+        "Parameters" : {
+            "type" : "array",
+            "uniqueItems" : false,
+            "items" : {
+                "$ref" : "#/definitions/Parameter"
+            }
         },
-        "DueDate": {
-            "$ref": "#/definitions/InitechDateFormat"
-        },
-        "ApprovalDate": {
-            "$ref": "#/definitions/InitechDateFormat"
-        },
-        "Memo": {
-            "$ref": "#/definitions/Memo"
-        },
-        "SecondCopyOfMemo": {
-            "description": "In case you didn't get the first one.",
-            "$ref": "#/definitions/Memo"
-        },
-        "TestCode": {
-            "type": "string",
-            "enum": [
-                "NOT_STARTED",
-                "CANCELLED"
-            ]
-        },
-        "Authors": {
-            "type": "array",
-            "items": {
-                "type": "string"
+        "Tags" : {
+            "type" : "array",
+            "uniqueItems" : false,
+            "items" : {
+                "$ref" : "#/definitions/Tag"
             }
         }
     },
-    "additionalProperties": false,
-    "required": [
-        "TestCode",
-        "Title"
-    ],
-    "readOnlyProperties": [
-        "/properties/TPSCode"
-    ],
-    "primaryIdentifier": [
-        "/properties/TPSCode"
-    ],
+    "definitions" : {
+        "Parameter" : {
+            "type" : "object",
+            "additionalProperties" : false,
+            "properties" : {
+                "ParameterName" : {
+                    "type" : "string"
+                },
+                "ParameterValue" : {
+                    "type" : "string"
+                }
+            },
+            "required" : [ "ParameterValue", "ParameterName" ]
+        },
+        "Tag" : {
+            "type" : "object",
+            "additionalProperties" : false,
+            "properties" : {
+                "Key" : {
+                    "type" : "string"
+                },
+                "Value" : {
+                    "type" : "string"
+                }
+            },
+            "required" : [ "Value", "Key" ]
+        }
+    },
+    "required" : [ "Description", "ParameterGroupFamily" ],
+    "createOnlyProperties" : [ "/properties/ParameterGroupFamily", "/properties/Description" ],
+    "primaryIdentifier" : [ "/properties/ParameterGroupName" ],
+    "readOnlyProperties" : [ "/properties/ParameterGroupName" ],
     "handlers": {
         "create": {
             "permissions": [
+                "redshift:CreateClusterParameterGroup",
                 "initech:CreateReport"
             ]
         },
         "read": {
             "permissions": [
+                "redshift:DescribeClusterParameterGroups",
                 "initech:DescribeReport"
             ]
         },

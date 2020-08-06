@@ -3,10 +3,10 @@ package software.amazon.redshift.clusterparametergroup;
 import com.google.common.collect.Lists;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.Tag;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,23 +24,32 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to create a resource
    */
-  static AwsRequest translateToCreateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L39-L43
-    return awsRequest;
+  static CreateClusterParameterGroupRequest translateToCreateRequest(final ResourceModel model, final Map<String, String> tags) {
+    return CreateClusterParameterGroupRequest.builder()
+            .parameterGroupName(model.getParameterGroupName())
+            .parameterGroupFamily(model.getParameterGroupFamily())
+            .description(model.getDescription())
+            .tags(translateTagsMapToTagCollection(tags))
+            .build();
   }
 
+  static List<Tag> translateTagsMapToTagCollection(final Map<String, String> tags) {
+    if (tags == null) return null;
+    return tags.keySet().stream()
+            .map(key -> Tag.builder().key(key).value(tags.get(key)).build())
+            .collect(Collectors.toList());
+  }
   /**
    * Request to read a resource
    * @param model resource model
    * @return awsRequest the aws service request to describe a resource
    */
-  static AwsRequest translateToReadRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
+  static DescribeClusterParameterGroupsRequest translateToReadRequest(final ResourceModel model) {
+    // 其他的参数要不要？？？
     // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L20-L24
-    return awsRequest;
+    return DescribeClusterParameterGroupsRequest.builder()
+            .parameterGroupName(model.getParameterGroupName())
+            .build();
   }
 
   /**
@@ -48,11 +57,46 @@ public class Translator {
    * @param awsResponse the aws service describe resource response
    * @return model resource model
    */
-  static ResourceModel translateFromReadResponse(final AwsResponse awsResponse) {
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L58-L73
+  static ResourceModel translateFromReadResponse(final DescribeClusterParameterGroupsResponse awsResponse) {
+    final String parameterGroupName = streamOfOrEmpty(awsResponse.parameterGroups())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::parameterGroupName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String description = streamOfOrEmpty(awsResponse.parameterGroups())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::description)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String parameterGroupFamily = streamOfOrEmpty(awsResponse.parameterGroups())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::parameterGroupFamily)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<Tag> tags = streamOfOrEmpty(awsResponse.parameterGroups())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::tags)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
     return ResourceModel.builder()
-        //.someProperty(response.property())
-        .build();
+            .parameterGroupName(parameterGroupName)
+            .description(description)
+            .parameterGroupFamily(parameterGroupFamily)
+            .tags(translateTagsFromSdk(tags))
+            .build();
+  }
+
+  static List<software.amazon.redshift.clusterparametergroup.Tag> translateTagsFromSdk (final List<Tag> tags) {
+    return Optional.ofNullable(tags).orElse(Collections.emptyList())
+            .stream()
+            .map(tag -> software.amazon.redshift.clusterparametergroup.Tag.builder()
+                    .key(tag.key())
+                    .value(tag.value()).build())
+            .collect(Collectors.toList());
   }
 
   /**
@@ -60,11 +104,10 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to delete a resource
    */
-  static AwsRequest translateToDeleteRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L33-L37
-    return awsRequest;
+  static DeleteClusterParameterGroupRequest translateToDeleteRequest(final ResourceModel model) {
+    return DeleteClusterParameterGroupRequest.builder()
+            .parameterGroupName(model.getParameterGroupName())
+            .build();
   }
 
   /**
