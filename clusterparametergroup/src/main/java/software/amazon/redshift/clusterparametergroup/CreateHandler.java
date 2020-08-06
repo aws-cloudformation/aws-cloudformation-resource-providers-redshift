@@ -53,22 +53,10 @@ public class CreateHandler extends BaseHandlerStd {
                         } catch (final ClusterParameterGroupQuotaExceededException | ClusterSubnetGroupQuotaExceededException e) {
                             throw new CfnServiceLimitExceededException(ResourceModel.TYPE_NAME, e.toString());
                         }
-                        logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
+                        logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME,
+                                request.getDesiredResourceState().getParameterGroupName()));
                         return awsResponse;
                     })
-
-                    // STEP 2.3 [TODO: stabilize step is not necessarily required but typically involves describing the resource until it is in a certain status, though it can take many forms]
-                    // for more information -> https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test-contract.html
-                    // If your resource requires some form of stabilization (e.g. service does not provide strong consistency), you will need to ensure that your code
-                    // accounts for any potential issues, so that a subsequent read/update requests will not cause any conflicts (e.g. NotFoundException/InvalidRequestException)
-//                    .stabilize((awsRequest, awsResponse, client, model, context) -> {
-//                        // TODO: put your stabilization code here
-//                        // make sure resource provision in 2.2 is successfully
-//                        // use describe
-//                        final boolean stabilized = true;
-//                        logger.log(String.format("%s [%s] has been stabilized.", ResourceModel.TYPE_NAME, model.getPrimaryIdentifier()));
-//                        return stabilized;
-//                    })
                     .progress()
                 )
 

@@ -65,6 +65,8 @@
         "create": {
             "permissions": [
                 "redshift:CreateClusterParameterGroup",
+                "redshift:ModifyClusterParameterGroup",
+                "redshift:CreateTags",
                 "initech:CreateReport"
             ]
         },
@@ -76,11 +78,17 @@
         },
         "update": {
             "permissions": [
+                "redshift:ResetClusterParameterGroup",
+                "redshift:ModifyClusterParameterGroup",
+                "redshift:DescribeTags",
+                "redshift:CreateTags",
+                "redshift:DeleteTags",
                 "initech:UpdateReport"
             ]
         },
         "delete": {
             "permissions": [
+                "redshift:DeleteClusterParameterGroup",
                 "initech:DeleteReport"
             ]
         },
