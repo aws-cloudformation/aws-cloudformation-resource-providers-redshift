@@ -3,8 +3,12 @@ package software.amazon.redshift.clusterparametergroup;
 import com.google.common.collect.Lists;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.awssdk.services.redshift.model.Tag;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -115,13 +119,18 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to modify a resource
    */
-  static AwsRequest translateToFirstUpdateRequest(final ResourceModel model) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L45-L50
-    return awsRequest;
+  static ModifyClusterParameterGroupRequest translateToUpdateRequest(final ResourceModel model) {
+    return ModifyClusterParameterGroupRequest.builder()
+            .parameterGroupName(model.getParameterGroupName())
+            .parameters(translateParametersToSdk(model.getParameters()))
+            .build();
   }
 
+  private static List<software.amazon.awssdk.services.redshift.model.Parameter> translateParametersToSdk(final List<software.amazon.redshift.clusterparametergroup.Parameter> parameters) {
+    return parameters.stream()
+            .map(param -> software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName(param.getParameterName()).parameterValue(param.getParameterValue()).build())
+            .collect(Collectors.toList());
+  }
   /**
    * Request to update some other properties that could not be provisioned through first update request
    * @param model resource model
@@ -164,4 +173,43 @@ public class Translator {
         .map(Collection::stream)
         .orElseGet(Stream::empty);
   }
+
+  static String getArn(final ResourceHandlerRequest<ResourceModel> request) {
+    String partition = request.getAwsPartition();
+    final String parameterGroupName = request.getDesiredResourceState().getParameterGroupName();
+//        String partition = "aws";
+//        if (request.getRegion().indexOf("us-gov-") == 0) partition = partition.concat("-us-gov");
+//        if (request.getRegion().indexOf("cn-") == 0) partition = partition.concat("-cn");
+    return String.format("arn:%s:redshift:%s:%s:parametergroup:%s", partition, request.getRegion(), request.getAwsAccountId(), parameterGroupName);
+  }
+
+  static List<Tag> getTags(final String arn, final AmazonWebServicesClientProxy proxy, final ProxyClient<RedshiftClient> proxyClient) {
+    final DescribeTagsResponse response = proxy.injectCredentialsAndInvokeV2(Translator.describeTagsRequest(arn), proxyClient.client()::describeTags);
+    return response.taggedResources().stream().map(TaggedResource::tag).collect(Collectors.toList());
+  }
+
+  static DescribeTagsRequest describeTagsRequest(final String arn) {
+    return DescribeTagsRequest.builder()
+            .resourceName(arn)
+            .build();
+  }
+
+  static Set<String> getTagsKeySet(final Collection<Tag> tags) {
+    return tags.stream().map(tag -> tag.key()).collect(Collectors.toSet());
+  }
+
+  static CreateTagsRequest createTagsRequest(final Collection<Tag> tags, final String arn) {
+    return CreateTagsRequest.builder()
+            .resourceName(arn)
+            .tags(tags)
+            .build();
+  }
+
+  static DeleteTagsRequest deleteTagsRequest(final Collection<String> tagsKey, final String arn) {
+    return DeleteTagsRequest.builder()
+            .resourceName(arn)
+            .tagKeys(tagsKey)
+            .build();
+  }
+
 }
