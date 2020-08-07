@@ -147,11 +147,8 @@ public class Translator {
    * @param nextToken token passed to the aws service list resources request
    * @return awsRequest the aws service request to list resources within aws account
    */
-  static AwsRequest translateToListRequest(final String nextToken) {
-    final AwsRequest awsRequest = null;
-    // TODO: construct a request
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L26-L31
-    return awsRequest;
+  static DescribeClusterParameterGroupsRequest translateToListRequest(final String nextToken) {
+    return DescribeClusterParameterGroupsRequest.builder().marker(nextToken).build();
   }
 
   /**
@@ -168,6 +165,18 @@ public class Translator {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Translates resource objects from sdk into a resource model (primary identifier only)
+   * @param awsResponse the aws service describe resource response
+   * @return list of resource models
+   */
+  static List<ResourceModel> translateFromListResponse(final DescribeClusterParameterGroupsResponse awsResponse) {
+    return streamOfOrEmpty(awsResponse.parameterGroups())
+            .map(clusterParameterGroup -> ResourceModel.builder()
+                    .parameterGroupName(clusterParameterGroup.parameterGroupName())
+                    .build())
+            .collect(Collectors.toList());
+  }
   private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
     return Optional.ofNullable(collection)
         .map(Collection::stream)

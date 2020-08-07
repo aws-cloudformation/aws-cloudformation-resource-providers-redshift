@@ -2,6 +2,8 @@ package software.amazon.redshift.clusterparametergroup;
 
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
+import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -22,21 +24,19 @@ public class ListHandler extends BaseHandler<CallbackContext> {
 
         final List<ResourceModel> models = new ArrayList<>();
 
-        // STEP 1 [TODO: construct a body of a request]
-        final AwsRequest awsRequest = Translator.translateToListRequest(request.getNextToken());
+        final DescribeClusterParameterGroupsRequest awsRequest = Translator.translateToListRequest(request.getNextToken());
 
-        // STEP 2 [TODO: make an api call]
-        AwsResponse awsResponse = null; // proxy.injectCredentialsAndInvokeV2(awsRequest, ClientBuilder.getClient()::describeLogGroups);
+        DescribeClusterParameterGroupsResponse awsResponse = null;
+        try {
+            proxy.injectCredentialsAndInvokeV2(awsRequest, ClientBuilder.getClient()::describeClusterParameterGroups);
 
-        // STEP 3 [TODO: get a token for the next page]
-        String nextToken = null;
-
-        // STEP 4 [TODO: construct resource models]
-        // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/master/aws-logs-loggroup/src/main/java/software/amazon/logs/loggroup/ListHandler.java#L19-L21
+        } catch (ClusterParameterGroupNotFoundException | InvalidTagException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getParameterGroupName());
+        }
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                .resourceModels(Translator.translateFromListResponse(awsResponse))
             .resourceModels(models)
-            .nextToken(nextToken)
             .status(OperationStatus.SUCCESS)
             .build();
     }

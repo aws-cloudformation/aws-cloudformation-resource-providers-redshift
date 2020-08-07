@@ -37,7 +37,6 @@ public class UpdateHandler extends BaseHandlerStd {
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
             // STEP 2 [first update/stabilize progress chain - required for resource update]
             .then(progress ->
-
                 proxy.initiate("AWS-Redshift-ClusterParameterGroup::Update::first", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
                     .makeServiceCall((awsRequest, client) -> {
