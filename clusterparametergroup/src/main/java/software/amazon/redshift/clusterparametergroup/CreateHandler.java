@@ -26,45 +26,44 @@ public class CreateHandler extends BaseHandlerStd {
     private static final int MAX_PARAMETER_GROUP_NAME_LENGTH = 255;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-        final AmazonWebServicesClientProxy proxy,
-        final ResourceHandlerRequest<ResourceModel> request,
-        final CallbackContext callbackContext,
-        final ProxyClient<RedshiftClient> proxyClient,
-        final Logger logger) {
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceHandlerRequest<ResourceModel> request,
+            final CallbackContext callbackContext,
+            final ProxyClient<RedshiftClient> proxyClient,
+            final Logger logger) {
 
         this.logger = logger;
 
-        // TODO: Adjust Progress Chain according to your implementation
-        // https://github.com/aws-cloudformation/cloudformation-cli-java-plugin/blob/master/src/main/java/software/amazon/cloudformation/proxy/CallChain.java
         prepareResourceModel(request);
-        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-            // STEP 2 [create/stabilize progress chain - required for resource creation]
-            .then(progress ->
-                proxy.initiate("AWS-Redshift-ClusterParameterGroup::Create", proxyClient,progress.getResourceModel(), progress.getCallbackContext())
-                    .translateToServiceRequest((m) -> Translator.translateToCreateRequest(request.getDesiredResourceState(), request.getDesiredResourceTags()))
-                    .makeServiceCall((awsRequest, client) -> {
-                        CreateClusterParameterGroupResponse awsResponse;
-                        try {
-                            awsResponse = client.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::createClusterParameterGroup);
-                        } catch (final ClusterParameterGroupAlreadyExistsException e) {
-                            throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
-                        } catch (final TagLimitExceededException | InvalidTagException e) {
-                            throw new CfnInvalidRequestException(awsRequest.toString(), e);
-                        } catch (final ClusterParameterGroupQuotaExceededException | ClusterSubnetGroupQuotaExceededException e) {
-                            throw new CfnServiceLimitExceededException(ResourceModel.TYPE_NAME, e.toString());
-                        }
-                        logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME,
-                                request.getDesiredResourceState().getParameterGroupName()));
-                        return awsResponse;
-                    })
-                    .progress()
-                )
+        final ResourceModel model = request.getDesiredResourceState();
 
-            // STEP 3 [TODO: describe call/chain to return the resource model]
-            .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+        return ProgressEvent.progress(model, callbackContext)
+                .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Create", proxyClient, model, callbackContext)
+                                .translateToServiceRequest((m) -> Translator.translateToCreateRequest(model, request.getDesiredResourceTags()))
+                                .makeServiceCall((awsRequest, client) -> {
+                                    System.out.println("Request is " + awsRequest);
+                                    CreateClusterParameterGroupResponse awsResponse;
+                                    try {
+                                        awsResponse = client.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::createClusterParameterGroup);
+                                    } catch (final ClusterParameterGroupAlreadyExistsException e) {
+                                        throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
+                                    } catch (final TagLimitExceededException | InvalidTagException e) {
+                                        throw new CfnInvalidRequestException(awsRequest.toString(), e);
+                                    } catch (final ClusterParameterGroupQuotaExceededException | ClusterSubnetGroupQuotaExceededException e) {
+                                        throw new CfnServiceLimitExceededException(ResourceModel.TYPE_NAME, e.toString());
+                                    }
+                                    logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME,
+                                            request.getDesiredResourceState().getParameterGroupName()));
+
+                                    System.out.println("Response is " + awsResponse);
+                                    return awsResponse;
+                                }).progress()
+                ).then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+        //TODO: if model contains parameters, should add them into the parameter just created, not sure if it's necessary
     }
+
     /**
-        Generate a ID for request if it doesn't have one
+     * Generate a ID for request if the request doesn't have one
      */
     private void prepareResourceModel(ResourceHandlerRequest<ResourceModel> request) {
         if (request.getDesiredResourceState() == null) {
