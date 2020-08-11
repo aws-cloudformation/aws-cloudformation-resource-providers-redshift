@@ -54,13 +54,10 @@ public class CreateHandler extends BaseHandlerStd {
                             }
                             logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME,
                                     request.getDesiredResourceState().getParameterGroupName()));
-
-                            System.out.println("Response is " + awsResponse);
+                            System.out.println("AWS response is " + awsResponse);
                             return awsResponse;
-                        })
-                        .done((paramGroupRequest, paramGroupResponse, proxyInvocation, resourceModel, context) -> applyParameters(proxy, proxyInvocation, resourceModel, context)))
+                        }).done((paramGroupRequest, paramGroupResponse, proxyInvocation, resourceModel, context) -> applyParameters(proxy, proxyInvocation, resourceModel, context)))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-        //TODO: if model contains parameters, should add them into the parameter just created, not sure if it's necessary
     }
 
     /**

@@ -47,12 +47,21 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                                                                           final ProxyClient<RedshiftClient> proxyClient,
                                                                           final ResourceModel model,
                                                                           final CallbackContext callbackContext) {
-    if (callbackContext.isParametersApplied()) return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model);
+    System.out.println("applyParameters:: model:: " + model);
+
+    if (callbackContext.isParametersApplied()) {
+      System.out.println("applyParameters:: ProgressEvent:: " + ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model));
+      return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model);
+    }
 
     callbackContext.setParametersApplied(true);
+
     ProgressEvent<ResourceModel, CallbackContext> progress = ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
 
-    if (model.getParameters().isEmpty()) return progress;
+    if (model.getParameters() == null || model.getParameters().isEmpty()) {
+      System.out.println("applyParameters:: progress:: " + progress);
+      return progress;
+    }
 
     Set<String> paramNames = model.getParameters().stream()
             .map(parameter -> parameter.getParameterName()).collect(Collectors.toSet());

@@ -119,35 +119,25 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
                 .thenReturn(DescribeClusterParameterGroupsResponse.builder()
                         .parameterGroups(CLUSTER_PARAMETER_GROUP)
-                        .marker("0")
+                        .marker("")
                         .build());
 
-//        when(proxyClient.client().modifyClusterParameterGroup(any(ModifyClusterParameterGroupRequest.class)))
-//                .thenReturn(ModifyClusterParameterGroupResponse.builder()
-//                        .parameterGroupName(PARAMETER_GROUP_NAME)
-//                        .parameterGroupStatus("Your parameter group has been updated")
-//                        .build());
-//
-//        when(proxyClient.client().describeClusterParameters(any(DescribeClusterParametersRequest.class)))
-//                .thenReturn(DescribeClusterParametersResponse.builder()
-//                        .parameters(SDK_PARAMETERS)
-//                        .marker("")
-//                        .build());
+        CallbackContext callbackContext = new CallbackContext();
+        callbackContext.setParametersApplied(true);
 
         final ProgressEvent<ResourceModel, CallbackContext> response
-                = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+                = handler.handleRequest(proxy, request, callbackContext, proxyClient, logger);
 
-        System.out.println(response);
+        System.out.println("Progress: " + response);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-//        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
         verify(proxyClient.client()).createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class));
-        verify(proxyClient.client()).describeClusterParameters(any(DescribeClusterParametersRequest.class));
+        verify(proxyClient.client()).describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class));
 
     }
 

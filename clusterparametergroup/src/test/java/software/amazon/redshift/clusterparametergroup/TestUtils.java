@@ -3,6 +3,7 @@ package software.amazon.redshift.clusterparametergroup;
 import com.google.common.collect.ImmutableMap;
 import software.amazon.awssdk.services.redshift.model.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,7 @@ public class TestUtils {
             .description(DESCRIPTION)
             .parameterGroupFamily(PARAMETER_GROUP_FAMILY)
             .tags(TAGS)
+            .parameters(new ArrayList<>())
             .build();
 
     final static ClusterParameterGroup PARAMETER_GROUP = ClusterParameterGroup.builder()

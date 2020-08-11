@@ -51,7 +51,6 @@ public class Translator {
    * @return awsRequest the aws service request to describe a resource
    */
   static DescribeClusterParameterGroupsRequest translateToReadRequest(final ResourceModel model) {
-    // 其他的参数要不要？？？
     return DescribeClusterParameterGroupsRequest.builder()
             .parameterGroupName(model.getParameterGroupName())
             .build();
