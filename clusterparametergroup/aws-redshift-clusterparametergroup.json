@@ -66,6 +66,7 @@
             "permissions": [
                 "redshift:CreateClusterParameterGroup",
                 "redshift:ModifyClusterParameterGroup",
+                "redshift:DescribeClusterParameterGroups",
                 "redshift:CreateTags",
                 "ec2:AllocateAddress",
                 "ec2:AssociateAddress",

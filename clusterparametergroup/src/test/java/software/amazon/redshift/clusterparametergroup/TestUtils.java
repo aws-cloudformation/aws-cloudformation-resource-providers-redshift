@@ -40,9 +40,9 @@ public class TestUtils {
     );
 
     final static List<software.amazon.awssdk.services.redshift.model.Parameter> SDK_PARAMETERS = Arrays.asList(
-            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("param1").parameterValue("pval1").build(),
-            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("param2").parameterValue("pval2").build(),
-            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("param3").parameterValue("pval3").build()
+            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("auto_analyze").parameterValue("true").build(),
+            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("datestyle").parameterValue("ISO, MDY").build(),
+            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("enable_user_activity_logging").parameterValue("true").build()
     );
 
     final static String ARN = String.format("arn:aws:redshift:%s:%s:parametergroup:%s", AWS_REGION, AWS_ACCOUNT_ID, PARAMETER_GROUP_NAME);
@@ -53,6 +53,14 @@ public class TestUtils {
             .parameterGroupFamily(PARAMETER_GROUP_FAMILY)
             .tags(TAGS)
             .parameters(PARAMETERS)
+            .build();
+
+    // without parameters
+    final static ResourceModel SIMPLE_MODEL = ResourceModel.builder()
+            .parameterGroupName(PARAMETER_GROUP_NAME)
+            .description(DESCRIPTION)
+            .parameterGroupFamily(PARAMETER_GROUP_FAMILY)
+            .tags(TAGS)
             .build();
 
     final static ClusterParameterGroup PARAMETER_GROUP = ClusterParameterGroup.builder()

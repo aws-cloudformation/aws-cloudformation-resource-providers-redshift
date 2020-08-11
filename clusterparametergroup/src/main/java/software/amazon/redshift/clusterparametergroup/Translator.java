@@ -6,6 +6,7 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.awssdk.services.redshift.model.Tag;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -22,6 +23,7 @@ import java.util.stream.Stream;
  */
 
 public class Translator {
+  private static final int MAX_RECORDS_TO_DESCRIBE = 20;
 
   /**
    * Request to create a resource
@@ -50,7 +52,6 @@ public class Translator {
    */
   static DescribeClusterParameterGroupsRequest translateToReadRequest(final ResourceModel model) {
     // 其他的参数要不要？？？
-    // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L20-L24
     return DescribeClusterParameterGroupsRequest.builder()
             .parameterGroupName(model.getParameterGroupName())
             .build();
@@ -221,4 +222,28 @@ public class Translator {
             .build();
   }
 
+  public static DescribeClusterParametersRequest describeClusterParametersRequest(final ResourceModel model, final String marker) {
+    return DescribeClusterParametersRequest.builder()
+            .parameterGroupName(model.getParameterGroupName())
+            .marker(marker)
+            .maxRecords(MAX_RECORDS_TO_DESCRIBE)
+            .build();
+  }
+
+  public static Set<software.amazon.awssdk.services.redshift.model.Parameter> getParametersToModify(
+          ResourceModel model, List<software.amazon.awssdk.services.redshift.model.Parameter> parameters) {
+    // find all the parameter already in model
+    Set<String> existingParameterKeys = model.getParameters().stream()
+            .map(Parameter::getParameterName).collect(Collectors.toSet());
+    return parameters.stream().filter(parameter -> existingParameterKeys.contains(parameter.parameterName()))
+            .collect(Collectors.toSet());
+  }
+
+  public static ModifyClusterParameterGroupRequest modifyDbClusterParameterGroupRequest(ResourceModel resourceModel,
+                                                            Set<software.amazon.awssdk.services.redshift.model.Parameter> params) {
+    return ModifyClusterParameterGroupRequest.builder()
+            .parameterGroupName(resourceModel.getParameterGroupName())
+            .parameters(params)
+            .build();
+  }
 }

@@ -39,26 +39,27 @@ public class CreateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Create", proxyClient, model, callbackContext)
-                                .translateToServiceRequest((m) -> Translator.translateToCreateRequest(model, request.getDesiredResourceTags()))
-                                .makeServiceCall((awsRequest, client) -> {
-                                    System.out.println("Request is " + awsRequest);
-                                    CreateClusterParameterGroupResponse awsResponse;
-                                    try {
-                                        awsResponse = client.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::createClusterParameterGroup);
-                                    } catch (final ClusterParameterGroupAlreadyExistsException e) {
-                                        throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
-                                    } catch (final TagLimitExceededException | InvalidTagException e) {
-                                        throw new CfnInvalidRequestException(awsRequest.toString(), e);
-                                    } catch (final ClusterParameterGroupQuotaExceededException | ClusterSubnetGroupQuotaExceededException e) {
-                                        throw new CfnServiceLimitExceededException(ResourceModel.TYPE_NAME, e.toString());
-                                    }
-                                    logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME,
-                                            request.getDesiredResourceState().getParameterGroupName()));
+                        .translateToServiceRequest((m) -> Translator.translateToCreateRequest(m, request.getDesiredResourceTags()))
+                        .makeServiceCall((awsRequest, client) -> {
+                            System.out.println("Request is " + awsRequest);
+                            CreateClusterParameterGroupResponse awsResponse;
+                            try {
+                                awsResponse = client.injectCredentialsAndInvokeV2(awsRequest, client.client()::createClusterParameterGroup);
+                            } catch (final ClusterParameterGroupAlreadyExistsException e) {
+                                throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
+                            } catch (final TagLimitExceededException | InvalidTagException e) {
+                                throw new CfnInvalidRequestException(awsRequest.toString(), e);
+                            } catch (final ClusterParameterGroupQuotaExceededException | ClusterSubnetGroupQuotaExceededException e) {
+                                throw new CfnServiceLimitExceededException(ResourceModel.TYPE_NAME, e.toString());
+                            }
+                            logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME,
+                                    request.getDesiredResourceState().getParameterGroupName()));
 
-                                    System.out.println("Response is " + awsResponse);
-                                    return awsResponse;
-                                }).progress()
-                ).then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+                            System.out.println("Response is " + awsResponse);
+                            return awsResponse;
+                        })
+                        .done((paramGroupRequest, paramGroupResponse, proxyInvocation, resourceModel, context) -> applyParameters(proxy, proxyInvocation, resourceModel, context)))
+                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
         //TODO: if model contains parameters, should add them into the parameter just created, not sure if it's necessary
     }
 

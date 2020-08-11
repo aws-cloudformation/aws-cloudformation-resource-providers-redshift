@@ -46,7 +46,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_CompleteSuccess() {
+    public void handleRequest_SimpleInProgress() {
 
         final ResourceModel model = COMPLETE_MODEL;
 
@@ -63,11 +63,76 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .clusterParameterGroup(CLUSTER_PARAMETER_GROUP)
                         .build());
 
-        // TODO: why mock describeClusterParameterGroups???
+//        when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
+//                .thenReturn(DescribeClusterParameterGroupsResponse.builder()
+//                        .parameterGroups(CLUSTER_PARAMETER_GROUP)
+//                        .marker("0")
+//                        .build());
+
+        when(proxyClient.client().modifyClusterParameterGroup(any(ModifyClusterParameterGroupRequest.class)))
+                .thenReturn(ModifyClusterParameterGroupResponse.builder()
+                        .parameterGroupName(PARAMETER_GROUP_NAME)
+                        .parameterGroupStatus("Your parameter group has been updated")
+                        .build());
+
+        when(proxyClient.client().describeClusterParameters(any(DescribeClusterParametersRequest.class)))
+                .thenReturn(DescribeClusterParametersResponse.builder()
+                        .parameters(SDK_PARAMETERS)
+                        .marker("")
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response
+                = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        System.out.println(response);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(300);
+//        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        verify(proxyClient.client()).createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class));
+        verify(proxyClient.client()).describeClusterParameters(any(DescribeClusterParametersRequest.class));
+
+    }
+
+    @Test
+    public void handleRequest_SimpleSuccess() {
+
+        final ResourceModel model = COMPLETE_MODEL;
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .desiredResourceTags(DESIRED_RESOURCE_TAGS)
+                .build();
+
+        when(proxyClient.client().createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class)))
+                .thenReturn(CreateClusterParameterGroupResponse.builder()
+                        .clusterParameterGroup(CLUSTER_PARAMETER_GROUP)
+                        .build());
+
         when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
                 .thenReturn(DescribeClusterParameterGroupsResponse.builder()
                         .parameterGroups(CLUSTER_PARAMETER_GROUP)
+                        .marker("0")
                         .build());
+
+//        when(proxyClient.client().modifyClusterParameterGroup(any(ModifyClusterParameterGroupRequest.class)))
+//                .thenReturn(ModifyClusterParameterGroupResponse.builder()
+//                        .parameterGroupName(PARAMETER_GROUP_NAME)
+//                        .parameterGroupStatus("Your parameter group has been updated")
+//                        .build());
+//
+//        when(proxyClient.client().describeClusterParameters(any(DescribeClusterParametersRequest.class)))
+//                .thenReturn(DescribeClusterParametersResponse.builder()
+//                        .parameters(SDK_PARAMETERS)
+//                        .marker("")
+//                        .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response
                 = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -82,8 +147,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
         verify(proxyClient.client()).createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class));
-        verify(proxyClient.client()).describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class));
-
+        verify(proxyClient.client()).describeClusterParameters(any(DescribeClusterParametersRequest.class));
 
     }
 
