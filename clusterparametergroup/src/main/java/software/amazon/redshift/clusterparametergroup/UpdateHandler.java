@@ -38,26 +38,40 @@ public class UpdateHandler extends BaseHandlerStd {
 
         this.logger = logger;
         final ResourceModel model = request.getDesiredResourceState();
-        final boolean parametersUpdated = !model.getParameters().equals(request.getPreviousResourceState().getParameters());
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
-                    if (!parametersUpdated) return progress;
-                    return proxy.initiate("AWS-Redshift-ClusterParameterGroup::Update::first", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                            .translateToServiceRequest(Translator::translateToUpdateRequest)
-                            .makeServiceCall((awsRequest, client) -> {
-                                ModifyClusterParameterGroupResponse awsResponse = null;
-                                try {
-                                    awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::modifyClusterParameterGroup);
-                                } catch (final InvalidClusterParameterGroupStateException e) {
-                                    throw new CfnInvalidRequestException(awsRequest.toString(), e);
-                                } catch (final ClusterParameterGroupNotFoundException e) {
-                                    throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
-                                }
-                                logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
-                                return awsResponse;
-                            }).progress();
-        })
+                    if (CollectionUtils.isEmpty(model.getParameters())) {
+                        return proxy.initiate("AWS-Redshift-ClusterParameterGroup::Reset", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                                .translateToServiceRequest(Translator::translateToResetRequest)
+                                .makeServiceCall((awsRequest, client) -> {
+                                    ResetClusterParameterGroupResponse awsResponse = null;
+                                    try {
+                                        awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::resetClusterParameterGroup);
+                                    } catch (final InvalidClusterParameterGroupStateException e) {
+                                        throw new CfnInvalidRequestException(awsRequest.toString(), e);
+                                    } catch (final ClusterParameterGroupNotFoundException e) {
+                                        throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
+                                    }
+                                    logger.log(String.format("%s has successfully been reset.", ResourceModel.TYPE_NAME));
+                                    return awsResponse;
+                                }).progress();
+                    } else {
+                        return proxy.initiate("AWS-Redshift-ClusterParameterGroup::Update", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                                .translateToServiceRequest(Translator::translateToUpdateRequest)
+                                .makeServiceCall((awsRequest, client) -> {
+                                    ModifyClusterParameterGroupResponse awsResponse = null;
+                                    try {
+                                        awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::modifyClusterParameterGroup);
+                                    } catch (final InvalidClusterParameterGroupStateException e) {
+                                        throw new CfnInvalidRequestException(awsRequest.toString(), e);
+                                    } catch (final ClusterParameterGroupNotFoundException e) {
+                                        throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
+                                    }
+                                    logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
+                                    return awsResponse;
+                                }).progress();
+                    }
+                })
                 .then(progress -> handleTagging(request, proxyClient, proxy, progress))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
@@ -67,17 +81,27 @@ public class UpdateHandler extends BaseHandlerStd {
             final ProxyClient<RedshiftClient> proxyClient,
             final AmazonWebServicesClientProxy proxy,
             final ProgressEvent<ResourceModel, CallbackContext> progress) {
+
         try {
             final String arn = Translator.getArn(request);
-            final List<Tag> prevTags = Translator.getTags(arn, proxy, proxyClient);
-            final List<Tag> currTags = Translator.translateTagsMapToTagCollection(request.getDesiredResourceTags());
+
+            final List<Tag> prevTags = Translator.getTags(arn, proxy, proxyClient); // read from redshift, current tags: k1-val1_create, k3-v3, stack-valuecreated
+            System.out.println("UpdateHandler::handleTagging: prevTags: " + prevTags.toString());
+
+            final List<Tag> currTags = Translator.translateTagsMapToTagCollection(request.getDesiredResourceTags()); // want to change to k1-v1,k2-v2,k3-v3
+            System.out.println("UpdateHandler::handleTagging: currTags: " + currTags.toString());
+
             final Set<Tag> prevTagSet = CollectionUtils.isEmpty(prevTags) ? new HashSet<>() : new HashSet<>(prevTags);
             final Set<Tag> currTagSet = CollectionUtils.isEmpty(currTags) ? new HashSet<>() : new HashSet<>(currTags);
 
             List<Tag> tagsToCreate = Sets.difference(currTagSet, prevTagSet).immutableCopy().asList();
             List<String> tagsKeyToDelete = Sets.difference(Translator.getTagsKeySet(prevTagSet), Translator.getTagsKeySet(currTagSet)).immutableCopy().asList();
+            System.out.println("UpdateHandler::handleTagging: tagsToCreate: " + tagsToCreate.toString()); // k1, k2
+
+            System.out.println("UpdateHandler::handleTagging: tagsKeyToDelete: " + tagsKeyToDelete.toString()); // stack
 
             if (CollectionUtils.isNotEmpty(tagsToCreate)) {
+                // if existing keys, the value for that key will be updated with the new value.
                 proxy.injectCredentialsAndInvokeV2(Translator.createTagsRequest(tagsToCreate, arn), proxyClient.client()::createTags);
             }
 

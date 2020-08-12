@@ -114,18 +114,6 @@ public class Translator {
             .build();
   }
 
-  /**
-   * Request to update properties of a previously created resource
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static ModifyClusterParameterGroupRequest translateToUpdateRequest(final ResourceModel model) {
-    return ModifyClusterParameterGroupRequest.builder()
-            .parameterGroupName(model.getParameterGroupName())
-            .parameters(translateParametersToSdk(model.getParameters()))
-            .build();
-  }
-
   private static List<software.amazon.awssdk.services.redshift.model.Parameter> translateParametersToSdk(final List<software.amazon.redshift.clusterparametergroup.Parameter> parameters) {
     return parameters.stream()
             .map(param -> software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName(param.getParameterName()).parameterValue(param.getParameterValue()).build())
@@ -237,12 +225,30 @@ public class Translator {
     return parameters.stream().filter(parameter -> existingParameterKeys.contains(parameter.parameterName()))
             .collect(Collectors.toSet());
   }
+  /**
+   * Request to update properties of a previously created resource
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterParameterGroupRequest translateToUpdateRequest(final ResourceModel model) {
+    return ModifyClusterParameterGroupRequest.builder()
+            .parameterGroupName(model.getParameterGroupName())
+            .parameters(translateParametersToSdk(model.getParameters()))
+            .build();
+  }
 
-  public static ModifyClusterParameterGroupRequest modifyDbClusterParameterGroupRequest(ResourceModel resourceModel,
+  public static ModifyClusterParameterGroupRequest translateToUpdateRequest(ResourceModel resourceModel,
                                                             Set<software.amazon.awssdk.services.redshift.model.Parameter> params) {
     return ModifyClusterParameterGroupRequest.builder()
             .parameterGroupName(resourceModel.getParameterGroupName())
             .parameters(params)
+            .build();
+  }
+
+  public static ResetClusterParameterGroupRequest translateToResetRequest(ResourceModel model) {
+    return ResetClusterParameterGroupRequest.builder()
+            .parameterGroupName(model.getParameterGroupName())
+            .resetAllParameters(true)
             .build();
   }
 }

@@ -1,5 +1,6 @@
 package software.amazon.redshift.clusterparametergroup;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import software.amazon.awssdk.services.redshift.model.*;
 
@@ -25,7 +26,7 @@ public class TestUtils {
     final static List<software.amazon.awssdk.services.redshift.model.Tag> SDK_TAGS = Arrays.asList(
             software.amazon.awssdk.services.redshift.model.Tag.builder().key("key1").value("val1").build(),
             software.amazon.awssdk.services.redshift.model.Tag.builder().key("key2").value("val2").build(),
-            software.amazon.awssdk.services.redshift.model.Tag.builder().key("key3").value("val3").build()
+            software.amazon.awssdk.services.redshift.model.Tag.builder().key("stackKey").value("stackValue").build()
     );
 
     final static List<TaggedResource> TAGGED_RESOURCES = Arrays.asList(
@@ -56,15 +57,6 @@ public class TestUtils {
             .parameters(PARAMETERS)
             .build();
 
-    // without parameters
-    final static ResourceModel SIMPLE_MODEL = ResourceModel.builder()
-            .parameterGroupName(PARAMETER_GROUP_NAME)
-            .description(DESCRIPTION)
-            .parameterGroupFamily(PARAMETER_GROUP_FAMILY)
-            .tags(TAGS)
-            .parameters(new ArrayList<>())
-            .build();
-
     final static ClusterParameterGroup PARAMETER_GROUP = ClusterParameterGroup.builder()
             .description(DESCRIPTION)
             .tags(SDK_TAGS)
@@ -90,4 +82,25 @@ public class TestUtils {
             .description(DESCRIPTION)
             .tags(SDK_TAGS)
             .build();
+
+    final static List<TaggedResource> TAGGED_RESOURCES_CREATING = Arrays.asList(
+            TaggedResource.builder().tag(software.amazon.awssdk.services.redshift.model.Tag.builder().key("key1").value("val1_create").build()).build(),
+            TaggedResource.builder().tag(software.amazon.awssdk.services.redshift.model.Tag.builder().key("key3").value("val3").build()).build(),
+            TaggedResource.builder().tag(software.amazon.awssdk.services.redshift.model.Tag.builder().key("stackKey").value("stackValueCreated").build()).build()
+    );
+
+    final static List<software.amazon.awssdk.services.redshift.model.Tag> SDK_TAGS_TO_CREATE = Arrays.asList(
+            software.amazon.awssdk.services.redshift.model.Tag.builder().key("key1").value("val1").build(),
+            software.amazon.awssdk.services.redshift.model.Tag.builder().key("key2").value("val2").build(),
+            software.amazon.awssdk.services.redshift.model.Tag.builder().key("stackKey").value("stackValue").build()
+    );
+
+    final static List<String>  SDK_TAG_KEYS_TO_DELETE = ImmutableList.of("key3");
+
+    final static DescribeTagsResponse DESCRIBE_TAGS_RESPONSE_CREATING = DescribeTagsResponse.builder()
+            .taggedResources(TAGGED_RESOURCES_CREATING)
+            .build();
+
+    final static CreateTagsRequest CREATE_TAGS_REQUEST = CreateTagsRequest.builder().resourceName(ARN).tags(SDK_TAGS_TO_CREATE).build();
+    final static DeleteTagsRequest DELETE_TAGS_REQUEST = DeleteTagsRequest.builder().resourceName(ARN).tagKeys(SDK_TAG_KEYS_TO_DELETE).build();
 }

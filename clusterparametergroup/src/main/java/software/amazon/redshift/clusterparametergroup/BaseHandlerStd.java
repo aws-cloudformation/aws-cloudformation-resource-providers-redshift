@@ -83,7 +83,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       paramNames.removeAll(params.stream().map(parameter -> parameter.parameterName()).collect(Collectors.toSet()));
 
       progress = proxy.initiate("AWS-Redshift-ClusterParameterGroup::Modify::" + marker, proxyClient, model, callbackContext)
-              .translateToServiceRequest((resourceModel) -> Translator.modifyDbClusterParameterGroupRequest(resourceModel, params))
+              .translateToServiceRequest((resourceModel) -> Translator.translateToUpdateRequest(resourceModel, params))
               .makeServiceCall((request, proxyInvocation) -> proxyInvocation.injectCredentialsAndInvokeV2(request, proxyInvocation.client()::modifyClusterParameterGroup))
               .progress(CALLBACK_DELAY_SECONDS);
     } while (!StringUtils.isNullOrEmpty(marker));
