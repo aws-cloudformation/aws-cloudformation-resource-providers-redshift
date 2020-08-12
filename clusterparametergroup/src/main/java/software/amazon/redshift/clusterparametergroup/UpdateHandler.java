@@ -86,20 +86,13 @@ public class UpdateHandler extends BaseHandlerStd {
             final String arn = Translator.getArn(request);
 
             final List<Tag> prevTags = Translator.getTags(arn, proxy, proxyClient); // read from redshift, current tags: k1-val1_create, k3-v3, stack-valuecreated
-            System.out.println("UpdateHandler::handleTagging: prevTags: " + prevTags.toString());
-
             final List<Tag> currTags = Translator.translateTagsMapToTagCollection(request.getDesiredResourceTags()); // want to change to k1-v1,k2-v2,k3-v3
-            System.out.println("UpdateHandler::handleTagging: currTags: " + currTags.toString());
 
             final Set<Tag> prevTagSet = CollectionUtils.isEmpty(prevTags) ? new HashSet<>() : new HashSet<>(prevTags);
             final Set<Tag> currTagSet = CollectionUtils.isEmpty(currTags) ? new HashSet<>() : new HashSet<>(currTags);
 
             List<Tag> tagsToCreate = Sets.difference(currTagSet, prevTagSet).immutableCopy().asList();
             List<String> tagsKeyToDelete = Sets.difference(Translator.getTagsKeySet(prevTagSet), Translator.getTagsKeySet(currTagSet)).immutableCopy().asList();
-            System.out.println("UpdateHandler::handleTagging: tagsToCreate: " + tagsToCreate.toString()); // k1, k2
-
-            System.out.println("UpdateHandler::handleTagging: tagsKeyToDelete: " + tagsKeyToDelete.toString()); // stack
-
             if (CollectionUtils.isNotEmpty(tagsToCreate)) {
                 // if existing keys, the value for that key will be updated with the new value.
                 proxy.injectCredentialsAndInvokeV2(Translator.createTagsRequest(tagsToCreate, arn), proxyClient.client()::createTags);

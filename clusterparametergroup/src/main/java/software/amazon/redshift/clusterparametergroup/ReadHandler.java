@@ -26,8 +26,6 @@ public class ReadHandler extends BaseHandlerStd {
         final CallbackContext callbackContext,
         final ProxyClient<RedshiftClient> proxyClient,
         final Logger logger) {
-        System.out.println("ReadHandler:: handleRequest:: " + request);
-
         this.logger = logger;
 
         return proxy.initiate("AWS-Redshift-ClusterParameterGroup::Read", proxyClient, request.getDesiredResourceState(), callbackContext)
@@ -39,8 +37,6 @@ public class ReadHandler extends BaseHandlerStd {
                 } catch (final AwsServiceException e) { // ResourceNotFoundException
                     throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e); // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/commit/2077c92299aeb9a68ae8f4418b5e932b12a8b186#diff-5761e3a9f732dc1ef84103dc4bc93399R56-R63
                 }
-                System.out.println("ReadHandler:: handleRequest:: awsResponse " + awsResponse);
-
                 logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
                 return awsResponse;
             })

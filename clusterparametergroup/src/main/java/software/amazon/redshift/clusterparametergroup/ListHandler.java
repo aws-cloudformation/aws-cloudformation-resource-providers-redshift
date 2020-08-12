@@ -32,7 +32,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
 
         } catch (ClusterParameterGroupNotFoundException | InvalidTagException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getParameterGroupName());
-        }
+        };
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
                 .resourceModels(Translator.translateFromListResponse(awsResponse))
