@@ -11,20 +11,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.Duration;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static software.amazon.redshift.clusterparametergroup.TestUtils.CLUSTER_PARAMETER_GROUP;
-import static software.amazon.redshift.clusterparametergroup.TestUtils.COMPLETE_MODEL;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.*;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.DESIRED_RESOURCE_TAGS;
 
 @ExtendWith(MockitoExtension.class)
 public class ListHandlerTest extends AbstractTestBase{
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
-
-    @Mock
-    private Logger logger;
 
     @Mock
     private ProxyClient<RedshiftClient> proxyClient;
@@ -36,10 +35,10 @@ public class ListHandlerTest extends AbstractTestBase{
 
     @BeforeEach
     public void setup() {
-        proxy = mock(AmazonWebServicesClientProxy.class);
-        logger = mock(Logger.class);
-        proxyClient = MOCK_PROXY(proxy, sdkClient);
         handler = new ListHandler();
+        sdkClient = mock(RedshiftClient.class);
+        proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
+        proxyClient = MOCK_PROXY(proxy, sdkClient);
     }
 
     @Test
@@ -47,26 +46,24 @@ public class ListHandlerTest extends AbstractTestBase{
 
         final ResourceModel model = COMPLETE_MODEL;
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-            .desiredResourceState(model)
-            .build();
+        when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
+                .thenReturn(DescribeClusterParameterGroupsResponse.builder()
+                        .parameterGroups(CLUSTER_PARAMETER_GROUP)
+                        .marker("")
+                        .build());
 
-        final DescribeClusterParameterGroupsResponse describeResponse = DescribeClusterParameterGroupsResponse.builder()
-                .parameterGroups(CLUSTER_PARAMETER_GROUP)
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .region(AWS_REGION)
                 .build();
 
-        when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
-                .thenReturn(describeResponse);
-
-        final ProgressEvent<ResourceModel, CallbackContext> response =
-            handler.handleRequest(proxy, request, null, logger);
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackContext()).isNull();
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isNull();
-        assertThat(response.getResourceModels()).isNotNull();
+        assertThat(response.getResourceModel()).isNotNull();
+        assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
     }

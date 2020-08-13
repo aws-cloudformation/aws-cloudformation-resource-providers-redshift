@@ -39,7 +39,7 @@ public class CreateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Create", proxyClient, model, callbackContext)
-                        .translateToServiceRequest((m) -> Translator.translateToCreateRequest(m, request.getDesiredResourceTags()))
+                        .translateToServiceRequest((resourceModel) -> Translator.translateToCreateRequest(resourceModel, request.getDesiredResourceTags()))
                         .makeServiceCall((awsRequest, client) -> {
                             CreateClusterParameterGroupResponse awsResponse;
                             try {

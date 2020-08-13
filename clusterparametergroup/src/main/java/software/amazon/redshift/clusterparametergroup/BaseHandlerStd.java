@@ -18,79 +18,87 @@ import java.util.stream.Collectors;
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
-  protected static int CALLBACK_DELAY_SECONDS = 5 * 60; // 5 min for propagation
-  protected static int NO_CALLBACK_DELAY = 0;
+    protected static int CALLBACK_DELAY_SECONDS = 5 * 60; // 5 min for propagation
+    protected static int NO_CALLBACK_DELAY = 0;
 
-  @Override
-  public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-    final AmazonWebServicesClientProxy proxy,
-    final ResourceHandlerRequest<ResourceModel> request,
-    final CallbackContext callbackContext,
-    final Logger logger) {
-    return handleRequest(
-      proxy,
-      request,
-      callbackContext != null ? callbackContext : new CallbackContext(),
-      proxy.newProxy(ClientBuilder::getClient),
-      logger
-    );
-  }
-
-  protected abstract ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-    final AmazonWebServicesClientProxy proxy,
-    final ResourceHandlerRequest<ResourceModel> request,
-    final CallbackContext callbackContext,
-    final ProxyClient<RedshiftClient> proxyClient,
-    final Logger logger);
-
-  protected ProgressEvent<ResourceModel, CallbackContext> applyParameters(final AmazonWebServicesClientProxy proxy,
-                                                                          final ProxyClient<RedshiftClient> proxyClient,
-                                                                          final ResourceModel model,
-                                                                          final CallbackContext callbackContext) {
-    System.out.println("applyParameters:: model:: " + model);
-
-    if (callbackContext.isParametersApplied()) {
-      System.out.println("applyParameters:: ProgressEvent:: " + ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model));
-      return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model);
+    @Override
+    public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceHandlerRequest<ResourceModel> request,
+            final CallbackContext callbackContext,
+            final Logger logger) {
+        return handleRequest(
+                proxy,
+                request,
+                callbackContext != null ? callbackContext : new CallbackContext(),
+                proxy.newProxy(ClientBuilder::getClient),
+                logger
+        );
     }
 
-    callbackContext.setParametersApplied(true);
+    protected abstract ProgressEvent<ResourceModel, CallbackContext> handleRequest(
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceHandlerRequest<ResourceModel> request,
+            final CallbackContext callbackContext,
+            final ProxyClient<RedshiftClient> proxyClient,
+            final Logger logger);
 
-    ProgressEvent<ResourceModel, CallbackContext> progress = ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
+    protected ProgressEvent<ResourceModel, CallbackContext> applyParameters(final AmazonWebServicesClientProxy proxy,
+                                                                            final ProxyClient<RedshiftClient> proxyClient,
+                                                                            final ResourceModel model,
+                                                                            final CallbackContext callbackContext) {
+        System.out.println(" applyParameters:: model:: " + model);
 
-    if (model.getParameters() == null || model.getParameters().isEmpty()) {
-      System.out.println("applyParameters:: progress:: " + progress);
-      return progress;
+        if (callbackContext.isParametersApplied()) {
+            return ProgressEvent.defaultInProgressHandler(callbackContext, NO_CALLBACK_DELAY, model);
+        }
+
+        callbackContext.setParametersApplied(true);
+
+        ProgressEvent<ResourceModel, CallbackContext> progress = ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
+
+        if (model.getParameters() == null || model.getParameters().isEmpty()) {
+            return progress;
+        }
+        // parameter in request
+        Set<String> paramNames = model.getParameters().stream()
+                .map(parameter -> parameter.getParameterName()).collect(Collectors.toSet());
+
+        System.out.println(" applyParameters:: WaitForUpdate:: " + paramNames.toString());
+
+        String marker = null;
+        do {
+            final DescribeClusterParametersResponse describeClusterParametersResponse = proxyClient.injectCredentialsAndInvokeV2(
+                    Translator.describeClusterParametersRequest(model, marker), proxyClient.client()::describeClusterParameters);
+            // existing parameter
+            System.out.println(" applyParameters:: existing parameter :: describeClusterParametersResponse:: " + describeClusterParametersResponse.parameters());
+
+            marker = describeClusterParametersResponse.marker();
+
+            final Set<software.amazon.awssdk.services.redshift.model.Parameter> params =
+                    Translator.getParametersToModify(model, describeClusterParametersResponse.parameters());
+
+            System.out.println(" applyParameters:: parameter needs to be modified:: params:: " + params.toString());
+
+            // if no params need to be modified then skip the api invocation
+            if (params.isEmpty()) continue;
+
+            // substract set of found and modified params
+            paramNames.removeAll(params.stream().map(parameter -> parameter.parameterName()).collect(Collectors.toSet()));
+
+            progress = proxy.initiate("AWS-Redshift-ClusterParameterGroup::Modify::" + marker, proxyClient, model, callbackContext)
+                    .translateToServiceRequest((resourceModel) -> Translator.translateToUpdateRequest(resourceModel, params))
+                    .makeServiceCall((request, proxyInvocation) -> proxyInvocation.injectCredentialsAndInvokeV2(request, proxyInvocation.client()::modifyClusterParameterGroup))
+                    .progress(CALLBACK_DELAY_SECONDS);
+            System.out.println(" applyParameters:: Modified:: Result: " + progress);
+
+
+        } while (!StringUtils.isNullOrEmpty(marker));
+        // if there are parameters left that couldn't be found in rds api then they are invalid
+        if (!paramNames.isEmpty())
+            throw new CfnInvalidRequestException("Invalid / Unsupported Parameter: " + paramNames.stream().findFirst().get());
+        System.out.println(" applyParameters:: progress:: " + progress);
+        return progress;
     }
-
-    Set<String> paramNames = model.getParameters().stream()
-            .map(parameter -> parameter.getParameterName()).collect(Collectors.toSet());
-
-    String marker = null;
-    do {
-      final DescribeClusterParametersResponse describeClusterParametersResponse = proxyClient.injectCredentialsAndInvokeV2(
-              Translator.describeClusterParametersRequest(model, marker), proxyClient.client()::describeClusterParameters);
-
-      marker = describeClusterParametersResponse.marker();
-
-      final Set<software.amazon.awssdk.services.redshift.model.Parameter> params =
-              Translator.getParametersToModify(model, describeClusterParametersResponse.parameters());
-
-      // if no params need to be modified then skip the api invocation
-      if (params.isEmpty()) continue;
-
-      // substract set of found and modified params
-      paramNames.removeAll(params.stream().map(parameter -> parameter.parameterName()).collect(Collectors.toSet()));
-
-      progress = proxy.initiate("AWS-Redshift-ClusterParameterGroup::Modify::" + marker, proxyClient, model, callbackContext)
-              .translateToServiceRequest((resourceModel) -> Translator.translateToUpdateRequest(resourceModel, params))
-              .makeServiceCall((request, proxyInvocation) -> proxyInvocation.injectCredentialsAndInvokeV2(request, proxyInvocation.client()::modifyClusterParameterGroup))
-              .progress(CALLBACK_DELAY_SECONDS);
-    } while (!StringUtils.isNullOrEmpty(marker));
-    // if there are parameters left that couldn't be found in rds api then they are invalid
-    if (!paramNames.isEmpty()) throw new CfnInvalidRequestException("Invalid / Unsupported Parameter: " + paramNames.stream().findFirst().get());
-    System.out.println("applyParameters:: progress:: " + progress);
-    return progress;
-  }
 
 }
