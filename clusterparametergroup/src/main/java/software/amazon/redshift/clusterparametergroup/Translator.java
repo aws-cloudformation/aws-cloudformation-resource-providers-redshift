@@ -126,18 +126,6 @@ public class Translator {
     }
 
     /**
-     * Request to update some other properties that could not be provisioned through first update request
-     *
-     * @param model resource model
-     * @return awsRequest the aws service request to modify a resource
-     */
-    static AwsRequest translateToSecondUpdateRequest(final ResourceModel model) {
-        final AwsRequest awsRequest = null;
-        // TODO: construct a request
-        return awsRequest;
-    }
-
-    /**
      * Request to list resources
      *
      * @param nextToken token passed to the aws service list resources request
@@ -183,11 +171,11 @@ public class Translator {
     }
 
     static String getArn(final ResourceHandlerRequest<ResourceModel> request) {
-        String partition = request.getAwsPartition();
         final String parameterGroupName = request.getDesiredResourceState().getParameterGroupName();
-//        String partition = "aws";
-//        if (request.getRegion().indexOf("us-gov-") == 0) partition = partition.concat("-us-gov");
-//        if (request.getRegion().indexOf("cn-") == 0) partition = partition.concat("-cn");
+        String partition = "aws";
+        if (request.getRegion().indexOf("us-gov-") == 0) partition = partition.concat("-us-gov");
+        if (request.getRegion().indexOf("cn-") == 0) partition = partition.concat("-cn");
+        // arn:aws:redshift:region:account-id:parametergroup:parameter-group-name
         return String.format("arn:%s:redshift:%s:%s:parametergroup:%s", partition, request.getRegion(), request.getAwsAccountId(), parameterGroupName);
     }
 
@@ -228,13 +216,31 @@ public class Translator {
                 .build();
     }
 
+
     public static Set<software.amazon.awssdk.services.redshift.model.Parameter> getParametersToModify(
             ResourceModel model, List<software.amazon.awssdk.services.redshift.model.Parameter> parameters) {
-        // find all the parameter already in model
-        Set<String> existingParameterKeys = model.getParameters().stream()
-                .map(Parameter::getParameterName).collect(Collectors.toSet());
-        return parameters.stream().filter(parameter -> existingParameterKeys.contains(parameter.parameterName()))
+
+        Map<String, Parameter> requestParamMap = model.getParameters().stream()
+                .collect(Collectors.toMap(p -> p.getParameterName(), p -> p));
+
+        return parameters.stream().filter(parameter -> requestParamMap.containsKey(parameter.parameterName()))
+                .map(parameter -> modifyParameter(requestParamMap, parameter))
                 .collect(Collectors.toSet());
+    }
+
+    private static software.amazon.awssdk.services.redshift.model.Parameter modifyParameter
+            (final Map<String, Parameter> requestParamMap,
+             final software.amazon.awssdk.services.redshift.model.Parameter parameter) {
+
+        if (!parameter.isModifiable())
+            throw new CfnInvalidRequestException("Unmodifiable DB Parameter: " + parameter.parameterName());
+
+        final software.amazon.awssdk.services.redshift.model.Parameter.Builder param =
+                software.amazon.awssdk.services.redshift.model.Parameter.builder()
+                        .parameterName(parameter.parameterName()) // char set etc
+                        .parameterValue(String.valueOf(requestParamMap.get(parameter.parameterName()).getParameterValue()));
+
+        return param.build();
     }
 
     /**
@@ -250,10 +256,10 @@ public class Translator {
                 .build();
     }
 
-    public static ModifyClusterParameterGroupRequest translateToUpdateRequest(ResourceModel resourceModel,
+    public static ModifyClusterParameterGroupRequest translateToUpdateRequest(ResourceModel model,
                                                                               Set<software.amazon.awssdk.services.redshift.model.Parameter> params) {
         return ModifyClusterParameterGroupRequest.builder()
-                .parameterGroupName(resourceModel.getParameterGroupName())
+                .parameterGroupName(model.getParameterGroupName())
                 .parameters(params)
                 .build();
     }

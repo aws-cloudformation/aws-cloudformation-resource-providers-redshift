@@ -3,15 +3,9 @@ package software.amazon.redshift.clusterparametergroup;
 import java.time.Duration;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupResponse;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupResponse;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.proxy.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,12 +42,8 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final DeleteHandler handler = new DeleteHandler();
-
-        final ResourceModel model = COMPLETE_MODEL;
-
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
+                .desiredResourceState(COMPLETE_MODEL)
                 .region(AWS_REGION)
                 .desiredResourceTags(DESIRED_RESOURCE_TAGS)
                 .logicalResourceIdentifier("logicalId")
@@ -68,9 +58,30 @@ public class DeleteHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-//        assertThat(response.getResourceModel()).isNull();
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_ParameterGroupNotFound() {
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(COMPLETE_MODEL)
+                .region(AWS_REGION)
+                .desiredResourceTags(DESIRED_RESOURCE_TAGS)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().deleteClusterParameterGroup(any(DeleteClusterParameterGroupRequest.class))).thenThrow(
+                ClusterParameterGroupNotFoundException.class);
+
+        boolean flag = false;
+        try {
+            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        } catch (CfnNotFoundException e) {
+            flag = true;
+        }
+        assertThat(flag).isTrue();
     }
 }

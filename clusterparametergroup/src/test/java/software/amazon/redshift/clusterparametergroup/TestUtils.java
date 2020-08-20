@@ -38,13 +38,18 @@ public class TestUtils {
     final static List<Parameter> PARAMETERS = Arrays.asList(
             new Parameter("auto_analyze", "true"),
             new Parameter("datestyle", "ISO, MDY"),
-            new Parameter("enable_user_activity_logging", "true")
+            new Parameter("statement_timeout", "1000")
     );
 
+    final static List<Parameter> UNSUPPORTED_PARAMETERS = Arrays.asList(
+            new Parameter("invalid", "true"),
+            new Parameter("datestyle", "ISO, MDY"),
+            new Parameter("statement_timeout", "1000")
+    );
     final static List<software.amazon.awssdk.services.redshift.model.Parameter> SDK_PARAMETERS = Arrays.asList(
-            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("auto_analyze").parameterValue("true").build(),
-            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("datestyle").parameterValue("ISO, MDY").build(),
-            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("enable_user_activity_logging").parameterValue("true").build()
+            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("auto_analyze").parameterValue("true").isModifiable(true).build(),
+            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("datestyle").parameterValue("ISO, MDY").isModifiable(true).build(),
+            software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("statement_timeout").parameterValue("1000").isModifiable(true).build()
     );
 
     final static String ARN = String.format("arn:aws:redshift:%s:%s:parametergroup:%s", AWS_REGION, AWS_ACCOUNT_ID, PARAMETER_GROUP_NAME);

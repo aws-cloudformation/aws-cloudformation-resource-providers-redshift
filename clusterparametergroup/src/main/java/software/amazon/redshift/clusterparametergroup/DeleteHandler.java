@@ -4,10 +4,7 @@ import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupResponse;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetStateException;
+import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -38,9 +35,9 @@ public class DeleteHandler extends BaseHandlerStd {
                                     try {
                                         awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::deleteClusterParameterGroup);
                                         logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, awsRequest.parameterGroupName()));
-                                    } catch (final ClusterSubnetGroupNotFoundException e) {
+                                    } catch (final ClusterParameterGroupNotFoundException e) {
                                         throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.parameterGroupName());
-                                    } catch (final InvalidClusterSubnetGroupStateException | InvalidClusterSubnetStateException e) {
+                                    } catch (final InvalidClusterParameterGroupStateException e) {
                                         throw new CfnInvalidRequestException(awsRequest.toString(), e);
                                     }
                                     logger.log(String.format("%s successfully deleted.", ResourceModel.TYPE_NAME));

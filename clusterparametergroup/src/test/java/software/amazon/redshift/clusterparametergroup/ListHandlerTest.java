@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -43,9 +44,6 @@ public class ListHandlerTest extends AbstractTestBase{
 
     @Test
     public void handleRequest_SimpleSuccess() {
-
-        final ResourceModel model = COMPLETE_MODEL;
-
         when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
                 .thenReturn(DescribeClusterParameterGroupsResponse.builder()
                         .parameterGroups(CLUSTER_PARAMETER_GROUP)
@@ -53,7 +51,7 @@ public class ListHandlerTest extends AbstractTestBase{
                         .build());
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
+                .desiredResourceState(COMPLETE_MODEL)
                 .region(AWS_REGION)
                 .build();
 

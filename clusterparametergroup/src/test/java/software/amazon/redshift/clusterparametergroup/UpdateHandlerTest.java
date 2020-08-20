@@ -1,20 +1,15 @@
 package software.amazon.redshift.clusterparametergroup;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
 
 import org.mockito.ArgumentCaptor;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
-import software.amazon.awssdk.services.redshift.model.Tag;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.*;
@@ -52,10 +46,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess() {
 
-        final ResourceModel model = COMPLETE_MODEL;
-
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
+                .desiredResourceState(COMPLETE_MODEL)
                 .desiredResourceTags(DESIRED_RESOURCE_TAGS)
                 .region(AWS_REGION)
                 .build();
@@ -87,11 +79,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_UpdateTags() {
-
-        final ResourceModel model = COMPLETE_MODEL;
-
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
+                .desiredResourceState(COMPLETE_MODEL)
                 .desiredResourceTags(DESIRED_RESOURCE_TAGS)
                 .region(AWS_REGION)
                 .build();
@@ -115,17 +104,14 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-//        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
 
         ArgumentCaptor<CreateTagsRequest> createTagArgument = ArgumentCaptor.forClass(CreateTagsRequest.class);
         verify(proxyClient.client()).createTags(createTagArgument.capture());
-//        assertEquals(CREATE_TAGS_REQUEST.tags(), createTagArgument.getValue().tags());
 
-        ArgumentCaptor<DeleteTagsRequest> deleteTagArgument = ArgumentCaptor.forClass(DeleteTagsRequest.class);
-        verify(proxyClient.client()).deleteTags(deleteTagArgument.capture());
-//        assertEquals(DELETE_TAGS_REQUEST.tagKeys(), deleteTagArgument.getValue().tagKeys());
+//        ArgumentCaptor<DeleteTagsRequest> deleteTagArgument = ArgumentCaptor.forClass(DeleteTagsRequest.class);
+//        verify(proxyClient.client()).deleteTags(deleteTagArgument.capture());
     }
 }
