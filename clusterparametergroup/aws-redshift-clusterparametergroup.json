@@ -1,66 +1,82 @@
 {
-    "typeName" : "AWS::Redshift::ClusterParameterGroup",
-    "description" : "Resource Type definition for AWS::Redshift::ClusterParameterGroup",
-    "additionalProperties" : false,
-    "properties" : {
-        "ParameterGroupName" : {
+    "typeName": "AWS::Redshift::ClusterParameterGroup",
+    "description": "Resource Type definition for AWS::Redshift::ClusterParameterGroup",
+    "additionalProperties": false,
+    "properties": {
+        "ParameterGroupName": {
             "description": "This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be \"Default\". ",
             "type": "string",
             "maximum": 255
         },
-        "Description" : {
-            "type" : "string"
+        "Description": {
+            "type": "string"
         },
-        "ParameterGroupFamily" : {
-            "type" : "string"
+        "ParameterGroupFamily": {
+            "type": "string"
         },
-        "Parameters" : {
-            "type" : "array",
-            "uniqueItems" : false,
-            "items" : {
-                "$ref" : "#/definitions/Parameter"
+        "Parameters": {
+            "type": "array",
+            "uniqueItems": false,
+            "items": {
+                "$ref": "#/definitions/Parameter"
             }
         },
-        "Tags" : {
-            "type" : "array",
-            "uniqueItems" : false,
-            "items" : {
-                "$ref" : "#/definitions/Tag"
+        "Tags": {
+            "type": "array",
+            "uniqueItems": false,
+            "items": {
+                "$ref": "#/definitions/Tag"
             }
         }
     },
-    "definitions" : {
-        "Parameter" : {
-            "type" : "object",
-            "additionalProperties" : false,
-            "properties" : {
-                "ParameterName" : {
-                    "type" : "string"
+    "definitions": {
+        "Parameter": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "ParameterName": {
+                    "type": "string"
                 },
-                "ParameterValue" : {
-                    "type" : "string"
+                "ParameterValue": {
+                    "type": "string"
                 }
             },
-            "required" : [ "ParameterValue", "ParameterName" ]
+            "required": [
+                "ParameterValue",
+                "ParameterName"
+            ]
         },
-        "Tag" : {
-            "type" : "object",
-            "additionalProperties" : false,
-            "properties" : {
-                "Key" : {
-                    "type" : "string"
+        "Tag": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "Key": {
+                    "type": "string"
                 },
-                "Value" : {
-                    "type" : "string"
+                "Value": {
+                    "type": "string"
                 }
             },
-            "required" : [ "Value", "Key" ]
+            "required": [
+                "Value",
+                "Key"
+            ]
         }
     },
-    "required" : [ "Description", "ParameterGroupFamily" ],
-    "createOnlyProperties" : [ "/properties/ParameterGroupFamily", "/properties/Description" ],
-    "primaryIdentifier" : [ "/properties/ParameterGroupName" ],
-    "readOnlyProperties" : [ "/properties/ParameterGroupName" ],
+    "required": [
+        "Description",
+        "ParameterGroupFamily"
+    ],
+    "createOnlyProperties": [
+        "/properties/ParameterGroupFamily",
+        "/properties/Description"
+    ],
+    "primaryIdentifier": [
+        "/properties/ParameterGroupName"
+    ],
+    "readOnlyProperties": [
+        "/properties/ParameterGroupName"
+    ],
     "handlers": {
         "create": {
             "permissions": [
@@ -77,7 +93,8 @@
                 "ec2:DescribeInternetGateways",
                 "ec2:DescribeSecurityGroups",
                 "ec2:DescribeSubnets",
-                "ec2:DescribeVpcs"            ]
+                "ec2:DescribeVpcs"
+            ]
         },
         "read": {
             "permissions": [
