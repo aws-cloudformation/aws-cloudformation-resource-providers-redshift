@@ -67,7 +67,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
@@ -110,8 +109,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         ArgumentCaptor<CreateTagsRequest> createTagArgument = ArgumentCaptor.forClass(CreateTagsRequest.class);
         verify(proxyClient.client()).createTags(createTagArgument.capture());
-
-//        ArgumentCaptor<DeleteTagsRequest> deleteTagArgument = ArgumentCaptor.forClass(DeleteTagsRequest.class);
-//        verify(proxyClient.client()).deleteTags(deleteTagArgument.capture());
+        ArgumentCaptor<DeleteTagsRequest> deleteTagArgument = ArgumentCaptor.forClass(DeleteTagsRequest.class);
+        verify(proxyClient.client()).deleteTags(deleteTagArgument.capture());
     }
 }

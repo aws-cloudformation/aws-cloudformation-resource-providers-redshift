@@ -35,27 +35,5 @@ public class ListHandler extends BaseHandlerStd {
                     return awsResponse;
                 })
                 .success();
-
-//        final List<ResourceModel> models = new ArrayList<>();
-//
-//        final DescribeClusterParameterGroupsRequest awsRequest = Translator.translateToListRequest(request.getNextToken());
-//
-//        DescribeClusterParameterGroupsResponse awsResponse = null;
-//        try {
-//            proxy.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterParameterGroups);
-//
-//        } catch (ClusterParameterGroupNotFoundException | InvalidTagException e) {
-//            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getParameterGroupName());
-//        }
-//
-//        return ProgressEvent.<ResourceModel, CallbackContext>builder()
-//                .resourceModels(Translator.translateFromListResponse(awsResponse))
-//                .status(OperationStatus.SUCCESS)
-//                .nextToken(awsResponse.marker())
-//                .build();
-    }
-    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromResponse(
-            final DescribeClusterParameterGroupsResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse));
     }
 }

@@ -1,7 +1,6 @@
 package software.amazon.redshift.clusterparametergroup;
 
 import com.google.common.collect.Lists;
-import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
@@ -14,13 +13,6 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-/**
- * This class is a centralized placeholder for
- * - api request construction
- * - object translation to/from aws sdk
- * - resource model construction for read/list handlers
- */
 
 public class Translator {
     private static final int MAX_RECORDS_TO_DESCRIBE = 20;
@@ -65,26 +57,30 @@ public class Translator {
      * @param awsResponse the aws service describe resource response
      * @return model resource model
      */
-    static ResourceModel translateFromReadResponse(final DescribeClusterParameterGroupsResponse awsResponse) {
-        final String parameterGroupName = streamOfOrEmpty(awsResponse.parameterGroups())
+    static ResourceModel translateFromReadResponse(final DescribeClusterParameterGroupsResponse awsResponse, final String name) {
+
+        List<ClusterParameterGroup> parameterGroups = awsResponse.parameterGroups().stream().
+                filter(p -> p.parameterGroupName().equals(name)).collect(Collectors.toList());
+
+        final String parameterGroupName = streamOfOrEmpty(parameterGroups)
                 .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::parameterGroupName)
                 .filter(Objects::nonNull)
                 .findAny()
                 .orElse(null);
 
-        final String description = streamOfOrEmpty(awsResponse.parameterGroups())
+        final String description = streamOfOrEmpty(parameterGroups)
                 .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::description)
                 .filter(Objects::nonNull)
                 .findAny()
                 .orElse(null);
 
-        final String parameterGroupFamily = streamOfOrEmpty(awsResponse.parameterGroups())
+        final String parameterGroupFamily = streamOfOrEmpty(parameterGroups)
                 .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::parameterGroupFamily)
                 .filter(Objects::nonNull)
                 .findAny()
                 .orElse(null);
 
-        final List<Tag> tags = streamOfOrEmpty(awsResponse.parameterGroups())
+        final List<Tag> tags = streamOfOrEmpty(parameterGroups)
                 .map(software.amazon.awssdk.services.redshift.model.ClusterParameterGroup::tags)
                 .filter(Objects::nonNull)
                 .findAny()

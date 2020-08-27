@@ -86,9 +86,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                     .makeServiceCall((request, proxyInvocation) -> {
                         ModifyClusterParameterGroupResponse response;
                         try {
-                            System.out.println("applyParameters request: " + request);
                             response = proxyInvocation.injectCredentialsAndInvokeV2(request, proxyInvocation.client()::modifyClusterParameterGroup);
-                            System.out.println("applyParameters awsResponse: " + response);
                         } catch (final InvalidClusterParameterGroupStateException e) {
                             throw new CfnInvalidRequestException(request.toString(), e);
                         }

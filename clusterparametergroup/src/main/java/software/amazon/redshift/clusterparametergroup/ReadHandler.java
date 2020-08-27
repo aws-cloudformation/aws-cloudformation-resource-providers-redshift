@@ -5,6 +5,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFo
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -20,6 +21,7 @@ public class ReadHandler extends BaseHandlerStd {
         final ProxyClient<RedshiftClient> proxyClient,
         final Logger logger) {
         this.logger = logger;
+        final ResourceModel model = request.getDesiredResourceState();
 
         return proxy.initiate("AWS-Redshift-ClusterParameterGroup::Read", proxyClient, request.getDesiredResourceState(), callbackContext)
             .translateToServiceRequest(Translator::translateToReadRequest)
@@ -27,14 +29,14 @@ public class ReadHandler extends BaseHandlerStd {
                 DescribeClusterParameterGroupsResponse awsResponse;
                 try {
                     awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterParameterGroups);
-                    System.out.println(" ReadHandler:: ReadHandler:: awsResponse " + awsResponse);
+                    logger.log("ReadHandler:: ReadHandler:: awsResponse " + awsResponse);
                 } catch (final ClusterParameterGroupNotFoundException e) { // ResourceNotFoundException
-                    throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getParameterGroupName()); // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/commit/2077c92299aeb9a68ae8f4418b5e932b12a8b186#diff-5761e3a9f732dc1ef84103dc4bc93399R56-R63
+                    throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getParameterGroupName());
                 }
                 logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
                 return awsResponse;
             })
-            .done(this::constructResourceModelFromResponse);
+            .done((awsResponse) -> constructResourceModelFromResponse(awsResponse, model.getParameterGroupName()));
     }
 
     /**
@@ -44,7 +46,11 @@ public class ReadHandler extends BaseHandlerStd {
      * @return progressEvent indicating success, in progress with delay callback or failed state
      */
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromResponse(
-            final DescribeClusterParameterGroupsResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse));
+            final DescribeClusterParameterGroupsResponse awsResponse, final String parameterGroupName) {
+        ResourceModel model = Translator.translateFromReadResponse(awsResponse, parameterGroupName);
+        return model.getParameterGroupName() != null ? ProgressEvent.defaultSuccessHandler(model) :
+                ProgressEvent.defaultFailureHandler(new CfnNotFoundException(ResourceModel.TYPE_NAME, parameterGroupName), HandlerErrorCode.InternalFailure);
+
+//        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse, parameterGroupName));
     }
 }

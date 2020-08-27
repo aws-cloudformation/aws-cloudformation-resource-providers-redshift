@@ -95,7 +95,7 @@ public class UpdateHandler extends BaseHandlerStd {
             final Set<Tag> currTagSet = CollectionUtils.isEmpty(currTags) ? new HashSet<>() : new HashSet<>(currTags);
 
             List<Tag> tagsToCreate = Sets.difference(currTagSet, prevTagSet).immutableCopy().asList();
-            // List<String> tagsKeyToDelete = Sets.difference(Translator.getTagsKeySet(prevTagSet), Translator.getTagsKeySet(currTagSet)).immutableCopy().asList();
+             List<String> tagsKeyToDelete = Sets.difference(Translator.getTagsKeySet(prevTagSet), Translator.getTagsKeySet(currTagSet)).immutableCopy().asList();
             logger.log(" UpdateHandler:: tagsToCreate " + tagsToCreate.toString());
 
             if (CollectionUtils.isNotEmpty(tagsToCreate)) {
@@ -103,9 +103,9 @@ public class UpdateHandler extends BaseHandlerStd {
                 proxy.injectCredentialsAndInvokeV2(Translator.createTagsRequest(tagsToCreate, arn), proxyClient.client()::createTags);
             }
 
-//            if (CollectionUtils.isNotEmpty(tagsKeyToDelete)) {
-//                proxy.injectCredentialsAndInvokeV2(Translator.deleteTagsRequest(tagsKeyToDelete, arn), proxyClient.client()::deleteTags);
-//            }
+            if (CollectionUtils.isNotEmpty(tagsKeyToDelete)) {
+                proxy.injectCredentialsAndInvokeV2(Translator.deleteTagsRequest(tagsKeyToDelete, arn), proxyClient.client()::deleteTags);
+            }
             logger.log(" UpdateHandler:: handleTagging completed, updated: " +tagsToCreate.toString());
 
         } catch (final InvalidTagException | TagLimitExceededException e) {

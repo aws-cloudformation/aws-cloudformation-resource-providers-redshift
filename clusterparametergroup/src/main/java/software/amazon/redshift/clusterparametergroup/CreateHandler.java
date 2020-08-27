@@ -13,6 +13,8 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
+import java.util.UUID;
+
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
     private static final int MAX_PARAMETER_GROUP_NAME_LENGTH = 255;
@@ -28,7 +30,6 @@ public class CreateHandler extends BaseHandlerStd {
 
         prepareResourceModel(request);
         final ResourceModel model = request.getDesiredResourceState();
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Create", proxyClient, model, callbackContext)
                         .translateToServiceRequest((resourceModel) -> Translator.translateToCreateRequest(resourceModel, request.getDesiredResourceTags()))
@@ -62,9 +63,11 @@ public class CreateHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
 
         if (StringUtils.isNullOrEmpty(model.getParameterGroupName())) {
+            final String logicalResourceIdentifier = StringUtils.isNullOrEmpty(request.getLogicalResourceIdentifier())
+                    ? UUID.randomUUID().toString() : request.getLogicalResourceIdentifier();
             model.setParameterGroupName(
                     IdentifierUtils.generateResourceIdentifier(
-                            request.getLogicalResourceIdentifier(),
+                            logicalResourceIdentifier,
                             request.getClientRequestToken(),
                             MAX_PARAMETER_GROUP_NAME_LENGTH
                     ).toLowerCase()

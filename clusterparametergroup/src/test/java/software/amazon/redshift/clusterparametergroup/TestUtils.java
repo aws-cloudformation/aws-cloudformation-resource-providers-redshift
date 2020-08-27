@@ -12,7 +12,7 @@ import java.util.Map;
 public class TestUtils {
     final static String DESCRIPTION = "description";
     final static String PARAMETER_GROUP_FAMILY = "redshift-1.0";
-    final static String PARAMETER_GROUP_NAME = "myclusterparametergroup";
+    final static String PARAMETER_GROUP_NAME = "logicalid-kvw2fztz3cvh";
     final static String AWS_ACCOUNT_ID ="1111";
 
     final static String AWS_REGION = "us-east-1";

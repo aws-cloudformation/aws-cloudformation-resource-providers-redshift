@@ -89,8 +89,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(COMPLETE_MODEL)
                 .region(AWS_REGION)
-                .logicalResourceIdentifier("logicalId")
                 .clientRequestToken("token")
+                .logicalResourceIdentifier("logicalId")
                 .desiredResourceTags(DESIRED_RESOURCE_TAGS)
                 .build();
 
@@ -102,7 +102,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
                 .thenReturn(DescribeClusterParameterGroupsResponse.builder()
                         .parameterGroups(CLUSTER_PARAMETER_GROUP)
-                        .marker("")
                         .build());
 
         CallbackContext callbackContext = new CallbackContext();
@@ -123,7 +122,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     }
 
-//    @Test
+    @Test
     public void handleRequest_SimpleInProgressFailedUnsupportedParams() {
         final ResourceModel model = COMPLETE_MODEL;
         model.setParameters(UNSUPPORTED_PARAMETERS);
@@ -139,7 +138,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeClusterParameters(any(DescribeClusterParametersRequest.class)))
                 .thenReturn(DescribeClusterParametersResponse.builder()
                         .parameters(SDK_PARAMETERS)
-                        .marker("")
                         .build());
 
         when(proxyClient.client().createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class)))
