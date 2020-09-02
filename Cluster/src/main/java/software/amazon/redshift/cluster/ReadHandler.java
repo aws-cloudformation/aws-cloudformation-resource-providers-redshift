@@ -26,6 +26,8 @@ public class ReadHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
+        System.out.println("In READ HAndler cluster id = "+request.getDesiredResourceState().getClusterIdentifier());
+
         return proxy.initiate("AWS-Redshift-Cluster::Read", proxyClient, model, callbackContext)
                 .translateToServiceRequest(Translator::translateToReadRequest)
                 .makeServiceCall(this::readResource)
