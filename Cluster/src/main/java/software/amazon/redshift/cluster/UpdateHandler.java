@@ -55,12 +55,15 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
+        System.out.println("in modify handle request > Cluster Identifier = "+model.getClusterIdentifier()+
+                 "new cluster name = "+ model.getNewClusterIdentifier());
+
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-Cluster::Update", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
                         .makeServiceCall(this::updateResource)
                         .progress())
-                .then(progress -> handleModifyRequest(request, proxyClient, proxy, progress))
+                //.then(progress -> handleModifyRequest(request, proxyClient, proxy, progress))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
@@ -82,6 +85,10 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
+
+        System.out.println("done modify with response cluster identifier = "
+                +awsResponse.cluster().clusterIdentifier());
+
         return awsResponse;
     }
 
@@ -95,9 +102,13 @@ public class UpdateHandler extends BaseHandlerStd {
         String clusterIdentifier = request.getDesiredResourceState().getClusterIdentifier();
 
         // retrieve cluster from cluster identifier
-        DescribeClustersResponse describeClustersResponse = Translator.describeClustersResponse(clusterIdentifier, proxy, proxyClient);
+        //DescribeClustersResponse describeClustersResponse = Translator.describeClustersResponse(clusterIdentifier, proxy, proxyClient);
 
-        Cluster cluster = describeClustersResponse.clusters().get(0);
+        //Cluster cluster = describeClustersResponse.clusters().get(0);
+
+
+        System.out.println("handle modify request ====   nodes    = "+progress.getResourceModel().getNumberOfNodes());
+
 
 //        if (!cluster.nodeType().equals(request.getDesiredResourceState().getNodeType())) {
 //            proxy.injectCredentialsAndInvokeV2(Translator.modifyClusterNodeType(

@@ -1,5 +1,6 @@
 package software.amazon.redshift.cluster;
 
+import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
@@ -33,16 +34,21 @@ public class Translator {
    * @return awsRequest the aws service request to create a resource
    */
   static CreateClusterRequest translateToCreateRequest(final ResourceModel model) {
-    return CreateClusterRequest.builder()
+    System.out.println("in translateToCreateRequest");
+    CreateClusterRequest request = CreateClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUsername(model.getMasterUsername())
             .masterUserPassword(model.getMasterUserPassword())
+            .clusterType(model.getClusterType())
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
-            .additionalInfo(model.getAdditionalInfo())
-            .allowVersionUpgrade(model.getAllowVersionUpgrade())
-            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
+            //.additionalInfo(model.getAdditionalInfo())
+            //.allowVersionUpgrade(model.getAllowVersionUpgrade())
+            //.automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
             .build();
+
+    System.out.println("Number of nodes check here = "+request.numberOfNodes()+" cluster type = "+request.clusterType());
+    return request;
   }
 
   /**
@@ -51,8 +57,12 @@ public class Translator {
    * @return awsRequest the aws service request to describe a resource
    */
   static DescribeClustersRequest translateToReadRequest(final ResourceModel model) {
+
+    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
+            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
+
     return DescribeClustersRequest.builder()
-            .clusterIdentifier(model.getClusterIdentifier())
+            .clusterIdentifier(clusterIdentifier)
             .build();
   }
 
@@ -85,26 +95,30 @@ public class Translator {
             .filter(Objects::nonNull)
             .findAny()
             .orElse(0);
+//
+//    final boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
+//            .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
+//            .filter(Objects::nonNull)
+//            .findAny()
+//            .orElse(true);
+//
+//    final int automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+//            .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
+//            .filter(Objects::nonNull)
+//            .findAny()
+//            .orElse(1);
 
-    final boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElse(true);
 
-    final int automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElse(1);
+    System.out.println("Values are clusterId = "+clusterIdentifier+" master username = "
+            +masterUsername+" node type = "+nodeType+" number of nodes = "+numberOfNodes);
 
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
             .nodeType(nodeType)
             .numberOfNodes(numberOfNodes)
-            .allowVersionUpgrade(allowVersionUpgrade)
-            .automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
+            //.allowVersionUpgrade(allowVersionUpgrade)
+            //.automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
             .build();
 
   }
@@ -118,6 +132,9 @@ public class Translator {
     return DeleteClusterRequest
             .builder()
             .clusterIdentifier(model.getClusterIdentifier())
+            .skipFinalClusterSnapshot(model.getSkipFinalClusterSnapshot())
+            .finalClusterSnapshotIdentifier(model.getFinalClusterSnapshotIdentifier())
+            .finalClusterSnapshotRetentionPeriod(model.getFinalClusterSnapshotRetentionPeriod())
             .build();
   }
 
@@ -127,13 +144,15 @@ public class Translator {
    * @return awsRequest the aws service request to modify a resource
    */
   static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model) {
+
     return ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUserPassword(model.getMasterUserPassword())
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
-            .allowVersionUpgrade(model.getAllowVersionUpgrade())
-            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
+            .newClusterIdentifier(model.getNewClusterIdentifier())
+            //.allowVersionUpgrade(model.getAllowVersionUpgrade())
+            //.automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
             .build();
   }
 

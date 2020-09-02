@@ -35,8 +35,8 @@ import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
-import static software.amazon.redshift.cluster.TestUtils.ALLOWVERSIONUPGRADE;
-import static software.amazon.redshift.cluster.TestUtils.AUTOMATEDSNAPSHOTRETENTIONPERIOD;
+//import static software.amazon.redshift.cluster.TestUtils.ALLOWVERSIONUPGRADE;
+//import static software.amazon.redshift.cluster.TestUtils.AUTOMATEDSNAPSHOTRETENTIONPERIOD;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateHandlerTest extends AbstractTestBase {
@@ -72,8 +72,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                .automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
+                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
+                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -86,8 +86,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                .automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
+                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
+                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -97,10 +97,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER) //ds2.xlarge node type
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(modifiedCluster) //dc2.large node type
+                        .clusters(modifiedCluster) //ds2.xlarge node type
+//                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(modifiedCluster) //dc2.large node type
                         .build());
 
 
@@ -122,8 +122,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType(NODETYPE)
                 .numberOfNodes(NUMBER_OF_NODES * 2)
-                .allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                .automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
+                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
+                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -136,8 +136,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType(NODETYPE)
                 .numberOfNodes(NUMBER_OF_NODES * 2)
-                .allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                .automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
+                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
+                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -147,10 +147,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster)
+//                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(modifiedCluster)
                         .build());
 
 
@@ -160,6 +160,60 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testNewClusterIdentifier() {
+        String newClusterId = "renamed-redshift-cluster";
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .newClusterIdentifier(newClusterId)
+                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
+                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+
+        Cluster modifiedCluster = Cluster.builder()
+                .clusterIdentifier(newClusterId)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
+                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
+                .build();
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster) //ds2.xlarge node type
+//                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(modifiedCluster) //dc2.large node type
+                        .build());
+
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+
+        assertThat(response.getResourceModel().getClusterIdentifier().equals(newClusterId));
+
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();

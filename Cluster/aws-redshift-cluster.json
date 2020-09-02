@@ -160,6 +160,30 @@
             "items": {
                 "type": "string"
             }
+        },
+        "FinalClusterSnapshotIdentifier": {
+            "description": "The identifier of the final snapshot that is to be created immediately before deleting the cluster",
+            "type": "string"
+        },
+        "FinalClusterSnapshotRetentionPeriod": {
+            "description": "The number of days that a manual snapshot is retained. If the value is -1, the manual snapshot is retained indefinitely.",
+            "type": "integer"
+        },
+        "SkipFinalClusterSnapshot": {
+            "description": "Determines whether a final snapshot of the cluster is created before Amazon Redshift deletes the cluster. If true, a final cluster snapshot is not created. If false, a final cluster snapshot is created before the cluster is deleted.",
+            "type": "boolean"
+        },
+        "Marker": {
+            "description": "An optional parameter that specifies the starting point to return a set of response records. When the results of a DescribeClusters request exceed the value specified in MaxRecords, AWS returns a value in the Marker field of the response",
+            "type": "string"
+        },
+        "MaxRecords": {
+            "description": "The maximum number of response records to return in each call. If the number of remaining response records exceeds the specified MaxRecords value, a value is returned in a marker field of the response.",
+            "type": "string"
+        },
+        "NewClusterIdentifier": {
+            "description": "The new identifier for the cluster.",
+            "type": "string"
         }
     },
     "additionalProperties": false,

@@ -16,14 +16,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.Duration;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static software.amazon.redshift.cluster.AbstractTestBase.MOCK_CREDENTIALS;
 import static software.amazon.redshift.cluster.AbstractTestBase.MOCK_PROXY;
 import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
@@ -31,7 +28,7 @@ import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 
 @ExtendWith(MockitoExtension.class)
-public class ListHandlerTest extends AbstractTestBase {
+public class ListHandlerTest {
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -42,34 +39,41 @@ public class ListHandlerTest extends AbstractTestBase {
     @Mock
     RedshiftClient sdkClient;
 
-//    @Mock
-//    private Logger logger;
+    @Mock
+    private Logger logger;
 
     private ListHandler handler ;
 
     @BeforeEach
     public void setup() {
         handler = new ListHandler();
-        sdkClient = mock(RedshiftClient.class);
-        proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());//mock(AmazonWebServicesClientProxy.class);
-        //logger = mock(Logger.class);
+        proxy = mock(AmazonWebServicesClientProxy.class);
+        logger = mock(Logger.class);
         proxyClient = MOCK_PROXY(proxy, sdkClient);
     }
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER)
-                        .marker("")
-                        .build());
+        final ResourceModel model = BASIC_MODEL;
 
-        //doReturn(describeClustersResponse).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+        final DescribeClustersResponse describeClustersResponse = DescribeClustersResponse.builder()
+                .clusters(BASIC_CLUSTER)
+                .build();
+
+
+
+        doReturn(describeClustersResponse).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+
+//        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(BASIC_CLUSTER)
+//                        .build());
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(BASIC_MODEL)
+                .desiredResourceState(model)
                 .region(AWS_REGION)
-                .nextToken(" ")
+                //.logicalResourceIdentifier("logicalId")
+                //.clientRequestToken("token")
                 .build();
 
 

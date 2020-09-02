@@ -24,6 +24,7 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
+import java.util.UUID;
 
 
 public class CreateHandler extends BaseHandlerStd {
@@ -65,6 +66,7 @@ public class CreateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(createRequest.toString(), e);
         }
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
+        System.out.println("DONE! creating cluster resource..");
         return createResponse;
     }
 
@@ -74,10 +76,13 @@ public class CreateHandler extends BaseHandlerStd {
         }
         final ResourceModel model = request.getDesiredResourceState();
 
+        String logicalResourceIdentifier = StringUtils.isNullOrEmpty(request.getLogicalResourceIdentifier())
+                ? "cluster-" + UUID.randomUUID().toString() : request.getLogicalResourceIdentifier();
+
         if (StringUtils.isNullOrEmpty(model.getClusterIdentifier())) {
             model.setClusterIdentifier(
                     IdentifierUtils.generateResourceIdentifier(
-                            request.getLogicalResourceIdentifier(),
+                            logicalResourceIdentifier,
                             request.getClientRequestToken(),
                             MAX_CLUSTER_IDENTIFIER_LENGTH
                     ).toLowerCase()
