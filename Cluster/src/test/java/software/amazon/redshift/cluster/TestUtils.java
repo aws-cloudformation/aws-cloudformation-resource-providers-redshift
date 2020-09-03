@@ -13,16 +13,12 @@ public class TestUtils {
     final static String MASTER_USERPASSWORD = "Test1234";
     final static String NODETYPE = "ds2.xlarge";
     final static int  NUMBER_OF_NODES = 2;
-    //final static boolean ALLOWVERSIONUPGRADE = true;
-    //final static int AUTOMATEDSNAPSHOTRETENTIONPERIOD = 1;
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
             .masterUsername(MASTER_USERNAME)
             .nodeType(NODETYPE)
             .numberOfNodes(NUMBER_OF_NODES)
-            //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-            //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
             .build();
 
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
@@ -30,8 +26,6 @@ public class TestUtils {
             .masterUsername(MASTER_USERNAME)
             .nodeType(NODETYPE)
             .numberOfNodes(NUMBER_OF_NODES)
-            //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-            //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
             .build();
 
 }

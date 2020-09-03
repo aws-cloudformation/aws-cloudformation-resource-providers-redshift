@@ -94,8 +94,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
         assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-        // add assert for testing cluster name, master username
-
 
         Assert.assertEquals("expected not equal to actual",response.getResourceModel(), request.getDesiredResourceState());
 

@@ -42,9 +42,6 @@ public class Translator {
             .clusterType(model.getClusterType())
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
-            //.additionalInfo(model.getAdditionalInfo())
-            //.allowVersionUpgrade(model.getAllowVersionUpgrade())
-            //.automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
             .build();
 
     System.out.println("Number of nodes check here = "+request.numberOfNodes()+" cluster type = "+request.clusterType());
@@ -95,30 +92,12 @@ public class Translator {
             .filter(Objects::nonNull)
             .findAny()
             .orElse(0);
-//
-//    final boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
-//            .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
-//            .filter(Objects::nonNull)
-//            .findAny()
-//            .orElse(true);
-//
-//    final int automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
-//            .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
-//            .filter(Objects::nonNull)
-//            .findAny()
-//            .orElse(1);
-
-
-    System.out.println("Values are clusterId = "+clusterIdentifier+" master username = "
-            +masterUsername+" node type = "+nodeType+" number of nodes = "+numberOfNodes);
 
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
             .nodeType(nodeType)
             .numberOfNodes(numberOfNodes)
-            //.allowVersionUpgrade(allowVersionUpgrade)
-            //.automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
             .build();
 
   }
@@ -151,8 +130,6 @@ public class Translator {
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
             .newClusterIdentifier(model.getNewClusterIdentifier())
-            //.allowVersionUpgrade(model.getAllowVersionUpgrade())
-            //.automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
             .build();
   }
 
