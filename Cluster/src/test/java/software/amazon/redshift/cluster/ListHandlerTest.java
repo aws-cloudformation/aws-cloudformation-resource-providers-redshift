@@ -64,16 +64,9 @@ public class ListHandlerTest {
 
         doReturn(describeClustersResponse).when(proxy).injectCredentialsAndInvokeV2(any(), any());
 
-//        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(BASIC_CLUSTER)
-//                        .build());
-
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .region(AWS_REGION)
-                //.logicalResourceIdentifier("logicalId")
-                //.clientRequestToken("token")
                 .build();
 
 

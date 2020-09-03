@@ -35,8 +35,6 @@ import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
-//import static software.amazon.redshift.cluster.TestUtils.ALLOWVERSIONUPGRADE;
-//import static software.amazon.redshift.cluster.TestUtils.AUTOMATEDSNAPSHOTRETENTIONPERIOD;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateHandlerTest extends AbstractTestBase {
@@ -72,8 +70,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
-                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -86,8 +82,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
-                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -97,10 +91,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(modifiedCluster) //ds2.xlarge node type
-//                        .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(modifiedCluster) //dc2.large node type
+                        .clusters(modifiedCluster)
                         .build());
 
 
@@ -122,8 +113,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType(NODETYPE)
                 .numberOfNodes(NUMBER_OF_NODES * 2)
-                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -136,8 +125,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType(NODETYPE)
                 .numberOfNodes(NUMBER_OF_NODES * 2)
-                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -148,9 +135,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster)
-//                        .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(modifiedCluster)
                         .build());
 
 
@@ -174,8 +158,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
                 .newClusterIdentifier(newClusterId)
-                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -188,8 +170,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
-                //.allowVersionUpgrade(ALLOWVERSIONUPGRADE)
-                //.automatedSnapshotRetentionPeriod(AUTOMATEDSNAPSHOTRETENTIONPERIOD)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -199,10 +179,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(modifiedCluster) //ds2.xlarge node type
-//                        .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(modifiedCluster) //dc2.large node type
+                        .clusters(modifiedCluster)
                         .build());
 
 

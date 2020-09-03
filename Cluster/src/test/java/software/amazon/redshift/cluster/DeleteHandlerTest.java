@@ -81,14 +81,5 @@ public class DeleteHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
-
-        //read the cluster and assert if it has been deleted
-
-//        ReadHandler readHandler = new ReadHandler();
-//        final ResourceHandlerRequest<ResourceModel> readRequest = ResourceHandlerRequest.<ResourceModel>builder()
-//                .desiredResourceState(model)
-//                .build();
-//        final ProgressEvent<ResourceModel, CallbackContext> readResponse = readHandler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-//        System.out.println("HERE IN DELETE :"+readResponse.getResourceModel().getClusterIdentifier());
     }
 }

@@ -91,41 +91,4 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return awsResponse;
     }
-
-    private ProgressEvent<ResourceModel, CallbackContext> handleModifyRequest(
-            ResourceHandlerRequest<ResourceModel> request,
-            final ProxyClient<RedshiftClient> proxyClient,
-            final AmazonWebServicesClientProxy proxy,
-            final ProgressEvent<ResourceModel, CallbackContext> progress) {
-
-        // retrieve cluster identifier from request
-        String clusterIdentifier = request.getDesiredResourceState().getClusterIdentifier();
-
-        // retrieve cluster from cluster identifier
-        //DescribeClustersResponse describeClustersResponse = Translator.describeClustersResponse(clusterIdentifier, proxy, proxyClient);
-
-        //Cluster cluster = describeClustersResponse.clusters().get(0);
-
-
-        System.out.println("handle modify request ====   nodes    = "+progress.getResourceModel().getNumberOfNodes());
-
-
-//        if (!cluster.nodeType().equals(request.getDesiredResourceState().getNodeType())) {
-//            proxy.injectCredentialsAndInvokeV2(Translator.modifyClusterNodeType(
-//                    request.getDesiredResourceState().getNodeType(), clusterIdentifier),
-//                    proxyClient.client()::modifyCluster);
-//        } else if (cluster.numberOfNodes()!= request.getDesiredResourceState().getNumberOfNodes()) {
-//            proxy.injectCredentialsAndInvokeV2(Translator.modifyClusterNodeType(
-//                    request.getDesiredResourceState().getNumberOfNodes(), clusterIdentifier),
-//                    proxyClient.client()::modifyCluster);
-//        }
-
-        //check what is different for the cluster via modify request
-        // use several nested if-else to see what is different in the new modify request for the cluster.
-        // e.g if node type change then API call to create new cluster with this new node type
-        // and then delete the previous one?
-        //modify
-
-        return progress;
-    }
 }
