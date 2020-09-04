@@ -34,8 +34,7 @@ public class Translator {
    * @return awsRequest the aws service request to create a resource
    */
   static CreateClusterRequest translateToCreateRequest(final ResourceModel model) {
-    System.out.println("in translateToCreateRequest");
-    CreateClusterRequest request = CreateClusterRequest.builder()
+    return CreateClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUsername(model.getMasterUsername())
             .masterUserPassword(model.getMasterUserPassword())
@@ -43,9 +42,6 @@ public class Translator {
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
             .build();
-
-    System.out.println("Number of nodes check here = "+request.numberOfNodes()+" cluster type = "+request.clusterType());
-    return request;
   }
 
   /**

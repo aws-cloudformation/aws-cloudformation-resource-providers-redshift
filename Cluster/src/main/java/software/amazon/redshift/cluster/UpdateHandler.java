@@ -55,9 +55,6 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        System.out.println("in modify handle request > Cluster Identifier = "+model.getClusterIdentifier()+
-                 "new cluster name = "+ model.getNewClusterIdentifier());
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-Cluster::Update", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
@@ -85,9 +82,6 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
-
-        System.out.println("done modify with response cluster identifier = "
-                +awsResponse.cluster().clusterIdentifier());
 
         return awsResponse;
     }

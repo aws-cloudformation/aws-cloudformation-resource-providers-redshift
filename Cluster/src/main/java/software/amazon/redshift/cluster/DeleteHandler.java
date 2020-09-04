@@ -5,12 +5,9 @@ import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotQuotaExceededException;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
@@ -35,7 +32,6 @@ public class DeleteHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
-        System.out.println("request skip final snapshot is set to = "+model.getSkipFinalClusterSnapshot());
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress ->

@@ -1,10 +1,6 @@
 package software.amazon.redshift.cluster;
 
-// TODO: replace all usage of SdkClient with your service client type, e.g; YourServiceAsyncClient
-// import software.amazon.awssdk.services.yourservice.YourServiceAsyncClient;
-
 import com.amazonaws.util.StringUtils;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
@@ -66,7 +62,7 @@ public class CreateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(createRequest.toString(), e);
         }
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
-        System.out.println("DONE! creating cluster resource..");
+
         return createResponse;
     }
 
