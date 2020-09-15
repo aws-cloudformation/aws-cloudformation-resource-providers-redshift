@@ -178,7 +178,7 @@ public class Translator {
             .map(software.amazon.awssdk.services.redshift.model.Cluster::manualSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(1);
+            .orElse(-1);
 
 
     final String preferredMaintenanceWindow = streamOfOrEmpty(awsResponse.clusters())
@@ -191,7 +191,7 @@ public class Translator {
             .map(software.amazon.awssdk.services.redshift.model.Cluster::publiclyAccessible)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(false);
+            .orElse(true);
 
 
     final String snapshotScheduleIdentifier = streamOfOrEmpty(awsResponse.clusters())
