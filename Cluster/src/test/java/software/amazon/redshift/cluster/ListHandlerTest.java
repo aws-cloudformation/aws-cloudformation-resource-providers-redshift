@@ -60,8 +60,6 @@ public class ListHandlerTest {
                 .clusters(BASIC_CLUSTER)
                 .build();
 
-
-
         doReturn(describeClustersResponse).when(proxy).injectCredentialsAndInvokeV2(any(), any());
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()

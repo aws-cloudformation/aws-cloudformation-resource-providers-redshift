@@ -1,6 +1,8 @@
 package software.amazon.redshift.cluster;
 
 import java.time.Duration;
+import java.util.LinkedList;
+import java.util.List;
 
 import junit.framework.Assert;
 import software.amazon.awssdk.core.SdkClient;
@@ -66,7 +68,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final ResourceModel model = BASIC_MODEL;
+        ResourceModel model = BASIC_MODEL;
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
