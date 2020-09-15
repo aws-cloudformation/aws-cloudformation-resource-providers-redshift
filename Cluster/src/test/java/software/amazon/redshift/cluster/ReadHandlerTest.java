@@ -58,15 +58,13 @@ public class ReadHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final ResourceModel model = BASIC_MODEL;
-
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(BASIC_CLUSTER)
                         .build());
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-            .desiredResourceState(model)
+            .desiredResourceState(BASIC_MODEL)
             .build();
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);

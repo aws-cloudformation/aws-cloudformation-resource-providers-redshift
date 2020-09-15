@@ -1,6 +1,11 @@
 package software.amazon.redshift.cluster;
 
 import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
+import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+
+import java.util.LinkedList;
 
 public class TestUtils {
     final static String AWS_REGION = "us-east-1";
@@ -19,6 +24,15 @@ public class TestUtils {
             .masterUsername(MASTER_USERNAME)
             .nodeType(NODETYPE)
             .numberOfNodes(NUMBER_OF_NODES)
+            .allowVersionUpgrade(true)
+            .automatedSnapshotRetentionPeriod(0)
+            .encrypted(false)
+            .enhancedVpcRouting(false)
+            .manualSnapshotRetentionPeriod(1)
+            .publiclyAccessible(false)
+            .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+            .iamRoles(new LinkedList<ClusterIamRole>())
+            .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
             .build();
 
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
@@ -26,6 +40,15 @@ public class TestUtils {
             .masterUsername(MASTER_USERNAME)
             .nodeType(NODETYPE)
             .numberOfNodes(NUMBER_OF_NODES)
+            .allowVersionUpgrade(true)
+            .automatedSnapshotRetentionPeriod(0)
+            .encrypted(false)
+            .enhancedVpcRouting(false)
+            .manualSnapshotRetentionPeriod(1)
+            .publiclyAccessible(false)
+            .clusterSecurityGroups(new LinkedList<String>())
+            .iamRoles(new LinkedList<String>())
+            .vpcSecurityGroupIds(new LinkedList<String>())
             .build();
 
 }

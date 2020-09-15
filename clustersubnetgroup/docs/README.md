@@ -14,7 +14,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Properties" : {
         "<a href="#description" title="Description">Description</a>" : <i>String</i>,
         "<a href="#subnetids" title="SubnetIds">SubnetIds</a>" : <i>[ String, ... ]</i>,
-        "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tags.md">Tags</a>, ... ]</i>,
+        "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#subnetgroupname" title="SubnetGroupName">SubnetGroupName</a>" : <i>String</i>
     }
 }
@@ -29,7 +29,7 @@ Properties:
     <a href="#subnetids" title="SubnetIds">SubnetIds</a>: <i>
       - String</i>
     <a href="#tags" title="Tags">Tags</a>: <i>
-      - <a href="tags.md">Tags</a></i>
+      - <a href="tag.md">Tag</a></i>
     <a href="#subnetgroupname" title="SubnetGroupName">SubnetGroupName</a>: <i>String</i>
 </pre>
 
@@ -61,13 +61,13 @@ The list of tags for the cluster parameter group.
 
 _Required_: No
 
-_Type_: List of <a href="tags.md">Tags</a>
+_Type_: List of <a href="tag.md">Tag</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### SubnetGroupName
 
-This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be "Default".
+This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be "Default". 
 
 _Required_: No
 

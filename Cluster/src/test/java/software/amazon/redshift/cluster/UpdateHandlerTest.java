@@ -1,15 +1,20 @@
 package software.amazon.redshift.cluster;
 
 import java.time.Duration;
+import java.util.LinkedList;
+
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
+import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterSubnetGroupResponse;
+import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -65,23 +70,41 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final ResourceModel model = ResourceModel.builder()
+        //change the node type for the cluster Identifier
+        ResourceModel model = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
             .build();
 
-
         Cluster modifiedCluster = Cluster.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+                .iamRoles(new LinkedList<ClusterIamRole>())
+                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -108,11 +131,26 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testModifyNumberOfNodes() {
-        final ResourceModel model = ResourceModel.builder()
+//        final ResourceModel model = ResourceModel.builder()
+//                .clusterIdentifier(CLUSTER_IDENTIFIER)
+//                .masterUsername(MASTER_USERNAME)
+//                .nodeType(NODETYPE)
+//                .numberOfNodes(NUMBER_OF_NODES * 2)
+//                .build();
+        ResourceModel model = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
-                .nodeType(NODETYPE)
+                .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES * 2)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -120,11 +158,27 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
 
+//        Cluster modifiedCluster = Cluster.builder()
+//                .clusterIdentifier(CLUSTER_IDENTIFIER)
+//                .masterUsername(MASTER_USERNAME)
+//                .nodeType(NODETYPE)
+//                .numberOfNodes(NUMBER_OF_NODES * 2)
+//                .build();
+
         Cluster modifiedCluster = Cluster.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
-                .nodeType(NODETYPE)
+                .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES * 2)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+                .iamRoles(new LinkedList<ClusterIamRole>())
+                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))

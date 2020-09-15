@@ -109,7 +109,7 @@
         },
         "ManualSnapshotRetentionPeriod": {
             "description": "The default number of days to retain a manual snapshot. If the value is -1, the snapshot is retained indefinitely. This setting doesn't change the retention period of existing snapshots.",
-            "type": "string"
+            "type": "integer"
         },
         "NumberOfNodes": {
             "description": "The number of compute nodes in the cluster. This parameter is required when the ClusterType parameter is specified as multi-node.",
