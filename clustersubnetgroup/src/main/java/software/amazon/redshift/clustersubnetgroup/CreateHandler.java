@@ -24,17 +24,17 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
 
-
 public class CreateHandler extends BaseHandlerStd {
+
     private Logger logger;
     private static final int MAX_SUBNET_GROUP_NAME_LENGTH = 255;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-        final AmazonWebServicesClientProxy proxy,
-        final ResourceHandlerRequest<ResourceModel> request,
-        final CallbackContext callbackContext,
-        final ProxyClient<RedshiftClient> proxyClient,
-        final Logger logger) {
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceHandlerRequest<ResourceModel> request,
+            final CallbackContext callbackContext,
+            final ProxyClient<RedshiftClient> proxyClient,
+            final Logger logger) {
 
         this.logger = logger;
 
@@ -50,8 +50,8 @@ public class CreateHandler extends BaseHandlerStd {
     }
 
     private CreateClusterSubnetGroupResponse createResource(
-        final CreateClusterSubnetGroupRequest createRequest,
-        final ProxyClient<RedshiftClient> proxyClient) {
+            final CreateClusterSubnetGroupRequest createRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
         CreateClusterSubnetGroupResponse createResponse = null;
 
         try {
