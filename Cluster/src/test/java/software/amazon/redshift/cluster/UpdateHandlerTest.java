@@ -1,7 +1,9 @@
 package software.amazon.redshift.cluster;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
@@ -10,6 +12,8 @@ import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterSubnetGroupRequest;
@@ -37,6 +41,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
+import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
@@ -131,12 +136,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testModifyNumberOfNodes() {
-//        final ResourceModel model = ResourceModel.builder()
-//                .clusterIdentifier(CLUSTER_IDENTIFIER)
-//                .masterUsername(MASTER_USERNAME)
-//                .nodeType(NODETYPE)
-//                .numberOfNodes(NUMBER_OF_NODES * 2)
-//                .build();
         ResourceModel model = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
@@ -156,14 +155,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
                 .build();
-
-
-//        Cluster modifiedCluster = Cluster.builder()
-//                .clusterIdentifier(CLUSTER_IDENTIFIER)
-//                .masterUsername(MASTER_USERNAME)
-//                .nodeType(NODETYPE)
-//                .numberOfNodes(NUMBER_OF_NODES * 2)
-//                .build();
 
         Cluster modifiedCluster = Cluster.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -250,4 +241,70 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
     }
 
+    @Test
+    public void testUpdateIamRoles() {
+        List<ClusterIamRole> iamRoles =  new LinkedList<ClusterIamRole>();
+        iamRoles.add(ClusterIamRole.builder().iamRoleArn(IAM_ROLE_ARN).build());
+
+        List<String> iamrole = Collections.singletonList( IAM_ROLE_ARN );
+
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .addIamRoles(iamrole)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+
+        Cluster modifiedClusterWithIamRole = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES * 2)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+                .iamRoles(iamRoles)
+                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .build();
+
+        when(proxyClient.client().modifyClusterIamRoles(any(ModifyClusterIamRolesRequest.class)))
+                .thenReturn(ModifyClusterIamRolesResponse.builder()
+                        .cluster(modifiedClusterWithIamRole)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedClusterWithIamRole)
+                        .build());
+
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel().getIamRoles().get(0)).isEqualTo(IAM_ROLE_ARN);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
 }
