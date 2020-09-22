@@ -18,6 +18,7 @@ public class TestUtils {
     final static String MASTER_USERPASSWORD = "Test1234";
     final static String NODETYPE = "ds2.xlarge";
     final static int  NUMBER_OF_NODES = 2;
+    final static String IAM_ROLE_ARN = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)

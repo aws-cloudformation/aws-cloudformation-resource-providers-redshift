@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
@@ -227,7 +228,6 @@ public class Translator {
             .automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
             .availabilityZone(availabilityZone)
             .clusterVersion(clusterVersion)
-            //.dbName(dbName)
             .encrypted(encrypted)
             .enhancedVpcRouting(enhancedVpcRouting)
             .kmsKeyId(kmsKeyId)
@@ -238,7 +238,6 @@ public class Translator {
             .snapshotScheduleIdentifier(snapshotScheduleIdentifier)
             .clusterSecurityGroups(translateClusterSecurityGroupsFromSdk(clusterSecurityGroups))
             .iamRoles(translateIamRolesFromSdk(iamRoles))
-            //.tags(model.getTags())
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
             .build();
 
@@ -289,7 +288,6 @@ public class Translator {
             .newClusterIdentifier(model.getNewClusterIdentifier())
             .allowVersionUpgrade(model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
-            //.availabilityZone(model.getAvailabilityZone())
             .clusterParameterGroupName(model.getClusterParameterGroupName())
             .clusterType(model.getClusterType())
             .clusterVersion(model.getClusterVersion())
@@ -301,16 +299,26 @@ public class Translator {
             .kmsKeyId(model.getKmsKeyId())
             .maintenanceTrackName(model.getMaintenanceTrackName())
             .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
-            //.port(model.getPort())
             .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow())
             .publiclyAccessible(model.getPubliclyAccessible())
-            //.snapshotScheduleIdentifier(model.getSnapshotScheduleIdentifier())
             .clusterSecurityGroups(model.getClusterSecurityGroups())
-            //.iamRoles(model.getIamRoles())
-            //.tags(model.getTags())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
             .build();
   }
+
+  /**
+   * Request to update IAM of a previously created cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterIamRolesRequest translateToUpdateIAMRolesRequest(final ResourceModel model) {
+    return ModifyClusterIamRolesRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .addIamRoles(model.getAddIamRoles())
+            .removeIamRoles(model.getRemoveIamRoles())
+            .build();
+  }
+
 
   /**
    * Request to update some other properties that could not be provisioned through first update request
