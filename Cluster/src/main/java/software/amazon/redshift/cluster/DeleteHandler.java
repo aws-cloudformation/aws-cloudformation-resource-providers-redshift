@@ -1,5 +1,6 @@
 package software.amazon.redshift.cluster;
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
@@ -7,6 +8,8 @@ import software.amazon.awssdk.services.redshift.model.ClusterSnapshotAlreadyExis
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
@@ -33,11 +36,14 @@ public class DeleteHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
+        System.out.println("DELETE HANDLER model ===> "+model+"\n\n\n");
+
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-Cluster::Delete", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDeleteRequest)
                                 .makeServiceCall(this::deleteResource)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterDelete(_client, _model, _context))
                                 .success());
 
     }
@@ -58,6 +64,20 @@ public class DeleteHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("%s successfully deleted.", ResourceModel.TYPE_NAME));
+
         return awsResponse;
+    }
+
+
+    protected boolean isClusterActiveAfterDelete (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+        DescribeClustersRequest awsRequest =
+                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+        try {
+            DescribeClustersResponse awsResponse =
+                    proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+        } catch (final ClusterNotFoundException e) {
+            return true;
+        }
+        return false;
     }
 }

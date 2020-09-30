@@ -2,6 +2,8 @@ package software.amazon.redshift.cluster;
 
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -32,4 +34,16 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final CallbackContext callbackContext,
     final ProxyClient<RedshiftClient> proxyClient,
     final Logger logger);
+
+
+  protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    return awsResponse.clusters().get(0).clusterStatus().equals("available");
+  }
+
+
 }
