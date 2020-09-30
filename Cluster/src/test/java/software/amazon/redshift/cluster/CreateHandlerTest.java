@@ -31,11 +31,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
+import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 
 @ExtendWith(MockitoExtension.class)
@@ -84,7 +86,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER)
+                        .clusters(BASIC_CLUSTER_READ)
                         .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -100,7 +102,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         Assert.assertEquals("expected not equal to actual",response.getResourceModel(), request.getDesiredResourceState());
 
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
-        verify(proxyClient.client()).describeClusters(any(DescribeClustersRequest.class));
+        verify(proxyClient.client(), times(2))
+                .describeClusters(any(DescribeClustersRequest.class));
 
     }
 }

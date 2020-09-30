@@ -264,10 +264,18 @@ public class Translator {
    * @return awsRequest the aws service request to delete a resource
    */
   static DeleteClusterRequest translateToDeleteRequest(final ResourceModel model) {
+    System.out.println("\n\nCheck value of skipFinalClusterSnapshot = "+ model.getSkipFinalClusterSnapshot()
+    +" cluster id ====>>> "+model.getClusterIdentifier()
+            + "final cluster snapshot identifier = "+model.getFinalClusterSnapshotIdentifier());
+
+    boolean skipFinalClusterSnapshot = model.getFinalClusterSnapshotIdentifier() == null ? true : false;
+    System.out.println("\n\nvalue of variable = "+skipFinalClusterSnapshot);
+
     return DeleteClusterRequest
             .builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            .skipFinalClusterSnapshot(model.getSkipFinalClusterSnapshot())
+            //.skipFinalClusterSnapshot(model.getSkipFinalClusterSnapshot())
+            .skipFinalClusterSnapshot(skipFinalClusterSnapshot)
             .finalClusterSnapshotIdentifier(model.getFinalClusterSnapshotIdentifier())
             .finalClusterSnapshotRetentionPeriod(model.getFinalClusterSnapshotRetentionPeriod())
             .build();

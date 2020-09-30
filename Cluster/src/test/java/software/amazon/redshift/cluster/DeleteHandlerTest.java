@@ -3,10 +3,13 @@ package software.amazon.redshift.cluster;
 import java.time.Duration;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterResponse;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -27,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
+import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,6 +75,9 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().deleteCluster(any(DeleteClusterRequest.class)))
                 .thenReturn(DeleteClusterResponse.builder().build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenThrow(ClusterNotFoundException.class);
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
