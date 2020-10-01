@@ -81,4 +81,5 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 #### ParameterGroupName
 
-This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be "Default".
+Cloudformation will generate a unique group name.
+
