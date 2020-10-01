@@ -12,7 +12,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::Redshift::Cluster",
     "Properties" : {
-        "<a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>" : <i>String</i>,
         "<a href="#masterusername" title="MasterUsername">MasterUsername</a>" : <i>String</i>,
         "<a href="#masteruserpassword" title="MasterUserPassword">MasterUserPassword</a>" : <i>String</i>,
         "<a href="#nodetype" title="NodeType">NodeType</a>" : <i>String</i>,
@@ -58,7 +57,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::Redshift::Cluster
 Properties:
-    <a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>: <i>String</i>
     <a href="#masterusername" title="MasterUsername">MasterUsername</a>: <i>String</i>
     <a href="#masteruserpassword" title="MasterUserPassword">MasterUserPassword</a>: <i>String</i>
     <a href="#nodetype" title="NodeType">NodeType</a>: <i>String</i>
@@ -104,16 +102,6 @@ Properties:
 </pre>
 
 ## Properties
-
-#### ClusterIdentifier
-
-A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account
-
-_Required_: Yes
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### MasterUsername
 
@@ -480,3 +468,13 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 ### Ref
 
 When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the ClusterIdentifier.
+
+### Fn::GetAtt
+
+The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of this type. The following are the available attributes and sample return values.
+
+For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
+
+#### ClusterIdentifier
+
+A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account

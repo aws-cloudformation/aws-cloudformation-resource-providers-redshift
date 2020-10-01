@@ -212,6 +212,9 @@
     "primaryIdentifier": [
         "/properties/ClusterIdentifier"
     ],
+    "readOnlyProperties": [
+        "/properties/ClusterIdentifier"
+    ],
     "handlers": {
         "create": {
             "permissions": [
