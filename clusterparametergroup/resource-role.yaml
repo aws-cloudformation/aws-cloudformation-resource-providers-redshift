@@ -1,0 +1,52 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  This CloudFormation template creates a role assumed by CloudFormation
+  during CRUDL operations to mutate resources on behalf of the customer.
+
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      MaxSessionDuration: 8400
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: resources.cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                - "ec2:AllocateAddress"
+                - "ec2:AssociateAddress"
+                - "ec2:AttachNetworkInterface"
+                - "ec2:DescribeAccountAttributes"
+                - "ec2:DescribeAddresses"
+                - "ec2:DescribeAvailabilityZones"
+                - "ec2:DescribeInternetGateways"
+                - "ec2:DescribeSecurityGroups"
+                - "ec2:DescribeSubnets"
+                - "ec2:DescribeVpcs"
+                - "initech:DeleteReport"
+                - "initech:DescribeReport"
+                - "initech:ListReports"
+                - "initech:UpdateReport"
+                - "redshift:CreateClusterParameterGroup"
+                - "redshift:CreateTags"
+                - "redshift:DeleteClusterParameterGroup"
+                - "redshift:DeleteTags"
+                - "redshift:DescribeClusterParameterGroups"
+                - "redshift:DescribeTags"
+                - "redshift:ModifyClusterParameterGroup"
+                - "redshift:ResetClusterParameterGroup"
+                Resource: "*"
+Outputs:
+  ExecutionRoleArn:
+    Value:
+      Fn::GetAtt: ExecutionRole.Arn
