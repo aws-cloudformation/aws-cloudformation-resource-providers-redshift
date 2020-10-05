@@ -44,6 +44,4 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     return awsResponse.clusters().get(0).clusterStatus().equals("available");
   }
-
-
 }

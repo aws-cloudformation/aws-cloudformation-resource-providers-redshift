@@ -28,7 +28,6 @@ import java.util.UUID;
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
     private static final int MAX_CLUSTER_IDENTIFIER_LENGTH = 63;
-    private static int count = 0;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
@@ -47,7 +46,6 @@ public class CreateHandler extends BaseHandlerStd {
                         .translateToServiceRequest((m) -> Translator.translateToCreateRequest(resourceModel))
                         .makeServiceCall(this::createClusterResource)
                         .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                        //.handleError()
                         .progress())
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
@@ -90,29 +88,4 @@ public class CreateHandler extends BaseHandlerStd {
             );
         }
     }
-
-//    private boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-//        DescribeClustersRequest awsRequest =
-//                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
-////        while(true) {
-//            DescribeClustersResponse awsResponse =
-//                    proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-//
-//            count ++;
-//            if (count % 3 == 0 || awsResponse.clusters().get(0).clusterStatus().equals("available"))
-//                System.out.println("count = "+count +"  cluster status = "+awsResponse.clusters().get(0).clusterStatus());
-//
-////            if (awsResponse.clusters().get(0).clusterStatus().equals("available")) {
-////                //break;
-////                return true;
-////            }
-////            try {
-////                Thread.sleep(120000);
-////            } catch (InterruptedException e) {
-////                e.printStackTrace();
-////            }
-// //       }
-//
-//        return awsResponse.clusters().get(0).clusterStatus().equals("available");
-//    }
 }
