@@ -264,13 +264,11 @@ public class Translator {
    */
   static DeleteClusterRequest translateToDeleteRequest(final ResourceModel model) {
     //temp hack to pass contract tests
-    //boolean skipFinalClusterSnapshot = model.getFinalClusterSnapshotIdentifier() == null ? true : false;
 
     return DeleteClusterRequest
             .builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .skipFinalClusterSnapshot(model.getSkipFinalClusterSnapshot())
-            //.skipFinalClusterSnapshot(skipFinalClusterSnapshot)
             .finalClusterSnapshotIdentifier(model.getFinalClusterSnapshotIdentifier())
             .finalClusterSnapshotRetentionPeriod(model.getFinalClusterSnapshotRetentionPeriod())
             .build();
