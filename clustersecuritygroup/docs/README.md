@@ -61,4 +61,3 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### ClusterSecurityGroupName
 
 Returns the <code>ClusterSecurityGroupName</code> value.
-
