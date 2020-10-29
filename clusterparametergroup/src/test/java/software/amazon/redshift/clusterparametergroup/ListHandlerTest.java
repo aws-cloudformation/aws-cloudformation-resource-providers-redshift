@@ -56,12 +56,11 @@ public class ListHandlerTest extends AbstractTestBase{
                 .build();
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isNotNull();
-        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getResourceModel()).isNull();
+        assertThat(response.getResourceModels()).isNotNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
     }
