@@ -1,8 +1,10 @@
 package software.amazon.redshift.clusterparametergroup;
 
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
@@ -32,6 +34,8 @@ public class ReadHandler extends BaseHandlerStd {
                     logger.log("ReadHandler:: ReadHandler:: awsResponse " + awsResponse);
                 } catch (final ClusterParameterGroupNotFoundException e) { // ResourceNotFoundException
                     throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getParameterGroupName());
+                } catch (final AwsServiceException e) {
+                    throw new CfnInvalidRequestException(awsRequest.toString(), e);
                 }
                 logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
                 return awsResponse;
@@ -50,7 +54,5 @@ public class ReadHandler extends BaseHandlerStd {
         ResourceModel model = Translator.translateFromReadResponse(awsResponse, parameterGroupName);
         return model.getParameterGroupName() != null ? ProgressEvent.defaultSuccessHandler(model) :
                 ProgressEvent.defaultFailureHandler(new CfnNotFoundException(ResourceModel.TYPE_NAME, parameterGroupName), HandlerErrorCode.InternalFailure);
-
-//        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse, parameterGroupName));
     }
 }
