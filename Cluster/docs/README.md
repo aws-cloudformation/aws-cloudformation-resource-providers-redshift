@@ -47,7 +47,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#maxrecords" title="MaxRecords">MaxRecords</a>" : <i>String</i>,
         "<a href="#newclusteridentifier" title="NewClusterIdentifier">NewClusterIdentifier</a>" : <i>String</i>,
         "<a href="#addiamroles" title="AddIamRoles">AddIamRoles</a>" : <i>[ String, ... ]</i>,
-        "<a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>" : <i>[ String, ... ]</i>
+        "<a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>" : <i>[ String, ... ]</i>,
+        "<a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>" : <i>String</i>
     }
 }
 </pre>
@@ -99,6 +100,7 @@ Properties:
       - String</i>
     <a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>: <i>
       - String</i>
+    <a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -107,7 +109,7 @@ Properties:
 
 The user name associated with the master user account for the cluster that is being created. The user name can't be PUBLIC and first character must be a letter.
 
-_Required_: Yes
+_Required_: No
 
 _Type_: String
 
@@ -117,7 +119,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 The password associated with the master user account for the cluster that is being created. Password must be between 8 and 64 characters in length, should have at least one uppercase letter.Must contain at least one lowercase letter.Must contain one number.Can be any printable ASCII character.
 
-_Required_: Yes
+_Required_: No
 
 _Type_: String
 
@@ -127,7 +129,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 The node type to be provisioned for the cluster.Valid Values: ds2.xlarge | ds2.8xlarge | dc1.large | dc1.8xlarge | dc2.large | dc2.8xlarge | ra3.4xlarge | ra3.16xlarge
 
-_Required_: Yes
+_Required_: No
 
 _Type_: String
 
@@ -463,6 +465,16 @@ _Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### RedshiftCommand
+
+The Redshift command to be invoked
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 ## Return Values
 
 ### Ref
@@ -478,3 +490,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### ClusterIdentifier
 
 A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account
+

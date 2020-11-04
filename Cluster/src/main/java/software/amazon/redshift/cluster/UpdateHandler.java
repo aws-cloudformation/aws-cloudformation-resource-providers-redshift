@@ -1,6 +1,7 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
@@ -20,6 +21,8 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesReque
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
+import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
@@ -53,6 +56,15 @@ public class UpdateHandler extends BaseHandlerStd {
                     .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
                             .makeServiceCall(this::updateIAMRoles)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress())
+                    .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+        } else if (model.getRedshiftCommand().equals("reboot-cluster")) {
+            return ProgressEvent.progress(model, callbackContext)
+                    .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RebootCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToRebootClusterRequest)
+                            .makeServiceCall(this::rebootCluster)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress())
                     .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
         }
@@ -61,6 +73,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
                         .makeServiceCall(this::updateResource)
+                        .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                         .progress())
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
         }
@@ -103,6 +116,27 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("%s IAM Roles successfully updated.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+
+    private RebootClusterResponse rebootCluster(
+            final RebootClusterRequest rebootClusterRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        RebootClusterResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(rebootClusterRequest, proxyClient.client()::rebootCluster);
+        } catch (final InvalidClusterStateException e ) {
+            throw new CfnInvalidRequestException(rebootClusterRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rebootClusterRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(rebootClusterRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Cluster Reboot.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }

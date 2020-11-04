@@ -200,20 +200,24 @@
             "items": {
                 "type": "string"
             }
+        },
+        "RedshiftCommand": {
+            "description": "The Redshift command to be invoked",
+            "type": "string"
         }
     },
     "additionalProperties": false,
     "required": [
-        "ClusterIdentifier",
-        "MasterUsername",
-        "MasterUserPassword",
-        "NodeType"
+        "ClusterIdentifier"
     ],
     "primaryIdentifier": [
         "/properties/ClusterIdentifier"
     ],
     "readOnlyProperties": [
         "/properties/ClusterIdentifier"
+    ],
+    "writeOnlyProperties": [
+        "/properties/MasterUserPassword"
     ],
     "handlers": {
         "create": {
