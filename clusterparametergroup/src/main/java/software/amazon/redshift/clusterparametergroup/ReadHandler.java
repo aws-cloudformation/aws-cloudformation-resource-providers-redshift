@@ -52,6 +52,6 @@ public class ReadHandler extends BaseHandlerStd {
             final DescribeClusterParameterGroupsResponse awsResponse, final String parameterGroupName) {
         ResourceModel model = Translator.translateFromReadResponse(awsResponse, parameterGroupName);
         return model.getParameterGroupName() != null ? ProgressEvent.defaultSuccessHandler(model) :
-                ProgressEvent.defaultFailureHandler(new CfnNotFoundException(ResourceModel.TYPE_NAME, parameterGroupName), HandlerErrorCode.InternalFailure);
+                ProgressEvent.defaultFailureHandler(new CfnNotFoundException(ResourceModel.TYPE_NAME, parameterGroupName), HandlerErrorCode.NotFound);
     }
 }

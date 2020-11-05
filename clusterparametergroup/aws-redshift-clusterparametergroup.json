@@ -120,6 +120,7 @@
         },
         "list": {
             "permissions": [
+                "redshift:DescribeClusterParameterGroups",
                 "initech:ListReports"
             ]
         }
