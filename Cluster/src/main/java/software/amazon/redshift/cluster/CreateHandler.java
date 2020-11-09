@@ -41,9 +41,9 @@ public class CreateHandler extends BaseHandlerStd {
         prepareResourceModel(request);
         final ResourceModel resourceModel = request.getDesiredResourceState();
 
+        //ProgressEvent<ResourceModel, CallbackContext> out =
 
-
-        ProgressEvent<ResourceModel, CallbackContext> out = ProgressEvent.progress(resourceModel, callbackContext)
+        return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-Cluster::Create", proxyClient, resourceModel, callbackContext)
                         .translateToServiceRequest((m) -> Translator.translateToCreateRequest(resourceModel))
                         .makeServiceCall(this::createClusterResource)
@@ -51,8 +51,8 @@ public class CreateHandler extends BaseHandlerStd {
                         .progress())
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
 
-        System.out.println("CREATE RESOURCE MODEL OUT    "+out.getResourceModel());
-        return out;
+        //System.out.println("CREATE RESOURCE MODEL OUT    "+out.getResourceModel());
+        //return out;
     }
 
     private CreateClusterResponse createClusterResource(

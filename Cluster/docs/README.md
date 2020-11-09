@@ -47,8 +47,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#maxrecords" title="MaxRecords">MaxRecords</a>" : <i>String</i>,
         "<a href="#newclusteridentifier" title="NewClusterIdentifier">NewClusterIdentifier</a>" : <i>String</i>,
         "<a href="#addiamroles" title="AddIamRoles">AddIamRoles</a>" : <i>[ String, ... ]</i>,
-        "<a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>" : <i>[ String, ... ]</i>,
-        "<a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>" : <i>String</i>
+        "<a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>" : <i>[ String, ... ]</i>
     }
 }
 </pre>
@@ -100,7 +99,6 @@ Properties:
       - String</i>
     <a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>: <i>
       - String</i>
-    <a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -462,16 +460,6 @@ Zero or more IAM roles in ARN format to disassociate from the cluster. You can d
 _Required_: No
 
 _Type_: List of String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### RedshiftCommand
-
-The Redshift command to be invoked
-
-_Required_: No
-
-_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

@@ -32,13 +32,14 @@ public class ReadHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        ProgressEvent<ResourceModel, CallbackContext> out = proxy.initiate("AWS-Redshift-Cluster::Read", proxyClient, model, callbackContext)
+        //ProgressEvent<ResourceModel, CallbackContext> out =
+        return proxy.initiate("AWS-Redshift-Cluster::Read", proxyClient, model, callbackContext)
                 .translateToServiceRequest(Translator::translateToReadRequest)
                 .makeServiceCall(this::readResource)
                 .done(this::constructResourceModelFromResponse);
 
-        System.out.println("READ RESOURCE MODEL OUT    "+out.getResourceModel());
-        return out;
+        //System.out.println("READ RESOURCE MODEL OUT    "+out.getResourceModel());
+        //return out;
     }
 
     /**

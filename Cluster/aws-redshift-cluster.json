@@ -200,10 +200,6 @@
             "items": {
                 "type": "string"
             }
-        },
-        "RedshiftCommand": {
-            "description": "The Redshift command to be invoked",
-            "type": "string"
         }
     },
     "additionalProperties": false,
@@ -217,7 +213,8 @@
         "/properties/ClusterIdentifier"
     ],
     "writeOnlyProperties": [
-        "/properties/MasterUserPassword"
+        "/properties/MasterUserPassword",
+        "/properties/SkipFinalClusterSnapshot"
     ],
     "handlers": {
         "create": {

@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFo
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
@@ -30,7 +31,9 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -49,6 +52,20 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
+        System.out.println("UPDATE HANDLER INPUT = >        "+model);
+
+        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model);
+
+        if(!clusterExists) {
+            System.out.println("Cluster Doesn't EXISTTTTTTTTTT");
+            return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                    .status(OperationStatus.FAILED)
+                    .errorCode(HandlerErrorCode.NotFound)
+                    .message(HandlerErrorCode.NotFound.getMessage())
+                    .build();
+        }
+
+
         if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles())
                 || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
 
@@ -59,16 +76,7 @@ public class UpdateHandler extends BaseHandlerStd {
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress())
                     .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-        } else if (model.getRedshiftCommand().equals("reboot-cluster")) {
-            return ProgressEvent.progress(model, callbackContext)
-                    .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RebootCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToRebootClusterRequest)
-                            .makeServiceCall(this::rebootCluster)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress())
-                    .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
         }
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
@@ -139,5 +147,18 @@ public class UpdateHandler extends BaseHandlerStd {
         logger.log(String.format("%s Cluster Reboot.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
+    }
+
+    protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+        DescribeClustersRequest awsRequest =
+                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+        try {
+            DescribeClustersResponse awsResponse =
+                    proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+        } catch (final ClusterNotFoundException e) {
+            logger.log(String.format("%s successfully deleted.", model.getClusterIdentifier()));
+            return false;
+        }
+        return true;
     }
 }

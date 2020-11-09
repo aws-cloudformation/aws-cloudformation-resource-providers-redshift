@@ -265,7 +265,6 @@ public class Translator {
    */
   static DeleteClusterRequest translateToDeleteRequest(final ResourceModel model) {
     //temp hack to pass contract tests
-    System.out.println("In delete translator >>>>   "+model.getFinalClusterSnapshotIdentifier());
     boolean skipFinalClusterSnapshot = model.getFinalClusterSnapshotIdentifier() == null ||
             model.getFinalClusterSnapshotIdentifier().equalsIgnoreCase("true");
 
