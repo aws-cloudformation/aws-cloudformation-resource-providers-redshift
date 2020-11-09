@@ -2,6 +2,7 @@ package software.amazon.redshift.cluster;
 
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -43,5 +44,17 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
     return awsResponse.clusters().get(0).clusterStatus().equals("available");
+  }
+
+  protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    try {
+      DescribeClustersResponse awsResponse =
+              proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+    } catch (final ClusterNotFoundException e) {
+      return false;
+    }
+    return true;
   }
 }

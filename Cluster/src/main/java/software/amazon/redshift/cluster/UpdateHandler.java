@@ -52,12 +52,8 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        System.out.println("UPDATE HANDLER INPUT = >        "+model);
-
         boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model);
-
         if(!clusterExists) {
-            System.out.println("Cluster Doesn't EXISTTTTTTTTTT");
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
                     .errorCode(HandlerErrorCode.NotFound)
@@ -149,16 +145,16 @@ public class UpdateHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
-    protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
-        DescribeClustersRequest awsRequest =
-                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
-        try {
-            DescribeClustersResponse awsResponse =
-                    proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-        } catch (final ClusterNotFoundException e) {
-            logger.log(String.format("%s successfully deleted.", model.getClusterIdentifier()));
-            return false;
-        }
-        return true;
-    }
+//    protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+//        DescribeClustersRequest awsRequest =
+//                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+//        try {
+//            DescribeClustersResponse awsResponse =
+//                    proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+//        } catch (final ClusterNotFoundException e) {
+//            logger.log(String.format("%s successfully deleted.", model.getClusterIdentifier()));
+//            return false;
+//        }
+//        return true;
+//    }
 }

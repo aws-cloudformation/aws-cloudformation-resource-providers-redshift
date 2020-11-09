@@ -102,7 +102,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         Assert.assertEquals("expected not equal to actual",response.getResourceModel(), request.getDesiredResourceState());
 
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
-        verify(proxyClient.client(), times(2))
+        verify(proxyClient.client(), times(3))
                 .describeClusters(any(DescribeClustersRequest.class));
 
     }

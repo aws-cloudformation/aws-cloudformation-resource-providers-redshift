@@ -13,7 +13,9 @@ import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -32,14 +34,20 @@ public class ReadHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        //ProgressEvent<ResourceModel, CallbackContext> out =
+        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model);
+        if(!clusterExists) {
+            return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                    .status(OperationStatus.FAILED)
+                    .errorCode(HandlerErrorCode.NotFound)
+                    .message(HandlerErrorCode.NotFound.getMessage())
+                    .build();
+        }
+
         return proxy.initiate("AWS-Redshift-Cluster::Read", proxyClient, model, callbackContext)
                 .translateToServiceRequest(Translator::translateToReadRequest)
                 .makeServiceCall(this::readResource)
                 .done(this::constructResourceModelFromResponse);
 
-        //System.out.println("READ RESOURCE MODEL OUT    "+out.getResourceModel());
-        //return out;
     }
 
     /**
