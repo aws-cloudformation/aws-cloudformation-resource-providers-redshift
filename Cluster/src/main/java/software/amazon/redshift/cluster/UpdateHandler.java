@@ -52,6 +52,8 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
+        System.out.println("UPDATE HANDLER model ==== >>  "+model);
+
         boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model);
         if(!clusterExists) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
@@ -61,26 +63,30 @@ public class UpdateHandler extends BaseHandlerStd {
                     .build();
         }
 
-
-        if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles())
-                || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
-
-            return ProgressEvent.progress(model, callbackContext)
-                    .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
-                            .makeServiceCall(this::updateIAMRoles)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress())
-                    .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-        }
         return ProgressEvent.progress(model, callbackContext)
-                .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToUpdateRequest)
-                        .makeServiceCall(this::updateResource)
-                        .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                        .progress())
-                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-        }
+            .then(progress -> {
+                if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles()) || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
+                    .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
+                    .makeServiceCall(this::updateIAMRoles)
+                    .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                    .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(issueModifyClusterRequest(model)) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToUpdateRequest)
+                            .makeServiceCall(this::updateResource)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+            .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    }
 
     private ModifyClusterResponse updateResource(
             final ModifyClusterRequest modifyRequest,
@@ -145,16 +151,17 @@ public class UpdateHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
-//    protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
-//        DescribeClustersRequest awsRequest =
-//                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
-//        try {
-//            DescribeClustersResponse awsResponse =
-//                    proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-//        } catch (final ClusterNotFoundException e) {
-//            logger.log(String.format("%s successfully deleted.", model.getClusterIdentifier()));
-//            return false;
-//        }
-//        return true;
-//    }
+    private boolean issueModifyClusterRequest(ResourceModel model) {
+        if (model.getNodeType() != null || model.getNumberOfNodes() != null || model.getNewClusterIdentifier() != null ||
+                model.getAllowVersionUpgrade() != null || model.getAutomatedSnapshotRetentionPeriod() != null ||
+                model.getClusterParameterGroupName() != null || model.getClusterType() != null || model.getClusterVersion() != null ||
+                model.getElasticIp() != null || model.getEncrypted() != null || model.getEnhancedVpcRouting() != null ||
+                model.getHsmClientCertificateIdentifier() != null || model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
+                model.getKmsKeyId() != null || model.getMaintenanceTrackName() != null || model.getManualSnapshotRetentionPeriod() != null ||
+                model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null || model.getClusterSecurityGroups() != null ||
+                model.getVpcSecurityGroupIds() != null) {
+                return true;
+        }
+        return false;
+    }
 }

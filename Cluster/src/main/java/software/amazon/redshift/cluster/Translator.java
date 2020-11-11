@@ -1,5 +1,6 @@
 package software.amazon.redshift.cluster;
 
+import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
@@ -294,6 +295,7 @@ public class Translator {
             .allowVersionUpgrade(model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
             .clusterParameterGroupName(model.getClusterParameterGroupName())
+            //.clusterSecurityGroups(model.getClusterSecurityGroups())
             .clusterType(model.getClusterType())
             .clusterVersion(model.getClusterVersion())
             .elasticIp(model.getElasticIp())

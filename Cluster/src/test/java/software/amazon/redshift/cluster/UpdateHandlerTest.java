@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
@@ -16,8 +15,6 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesReque
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterSubnetGroupRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterSubnetGroupResponse;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -250,21 +247,20 @@ public class UpdateHandlerTest extends AbstractTestBase {
         iamRoles.add(ClusterIamRole.builder().iamRoleArn(IAM_ROLE_ARN).build());
 
         List<String> iamrole = Collections.singletonList( IAM_ROLE_ARN );
-
         ResourceModel model = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(Collections.emptyList())
-                .vpcSecurityGroupIds(new LinkedList<String>())
+                .masterUsername(null)
+                .nodeType(null)
+                .numberOfNodes(4)
+                .allowVersionUpgrade(null)
+                .automatedSnapshotRetentionPeriod(null)
+                .encrypted(null)
+                .enhancedVpcRouting(null)
+                .manualSnapshotRetentionPeriod(null)
+                .publiclyAccessible(null)
+                .clusterSecurityGroups(null)
+                .iamRoles(null)
+                .vpcSecurityGroupIds(null)
                 .addIamRoles(iamrole)
                 .build();
 
@@ -272,19 +268,35 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .desiredResourceState(model)
                 .build();
 
-
         Cluster modifiedClusterWithIamRole = Cluster.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES * 2)
+                .masterUsername(null)
+                .nodeType(null)
+                .numberOfNodes(null)
                 .clusterStatus("available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
+                .allowVersionUpgrade(null)
+                .automatedSnapshotRetentionPeriod(null)
+                .encrypted(null)
+                .enhancedVpcRouting(null)
+                .manualSnapshotRetentionPeriod(null)
+                .publiclyAccessible(null)
+                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+                .iamRoles(iamRoles)
+                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .build();
+
+        Cluster modifiedClusterWithIamRoleResize = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(null)
+                .nodeType(null)
+                .numberOfNodes(4)
+                .clusterStatus("available")
+                .allowVersionUpgrade(null)
+                .automatedSnapshotRetentionPeriod(null)
+                .encrypted(null)
+                .enhancedVpcRouting(null)
+                .manualSnapshotRetentionPeriod(null)
+                .publiclyAccessible(null)
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(iamRoles)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
@@ -295,18 +307,26 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .cluster(modifiedClusterWithIamRole)
                         .build());
 
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedClusterWithIamRoleResize)
+                        .build());
+
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedClusterWithIamRole)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedClusterWithIamRoleResize)
                         .build());
-
-
+        
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getIamRoles().get(0)).isEqualTo(IAM_ROLE_ARN);
+        assertThat(response.getResourceModel().getNumberOfNodes()).isEqualTo(4);
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
