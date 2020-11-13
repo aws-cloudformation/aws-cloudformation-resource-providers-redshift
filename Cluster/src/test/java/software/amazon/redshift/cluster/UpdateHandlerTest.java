@@ -72,7 +72,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        //change the node type for the cluster Identifier
         ResourceModel model = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
@@ -319,7 +318,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedClusterWithIamRoleResize)
                         .build());
-        
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();

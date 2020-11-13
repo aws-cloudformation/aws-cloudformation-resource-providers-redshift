@@ -52,9 +52,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        System.out.println("UPDATE HANDLER model ==== >>  "+model);
-
-        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model);
+        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model, model.getClusterIdentifier());
         if(!clusterExists) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
@@ -152,16 +150,13 @@ public class UpdateHandler extends BaseHandlerStd {
     }
 
     private boolean issueModifyClusterRequest(ResourceModel model) {
-        if (model.getNodeType() != null || model.getNumberOfNodes() != null || model.getNewClusterIdentifier() != null ||
+        return model.getNodeType() != null || model.getNumberOfNodes() != null || model.getNewClusterIdentifier() != null ||
                 model.getAllowVersionUpgrade() != null || model.getAutomatedSnapshotRetentionPeriod() != null ||
                 model.getClusterParameterGroupName() != null || model.getClusterType() != null || model.getClusterVersion() != null ||
                 model.getElasticIp() != null || model.getEncrypted() != null || model.getEnhancedVpcRouting() != null ||
                 model.getHsmClientCertificateIdentifier() != null || model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
                 model.getKmsKeyId() != null || model.getMaintenanceTrackName() != null || model.getManualSnapshotRetentionPeriod() != null ||
                 model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null || model.getClusterSecurityGroups() != null ||
-                model.getVpcSecurityGroupIds() != null) {
-                return true;
-        }
-        return false;
+                model.getVpcSecurityGroupIds() != null;
     }
 }

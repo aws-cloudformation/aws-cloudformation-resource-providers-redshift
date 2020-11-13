@@ -80,7 +80,6 @@ public class Translator {
    * @return awsRequest the aws service request to describe a resource
    */
   static DescribeClustersRequest translateToReadRequest(final ResourceModel model) {
-
     String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
             ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
 

@@ -73,6 +73,7 @@ public class TestUtils {
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
             .masterUsername(MASTER_USERNAME)
+            .masterUserPassword(MASTER_USERPASSWORD)
             .nodeType(NODETYPE)
             .numberOfNodes(NUMBER_OF_NODES)
             .allowVersionUpgrade(true)
