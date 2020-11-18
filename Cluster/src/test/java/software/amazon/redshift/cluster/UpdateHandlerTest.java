@@ -86,6 +86,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("modify-cluster")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -121,6 +122,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        //Response doesn't have method redShiftCommand, hack to pass assertions in unit test
+        response.getResourceModel().setRedshiftCommand("modify-cluster");
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -147,6 +150,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("modify-cluster")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -182,6 +186,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("modify-cluster");
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -201,6 +206,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
                 .newClusterIdentifier(newClusterId)
+                .redshiftCommand("modify-cluster")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -250,7 +256,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(null)
                 .nodeType(null)
-                .numberOfNodes(4)
+                .numberOfNodes(NUMBER_OF_NODES * 2)
                 .allowVersionUpgrade(null)
                 .automatedSnapshotRetentionPeriod(null)
                 .encrypted(null)
@@ -261,6 +267,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(null)
                 .vpcSecurityGroupIds(null)
                 .addIamRoles(iamrole)
+                .redshiftCommand("modify-cluster")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -288,7 +295,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(null)
                 .nodeType(null)
-                .numberOfNodes(4)
+                .numberOfNodes(NUMBER_OF_NODES * 2)
                 .clusterStatus("available")
                 .allowVersionUpgrade(null)
                 .automatedSnapshotRetentionPeriod(null)

@@ -47,7 +47,11 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#maxrecords" title="MaxRecords">MaxRecords</a>" : <i>String</i>,
         "<a href="#newclusteridentifier" title="NewClusterIdentifier">NewClusterIdentifier</a>" : <i>String</i>,
         "<a href="#addiamroles" title="AddIamRoles">AddIamRoles</a>" : <i>[ String, ... ]</i>,
-        "<a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>" : <i>[ String, ... ]</i>
+        "<a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>" : <i>[ String, ... ]</i>,
+        "<a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>" : <i>String</i>,
+        "<a href="#currentdatabaserevision" title="CurrentDatabaseRevision">CurrentDatabaseRevision</a>" : <i>String</i>,
+        "<a href="#databaserevisionreleasedate" title="DatabaseRevisionReleaseDate">DatabaseRevisionReleaseDate</a>" : <i>String</i>,
+        "<a href="#revisiontargets" title="RevisionTargets">RevisionTargets</a>" : <i>[ String, ... ]</i>
     }
 }
 </pre>
@@ -98,6 +102,11 @@ Properties:
     <a href="#addiamroles" title="AddIamRoles">AddIamRoles</a>: <i>
       - String</i>
     <a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>: <i>
+      - String</i>
+    <a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>: <i>String</i>
+    <a href="#currentdatabaserevision" title="CurrentDatabaseRevision">CurrentDatabaseRevision</a>: <i>String</i>
+    <a href="#databaserevisionreleasedate" title="DatabaseRevisionReleaseDate">DatabaseRevisionReleaseDate</a>: <i>String</i>
+    <a href="#revisiontargets" title="RevisionTargets">RevisionTargets</a>: <i>
       - String</i>
 </pre>
 
@@ -456,6 +465,46 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### RemoveIamRoles
 
 Zero or more IAM roles in ARN format to disassociate from the cluster. You can disassociate up to 10 IAM roles from a single cluster in a single request
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RedshiftCommand
+
+The redshift API command
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CurrentDatabaseRevision
+
+A string representing the current cluster version.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DatabaseRevisionReleaseDate
+
+The date on which the database revision was released.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RevisionTargets
+
+A list of RevisionTarget objects, where each object describes the database revision that a cluster can be updated to.
 
 _Required_: No
 

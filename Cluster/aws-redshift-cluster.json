@@ -200,6 +200,25 @@
             "items": {
                 "type": "string"
             }
+        },
+        "RedshiftCommand": {
+            "description": "The redshift API command",
+            "type": "string"
+        },
+        "CurrentDatabaseRevision": {
+            "description": "A string representing the current cluster version.",
+            "type": "string"
+        },
+        "DatabaseRevisionReleaseDate": {
+            "description": "The date on which the database revision was released.",
+            "type": "string"
+        },
+        "RevisionTargets": {
+            "description": "A list of RevisionTarget objects, where each object describes the database revision that a cluster can be updated to.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         }
     },
     "additionalProperties": false,

@@ -1,11 +1,17 @@
 package software.amazon.redshift.cluster;
 
 import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class TestUtils {
     final static String AWS_REGION = "us-east-1";
@@ -70,6 +76,20 @@ public class TestUtils {
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
             .build();
 
+    final static Instant DB_RELEASE_DATE = Instant.ofEpochSecond(1000000000);
+    static RevisionTarget REVISION_TARGET = RevisionTarget.builder()
+            .databaseRevision("")
+            .databaseRevisionReleaseDate(DB_RELEASE_DATE)
+            .description("This is version:1")
+            .build();
+
+    final static ClusterDbRevision CLUSTER_DB_REVISION = ClusterDbRevision.builder()
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
+            .currentDatabaseRevision("0")
+            .databaseRevisionReleaseDate(DB_RELEASE_DATE)
+            .revisionTargets(REVISION_TARGET)
+            .build();
+
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
             .masterUsername(MASTER_USERNAME)
@@ -85,6 +105,14 @@ public class TestUtils {
             .clusterSecurityGroups(new LinkedList<String>())
             .iamRoles(new LinkedList<String>())
             .vpcSecurityGroupIds(new LinkedList<String>())
+            .build();
+
+    final static ResourceModel DESCRIBE_DB_REVISIONS_MODEL = ResourceModel.builder()
+            .redshiftCommand("describe-cluster-db-revisions")
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
+            .currentDatabaseRevision("0")
+            .databaseRevisionReleaseDate(DB_RELEASE_DATE.toString())
+            .revisionTargets(null)
             .build();
 
 }

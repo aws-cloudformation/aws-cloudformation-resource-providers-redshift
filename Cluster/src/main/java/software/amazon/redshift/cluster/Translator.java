@@ -4,21 +4,27 @@ import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -85,6 +91,18 @@ public class Translator {
 
     return DescribeClustersRequest.builder()
             .clusterIdentifier(clusterIdentifier)
+            .build();
+  }
+
+  /**
+   * Describe a Cluster DB Revisions Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeClusterDbRevisionsRequest translateToDescribeClusterDBRevisionsRequest(final ResourceModel model) {
+    return DescribeClusterDbRevisionsRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .marker(model.getMarker())
             .build();
   }
 
@@ -243,6 +261,39 @@ public class Translator {
 
   }
 
+  static ResourceModel translateFromReadDescribeClusterDbRevisionsResponse(final DescribeClusterDbRevisionsResponse awsResponse) {
+    final String clusterIdentifier = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String currentDatabaseRevision = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision::currentDatabaseRevision)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Instant databaseRevisionReleaseDate = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision::databaseRevisionReleaseDate)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<RevisionTarget> revisionTargets  = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision:: revisionTargets)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    return ResourceModel.builder()
+            .clusterIdentifier(clusterIdentifier)
+            .currentDatabaseRevision(currentDatabaseRevision)
+            .databaseRevisionReleaseDate(databaseRevisionReleaseDate == null ? null : databaseRevisionReleaseDate.toString())
+            //.revisionTargets(translateRevisionTargetsFromSdk(revisionTargets))
+            .build();
+  }
+
   static List<String> translateClusterSecurityGroupsFromSdk (final List<ClusterSecurityGroupMembership> clusterSecurityGroups) {
     return clusterSecurityGroups.stream().map((clusterSecurityGroup ->
             clusterSecurityGroup.clusterSecurityGroupName())).collect(Collectors.toList());
@@ -256,6 +307,11 @@ public class Translator {
   static List<String> translateIamRolesFromSdk (final List<ClusterIamRole> iamRoles) {
     return iamRoles.stream().map((iamRole ->
             iamRole.iamRoleArn())).collect(Collectors.toList());
+  }
+
+  static List<String> translateRevisionTargetsFromSdk (final List<RevisionTarget> revisionTargets) {
+    return revisionTargets.stream().map(revisionTarget ->
+            revisionTarget.databaseRevision()).collect(Collectors.toList());
   }
 
   /**
