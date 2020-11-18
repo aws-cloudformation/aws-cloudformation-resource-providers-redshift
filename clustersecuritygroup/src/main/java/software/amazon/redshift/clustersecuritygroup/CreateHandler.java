@@ -23,7 +23,7 @@ import java.util.UUID;
 
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
-    private static final int MAX_CLUSTER_GROUP_NAME_LENGTH = 255;
+    private static final int MAX_NAME_LENGTH = 255;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -40,7 +40,7 @@ public class CreateHandler extends BaseHandlerStd {
                         proxy.initiate("AWS-Redshift-ClusterSecurityGroup::Create", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                                 .translateToServiceRequest((resourceModel) -> Translator.translateToCreateRequest(resourceModel, request.getDesiredResourceTags()))
                                 .makeServiceCall((awsRequest, client) -> {
-                                    CreateClusterSecurityGroupResponse awsResponse = null;
+                                    CreateClusterSecurityGroupResponse awsResponse;
                                     try {
                                         awsResponse = client.injectCredentialsAndInvokeV2(awsRequest, client.client()::createClusterSecurityGroup);
                                     } catch (final ClusterSecurityGroupAlreadyExistsException e) {
@@ -49,7 +49,8 @@ public class CreateHandler extends BaseHandlerStd {
                                         throw new CfnInvalidRequestException(awsRequest.toString(), e);
                                     }
 
-                                    logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
+                                    logger.log(String.format("%s [%s] Created Successfully", ResourceModel.TYPE_NAME,
+                                            request.getDesiredResourceState().getClusterSecurityGroupName()));
                                     return awsResponse;
                                 })
                                 .progress()
@@ -73,7 +74,7 @@ public class CreateHandler extends BaseHandlerStd {
                     IdentifierUtils.generateResourceIdentifier(
                             logicalResourceIdentifier,
                             request.getClientRequestToken(),
-                            MAX_CLUSTER_GROUP_NAME_LENGTH
+                            MAX_NAME_LENGTH
                     ).toLowerCase()
             );
         }

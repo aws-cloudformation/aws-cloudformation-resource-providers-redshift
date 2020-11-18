@@ -37,14 +37,12 @@ Resources:
                 - "initech:DescribeReport"
                 - "initech:ListReports"
                 - "initech:UpdateReport"
-                - "redshift:CreateClusterParameterGroup"
+                - "redshift:CreateClusterSecurityGroup"
                 - "redshift:CreateTags"
-                - "redshift:DeleteClusterParameterGroup"
+                - "redshift:DeleteClusterSecurityGroup"
                 - "redshift:DeleteTags"
-                - "redshift:DescribeClusterParameterGroups"
+                - "redshift:DescribeClusterSecurityGroups"
                 - "redshift:DescribeTags"
-                - "redshift:ModifyClusterParameterGroup"
-                - "redshift:ResetClusterParameterGroup"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
