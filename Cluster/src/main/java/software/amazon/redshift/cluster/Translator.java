@@ -12,8 +12,6 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
-import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -324,18 +322,6 @@ public class Translator {
             .removeIamRoles(model.getRemoveIamRoles())
             .build();
   }
-
-  /**
-   * Request to reboot cluster
-   * @param model resource model
-   * @return awsRequest the aws service request to modify a resource
-   */
-  static RebootClusterRequest translateToRebootClusterRequest(final ResourceModel model) {
-     return RebootClusterRequest.builder()
-             .clusterIdentifier(model.getClusterIdentifier())
-             .build();
-  }
-
 
   /**
    * Request to update some other properties that could not be provisioned through first update request

@@ -22,8 +22,6 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesReque
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
-import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
@@ -124,27 +122,6 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("%s IAM Roles successfully updated.", ResourceModel.TYPE_NAME));
-
-        return awsResponse;
-    }
-
-
-    private RebootClusterResponse rebootCluster(
-            final RebootClusterRequest rebootClusterRequest,
-            final ProxyClient<RedshiftClient> proxyClient) {
-        RebootClusterResponse awsResponse = null;
-
-        try {
-            awsResponse = proxyClient.injectCredentialsAndInvokeV2(rebootClusterRequest, proxyClient.client()::rebootCluster);
-        } catch (final InvalidClusterStateException e ) {
-            throw new CfnInvalidRequestException(rebootClusterRequest.toString(), e);
-        } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rebootClusterRequest.clusterIdentifier());
-        } catch (SdkClientException | RedshiftException e) {
-            throw new CfnGeneralServiceException(rebootClusterRequest.toString(), e);
-        }
-
-        logger.log(String.format("%s Cluster Reboot.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }
