@@ -73,7 +73,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
         when(proxyClient.client().deleteClusterParameterGroup(any(DeleteClusterParameterGroupRequest.class))).thenThrow(
                 ClusterParameterGroupNotFoundException.class);
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        System.out.println(response);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);

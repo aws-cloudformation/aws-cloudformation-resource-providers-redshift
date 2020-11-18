@@ -16,14 +16,14 @@ public class DeleteHandler extends BaseHandlerStd {
             final CallbackContext callbackContext,
             final ProxyClient<RedshiftClient> proxyClient,
             final Logger logger) {
-        return proxy.initiate("rds::delete-dbsubnet-group", proxyClient, request.getDesiredResourceState(), callbackContext)
+        return proxy.initiate("AWS-Redshift-ClusterParameterGroup::Delete", proxyClient, request.getDesiredResourceState(), callbackContext)
                 .translateToServiceRequest(Translator::translateToDeleteRequest)
-                .makeServiceCall((deleteDbSubnetGroupRequest, proxyInvocation) -> proxyInvocation.injectCredentialsAndInvokeV2(deleteDbSubnetGroupRequest, proxyInvocation.client()::deleteClusterParameterGroup))
-                .handleError((deleteDbSubnetGroupRequest, exception, client, resourceModel, cxt) -> {
+                .makeServiceCall((deleteParameterGroupRequest, proxyInvocation) -> proxyInvocation.injectCredentialsAndInvokeV2(deleteParameterGroupRequest, proxyInvocation.client()::deleteClusterParameterGroup))
+                .handleError((deleteParameterGroupRequest, exception, client, resourceModel, cxt) -> {
                     if (exception instanceof ClusterParameterGroupNotFoundException)
                         return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
                     throw exception;
                 })
-                .done((deleteDbSubnetGroupRequest, deleteDbSubnetGroupResponse, client, model, cxt) -> ProgressEvent.defaultSuccessHandler(null));
+                .done((deleteParameterGroupRequest, deleteDbSubnetGroupResponse, client, model, cxt) -> ProgressEvent.defaultSuccessHandler(null));
     }
 }
