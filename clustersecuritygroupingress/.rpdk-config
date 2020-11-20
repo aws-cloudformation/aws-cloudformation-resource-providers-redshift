@@ -1,0 +1,17 @@
+{
+    "typeName": "AWS::Redshift::ClusterSecurityGroupIngress",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.redshift.clustersecuritygroupingress.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.redshift.clustersecuritygroupingress.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "redshift",
+            "clustersecuritygroupingress"
+        ],
+        "codegen_template_path": "guided_aws",
+        "protocolVersion": "2.0.0"
+    }
+}
