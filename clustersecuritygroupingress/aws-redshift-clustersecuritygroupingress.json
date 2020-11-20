@@ -1,0 +1,71 @@
+{
+  "typeName" : "AWS::Redshift::ClusterSecurityGroupIngress",
+  "description" : "Resource Type definition for AWS::Redshift::ClusterSecurityGroupIngress",
+  "additionalProperties" : false,
+  "properties" : {
+    "Id" : {
+      "type" : "string"
+    },
+    "CIDRIP" : {
+      "type" : "string"
+    },
+    "ClusterSecurityGroupName" : {
+      "type" : "string"
+    },
+    "EC2SecurityGroupName" : {
+      "type" : "string"
+    },
+    "EC2SecurityGroupOwnerId" : {
+      "type" : "string"
+    }
+  },
+  "required" : [ "ClusterSecurityGroupName" ],
+  "createOnlyProperties" : [ "/properties/ClusterSecurityGroupName", "/properties/CIDRIP", "/properties/EC2SecurityGroupOwnerId", "/properties/EC2SecurityGroupName" ],
+  "primaryIdentifier" : [ "/properties/Id" ],
+  "readOnlyProperties" : [ "/properties/Id" ],
+  "handlers": {
+    "create": {
+      "permissions": [
+        "redshift:CreateClusterSecurityGroup",
+        "redshift:DescribeClusterSecurityGroups",
+        "redshift:CreateTags",
+        "ec2:AllocateAddress",
+        "ec2:AssociateAddress",
+        "ec2:AttachNetworkInterface",
+        "ec2:DescribeAccountAttributes",
+        "ec2:DescribeAddresses",
+        "ec2:DescribeAvailabilityZones",
+        "ec2:DescribeInternetGateways",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVpcs"
+      ]
+    },
+    "read": {
+      "permissions": [
+        "redshift:DescribeClusterSecurityGroups",
+        "initech:DescribeReport"
+      ]
+    },
+    "update": {
+      "permissions": [
+        "redshift:DescribeTags",
+        "redshift:CreateTags",
+        "redshift:DeleteTags",
+        "initech:UpdateReport"
+      ]
+    },
+    "delete": {
+      "permissions": [
+        "redshift:DeleteClusterSecurityGroup",
+        "initech:DeleteReport"
+      ]
+    },
+    "list": {
+      "permissions": [
+        "redshift:DescribeClusterSecurityGroups",
+        "initech:ListReports"
+      ]
+    }
+  }
+}
