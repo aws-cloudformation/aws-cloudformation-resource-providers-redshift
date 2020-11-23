@@ -47,12 +47,32 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
             ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
 
+    // Patching WF starts with a slight delay, adding sleep to pass contract tests
+    if(model.getRedshiftCommand()!= null && model.getRedshiftCommand().equals("modify-cluster-db-revision")) {
+      try {
+        Thread.sleep(500);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    }
     DescribeClustersRequest awsRequest =
             DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
     DescribeClustersResponse awsResponse =
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
     return awsResponse.clusters().get(0).clusterStatus().equals("available");
+  }
+
+  protected boolean isClusterPaused (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
+            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
+
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    return awsResponse.clusters().get(0).clusterStatus().equals("paused");
   }
 
   protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model,

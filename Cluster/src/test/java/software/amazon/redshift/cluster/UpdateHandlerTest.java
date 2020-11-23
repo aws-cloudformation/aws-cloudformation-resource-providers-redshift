@@ -11,10 +11,18 @@ import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
+import software.amazon.awssdk.services.redshift.model.PauseClusterResponse;
+import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
+import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
+import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResumeClusterResponse;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -38,6 +46,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
+import static software.amazon.redshift.cluster.TestUtils.CURRENT_DB_REVISION;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
@@ -333,6 +342,233 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModel().getIamRoles().get(0)).isEqualTo(IAM_ROLE_ARN);
         assertThat(response.getResourceModel().getNumberOfNodes()).isEqualTo(4);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+
+
+
+    @Test
+    public void testModifyDbRevision() {
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(null)
+                .nodeType(null)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .encrypted(null)
+                .enhancedVpcRouting(null)
+                .manualSnapshotRetentionPeriod(null)
+                .publiclyAccessible(null)
+                .clusterSecurityGroups(null)
+                .iamRoles(null)
+                .vpcSecurityGroupIds(null)
+                .addIamRoles(null)
+                .currentDatabaseRevision(CURRENT_DB_REVISION)
+                .revisionTarget(CURRENT_DB_REVISION + ".1")
+                .redshiftCommand("modify-cluster-db-revision")
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        Cluster modifiedClusterDBRevision = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(null)
+                .nodeType(null)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .encrypted(null)
+                .enhancedVpcRouting(null)
+                .manualSnapshotRetentionPeriod(null)
+                .publiclyAccessible(null)
+                .build();
+
+        when(proxyClient.client().modifyClusterDbRevision(any(ModifyClusterDbRevisionRequest.class)))
+                .thenReturn(ModifyClusterDbRevisionResponse.builder()
+                        .cluster(modifiedClusterDBRevision)
+                        .build());
+
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedClusterDBRevision)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("modify-cluster-db-revision");
+        System.out.println("HERE (null, no value of Revision Target since API doc lists to return clusters which doesn't provide revision Targets. >> "+response.getResourceModel().getRevisionTarget());
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        //assertThat(response.getResourceModel().getRevisionTarget()).isEqualTo(request.getDesiredResourceState().getCurrentDatabaseRevision()+".1");
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testRebootCluster() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("reboot-cluster")
+                .build();
+
+        Cluster rebootCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().rebootCluster(any(RebootClusterRequest.class)))
+                .thenReturn(RebootClusterResponse.builder()
+                        .cluster(rebootCluster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(rebootCluster)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("reboot-cluster");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testPauseCluster() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("pause-cluster")
+                .build();
+
+        Cluster pausedCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("paused")
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().pauseCluster(any(PauseClusterRequest.class)))
+                .thenReturn(PauseClusterResponse.builder()
+                        .cluster(pausedCluster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(pausedCluster)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("pause-cluster");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testResumeCluster() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("resume-cluster")
+                .build();
+
+        Cluster resumeCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().resumeCluster(any(ResumeClusterRequest.class)))
+                .thenReturn(ResumeClusterResponse.builder()
+                        .cluster(resumeCluster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(resumeCluster)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("resume-cluster");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();

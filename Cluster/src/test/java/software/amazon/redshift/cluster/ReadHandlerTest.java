@@ -64,7 +64,7 @@ public class ReadHandlerTest extends AbstractTestBase {
     @AfterEach
     public void tear_down() {
         verify(sdkClient, atLeastOnce()).serviceName();
-        //verifyNoMoreInteractions(sdkClient);
+        verifyNoMoreInteractions(sdkClient);
     }
 
     @Test
@@ -94,6 +94,11 @@ public class ReadHandlerTest extends AbstractTestBase {
 
     @Test
     public void testDescribeClusterDbRevisions() {
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build());
+
         when(proxyClient.client().describeClusterDbRevisions(any(DescribeClusterDbRevisionsRequest.class)))
                 .thenReturn(DescribeClusterDbRevisionsResponse.builder()
                         .clusterDbRevisions(CLUSTER_DB_REVISION)

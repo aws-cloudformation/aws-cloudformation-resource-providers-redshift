@@ -51,6 +51,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>" : <i>String</i>,
         "<a href="#currentdatabaserevision" title="CurrentDatabaseRevision">CurrentDatabaseRevision</a>" : <i>String</i>,
         "<a href="#databaserevisionreleasedate" title="DatabaseRevisionReleaseDate">DatabaseRevisionReleaseDate</a>" : <i>String</i>,
+        "<a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>" : <i>String</i>,
         "<a href="#revisiontargets" title="RevisionTargets">RevisionTargets</a>" : <i>[ String, ... ]</i>
     }
 }
@@ -106,6 +107,7 @@ Properties:
     <a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>: <i>String</i>
     <a href="#currentdatabaserevision" title="CurrentDatabaseRevision">CurrentDatabaseRevision</a>: <i>String</i>
     <a href="#databaserevisionreleasedate" title="DatabaseRevisionReleaseDate">DatabaseRevisionReleaseDate</a>: <i>String</i>
+    <a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>: <i>String</i>
     <a href="#revisiontargets" title="RevisionTargets">RevisionTargets</a>: <i>
       - String</i>
 </pre>
@@ -495,6 +497,16 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### DatabaseRevisionReleaseDate
 
 The date on which the database revision was released.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RevisionTarget
+
+The identifier of the database revision. You can retrieve this value from the response to the DescribeClusterDbRevisions request.
 
 _Required_: No
 

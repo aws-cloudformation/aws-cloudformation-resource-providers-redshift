@@ -213,6 +213,10 @@
             "description": "The date on which the database revision was released.",
             "type": "string"
         },
+        "RevisionTarget": {
+            "description": "The identifier of the database revision. You can retrieve this value from the response to the DescribeClusterDbRevisions request.",
+            "type": "string"
+        },
         "RevisionTargets": {
             "description": "A list of RevisionTarget objects, where each object describes the database revision that a cluster can be updated to.",
             "type": "array",

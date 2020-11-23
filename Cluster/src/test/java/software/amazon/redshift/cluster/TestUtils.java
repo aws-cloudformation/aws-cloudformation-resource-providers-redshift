@@ -25,6 +25,7 @@ public class TestUtils {
     final static String NODETYPE = "ds2.xlarge";
     final static int  NUMBER_OF_NODES = 2;
     final static String IAM_ROLE_ARN = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role";
+    final static String CURRENT_DB_REVISION = "1";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)

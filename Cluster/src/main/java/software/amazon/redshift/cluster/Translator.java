@@ -13,10 +13,13 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisions
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
+import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
@@ -290,7 +293,7 @@ public class Translator {
             .clusterIdentifier(clusterIdentifier)
             .currentDatabaseRevision(currentDatabaseRevision)
             .databaseRevisionReleaseDate(databaseRevisionReleaseDate == null ? null : databaseRevisionReleaseDate.toString())
-            //.revisionTargets(translateRevisionTargetsFromSdk(revisionTargets))
+            .revisionTargets(translateRevisionTargetsFromSdk(revisionTargets))
             .build();
   }
 
@@ -390,6 +393,40 @@ public class Translator {
      return RebootClusterRequest.builder()
              .clusterIdentifier(model.getClusterIdentifier())
              .build();
+  }
+
+  /**
+   * Request to pause cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static PauseClusterRequest translateToPauseClusterRequest(final ResourceModel model) {
+    return PauseClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to resume cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ResumeClusterRequest translateToResumeClusterRequest(final ResourceModel model) {
+    return ResumeClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to DbRevision of a cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterDbRevisionRequest translateToModifyClusterDbRevisionRequest(final ResourceModel model) {
+    return ModifyClusterDbRevisionRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .revisionTarget(model.getRevisionTarget())
+            .build();
   }
 
 
