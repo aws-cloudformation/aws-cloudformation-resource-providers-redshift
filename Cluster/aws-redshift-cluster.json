@@ -220,7 +220,8 @@
         "create": {
             "permissions": [
                 "initech:CreateReport"
-            ]
+            ],
+            "timeoutInMinutes": 60
         },
         "read": {
             "permissions": [
@@ -230,12 +231,14 @@
         "update": {
             "permissions": [
                 "initech:UpdateReport"
-            ]
+            ],
+            "timeoutInMinutes": 60
         },
         "delete": {
             "permissions": [
                 "initech:DeleteReport"
-            ]
+            ],
+            "timeoutInMinutes": 60
         },
         "list": {
             "permissions": [
