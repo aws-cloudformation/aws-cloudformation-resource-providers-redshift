@@ -23,6 +23,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.AWS_REGION;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_MODEL;
+import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_MODEL_CREATE;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.DESIRED_RESOURCE_TAGS;
 import static software.amazon.redshift.clustersubnetgroup.TestUtils.BASIC_CLUSTER_SUBNET_GROUP;
 
@@ -53,7 +54,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        final ResourceModel model = BASIC_MODEL;
+        final ResourceModel model = BASIC_MODEL_CREATE;
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -83,7 +84,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
         verify(proxyClient.client()).createClusterSubnetGroup(any(CreateClusterSubnetGroupRequest.class));
         verify(proxyClient.client()).describeClusterSubnetGroups(any(DescribeClusterSubnetGroupsRequest.class));
     }
