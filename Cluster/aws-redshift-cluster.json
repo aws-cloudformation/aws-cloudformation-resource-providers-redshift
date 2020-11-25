@@ -250,6 +250,13 @@
             "items": {
                 "type": "string"
             }
+        },
+        "SnapshotIdentifier": {
+            "description": "The identifier of the snapshot whose setting you want to modify."
+        },
+        "Force": {
+            "description": "A Boolean option to override an exception if the retention period has already passed.",
+            "type": "boolean"
         }
     },
     "additionalProperties": false,
