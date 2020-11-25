@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
+import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
@@ -15,6 +16,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
@@ -240,6 +242,17 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final List<DeferredMaintenanceWindow> deferMaintenanceWindows = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::deferredMaintenanceWindows)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    System.out.println("translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows) = "+translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows));
+    System.out.println("START TIME = "+translateDeferMaintenanceStartTimeFromSdk(deferMaintenanceWindows));
+    System.out.println("END TIME = "+translateDeferMaintenanceEndTimeFromSdk(deferMaintenanceWindows));
+
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -259,6 +272,9 @@ public class Translator {
             .snapshotScheduleIdentifier(snapshotScheduleIdentifier)
             .clusterSecurityGroups(translateClusterSecurityGroupsFromSdk(clusterSecurityGroups))
             .iamRoles(translateIamRolesFromSdk(iamRoles))
+            .deferMaintenanceIdentifier(translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows))
+            .deferMaintenanceStartTime(translateDeferMaintenanceStartTimeFromSdk(deferMaintenanceWindows))
+            .deferMaintenanceEndTime(translateDeferMaintenanceEndTimeFromSdk(deferMaintenanceWindows))
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
             .build();
 
@@ -315,6 +331,25 @@ public class Translator {
   static List<String> translateRevisionTargetsFromSdk (final List<RevisionTarget> revisionTargets) {
     return revisionTargets.stream().map(revisionTarget ->
             revisionTarget.databaseRevision()).collect(Collectors.toList());
+  }
+
+  static String translateDeferMaintenanceIdentifierFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    String deferMaintenanceIdentifier= deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceIdentifier).collect(Collectors.joining());
+
+    return StringUtils.isNullOrEmpty(deferMaintenanceIdentifier) ? null : deferMaintenanceIdentifier;
+  }
+
+  static String translateDeferMaintenanceStartTimeFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    final Instant deferMaintenanceStartTime = deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceStartTime).filter(Objects::nonNull).findAny().orElse(null);
+    return deferMaintenanceStartTime == null ? null : deferMaintenanceStartTime.toString();
+  }
+
+  static String translateDeferMaintenanceEndTimeFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    final Instant deferMaintenanceEndTime = deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceEndTime).filter(Objects::nonNull).findAny().orElse(null);
+    return deferMaintenanceEndTime == null ? null : deferMaintenanceEndTime.toString();
   }
 
   /**
@@ -427,6 +462,23 @@ public class Translator {
             .clusterIdentifier(model.getClusterIdentifier())
             .revisionTarget(model.getRevisionTarget())
             .build();
+  }
+
+  /**
+   * Request to Modify Cluster Maintence
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterMaintenanceRequest translateToModifyClusterMaintenanceRequest(final ResourceModel model) {
+    return ModifyClusterMaintenanceRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .deferMaintenance(model.getDeferMaintenance())
+            .deferMaintenanceDuration(model.getDeferMaintenanceDuration())
+            .deferMaintenanceIdentifier(model.getDeferMaintenanceIdentifier())
+            .deferMaintenanceStartTime(model.getDeferMaintenanceStartTime() == null ? null : Instant.parse(model.getDeferMaintenanceStartTime()))
+            .deferMaintenanceEndTime(model.getDeferMaintenanceEndTime() == null ? null : Instant.parse(model.getDeferMaintenanceEndTime()))
+            .build();
+
   }
 
 

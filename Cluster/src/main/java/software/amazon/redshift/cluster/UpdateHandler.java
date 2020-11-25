@@ -136,6 +136,17 @@ public class UpdateHandler extends BaseHandlerStd {
                 }
                 return progress;
             })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("modify-cluster-maintenance")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterMaintenance", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifyClusterMaintenanceRequest)
+                            .makeServiceCall(this::modifyClusterMaintenance)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 

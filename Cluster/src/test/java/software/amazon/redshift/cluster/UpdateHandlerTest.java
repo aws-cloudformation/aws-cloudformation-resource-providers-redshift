@@ -9,12 +9,15 @@ import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
@@ -47,6 +50,7 @@ import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.CURRENT_DB_REVISION;
+import static software.amazon.redshift.cluster.TestUtils.DEFERRED_MAINTENANCE_WINDOW;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
@@ -403,6 +407,68 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         //assertThat(response.getResourceModel().getRevisionTarget()).isEqualTo(request.getDesiredResourceState().getCurrentDatabaseRevision()+".1");
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testModifyClusterMaintenance() {
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(null)
+                .nodeType(null)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .encrypted(null)
+                .enhancedVpcRouting(null)
+                .manualSnapshotRetentionPeriod(null)
+                .publiclyAccessible(null)
+                .clusterSecurityGroups(null)
+                .iamRoles(null)
+                .vpcSecurityGroupIds(null)
+                .addIamRoles(null)
+                .redshiftCommand("modify-cluster-maintenance")
+                .deferMaintenance(true)
+                .deferMaintenanceDuration(1)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        List<DeferredMaintenanceWindow> deferredMaintenanceWindows = new LinkedList<>();
+        deferredMaintenanceWindows.add(DEFERRED_MAINTENANCE_WINDOW);
+
+        Cluster modifiedClusterMaintenance = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(null)
+                .nodeType(null)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .encrypted(null)
+                .enhancedVpcRouting(null)
+                .manualSnapshotRetentionPeriod(null)
+                .publiclyAccessible(null)
+                .deferredMaintenanceWindows(deferredMaintenanceWindows)
+                .build();
+
+        when(proxyClient.client().modifyClusterMaintenance(any(ModifyClusterMaintenanceRequest.class)))
+                .thenReturn(ModifyClusterMaintenanceResponse.builder()
+                        .cluster(modifiedClusterMaintenance)
+                        .build());
+
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedClusterMaintenance)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("modify-cluster-maintenance");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();

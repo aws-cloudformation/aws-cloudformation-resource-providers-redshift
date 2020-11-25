@@ -4,6 +4,7 @@ import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 
@@ -89,6 +90,12 @@ public class TestUtils {
             .currentDatabaseRevision("0")
             .databaseRevisionReleaseDate(DB_RELEASE_DATE)
             .revisionTargets(REVISION_TARGET)
+            .build();
+
+    final static DeferredMaintenanceWindow DEFERRED_MAINTENANCE_WINDOW = DeferredMaintenanceWindow.builder()
+            .deferMaintenanceEndTime(Instant.now().plusSeconds(3600))
+            .deferMaintenanceStartTime(Instant.now().minusSeconds(3600))
+            .deferMaintenanceIdentifier("deferredMaintenanceIdentifier")
             .build();
 
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
