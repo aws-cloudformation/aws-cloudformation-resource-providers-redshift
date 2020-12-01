@@ -252,10 +252,115 @@
             }
         },
         "SnapshotIdentifier": {
-            "description": "The identifier of the snapshot whose setting you want to modify."
+            "description": "The identifier of the snapshot whose setting you want to modify.",
+            "type": "string"
         },
         "Force": {
             "description": "A Boolean option to override an exception if the retention period has already passed.",
+            "type": "boolean"
+        },
+        "AccountsWithRestoreAccess": {
+            "description": "A list of the AWS customer accounts authorized to restore the snapshot. Returns null if no accounts are authorized. Visible only to the snapshot owner.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ActualIncrementalBackupSizeInMegaBytes": {
+            "description": "The size of the incremental backup.",
+            "type": "number"
+        },
+        "BackupProgressInMegaBytes": {
+            "description": "The number of megabytes that have been transferred to the snapshot backup.",
+            "type": "number"
+        },
+        "ClusterCreateTime": {
+            "description": "The time (UTC) when the cluster was originally created.",
+            "type": "string"
+        },
+        "CurrentBackupRateInMegaBytesPerSecond": {
+            "description": "The number of megabytes per second being transferred to the snapshot backup. Returns 0 for a completed backup.",
+            "type": "number"
+        },
+        "ElapsedTimeInSeconds": {
+            "description": "The amount of time an in-progress snapshot backup has been running, or the amount of time it took a completed backup to finish.",
+            "type": "number"
+        },
+        "EncryptedWithHSM": {
+            "description": "A boolean that indicates whether the snapshot data is encrypted using the HSM keys of the source cluster. true indicates that the data is encrypted using HSM keys.",
+            "type": "boolean"
+        },
+        "EstimatedSecondsToCompletion": {
+            "description": "The estimate of the time remaining before the snapshot backup will complete. Returns 0 for a completed backup.",
+            "type": "number"
+        },
+        "ManualSnapshotRemainingDays": {
+            "description": "The number of days until a manual snapshot will pass its retention period.",
+            "type": "integer"
+        },
+        "OwnerAccount": {
+            "description": "For manual snapshots, the AWS customer account used to create or copy the snapshot. For automatic snapshots, the owner of the cluster. The owner can perform all snapshot actions, such as sharing a manual snapshot.",
+            "type": "string"
+        },
+        "RestorableNodeTypes": {
+            "description": "The list of node types that this cluster snapshot is able to restore into.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "SnapshotCreateTime": {
+            "description": "The time (in UTC format) when Amazon Redshift began the snapshot. A snapshot contains a copy of the cluster data as of this exact time.",
+            "type": "string"
+        },
+        "SnapshotRetentionStartTime": {
+            "description": "A timestamp representing the start of the retention period for the snapshot.",
+            "type": "string"
+        },
+        "SnapshotType": {
+            "description": "The snapshot type. Snapshots created using CreateClusterSnapshot and CopyClusterSnapshot are of type \"manual\".",
+            "type": "string"
+        },
+        "SourceRegion": {
+            "description": "The source region from which the snapshot was copied.",
+            "type": "string"
+        },
+        "Status": {
+            "description": "The snapshot status. The value of the status depends on the API operation used.",
+            "type": "string"
+        },
+        "TotalBackupSizeInMegaBytes": {
+            "description": "The size of the complete set of backup data that would be used to restore the cluster.",
+            "type": "number"
+        },
+        "VpcId": {
+            "description": "The VPC identifier of the cluster if the snapshot is from a cluster in a VPC. Otherwise, this field is not in the output.",
+            "type": "string"
+        },
+        "StartTime": {
+            "description": "A value that requests only snapshots created at or after the specified time. The time value is specified in ISO 8601 format",
+            "type": "string"
+        },
+        "EndTime": {
+            "description": "A value that requests only snapshots created at or before the specified time. The time value is specified in ISO 8601 format",
+            "type": "string"
+        },
+        "TagKeys": {
+            "description": "A tag key or keys for which you want to return all matching cluster snapshots that are associated with the specified key or keys.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "TagValues": {
+            "description": "A tag value or values for which you want to return all matching cluster snapshots that are associated with the specified tag value or values.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterExists": {
+            "description": "A value that indicates whether to return snapshots only for an existing cluster.",
             "type": "boolean"
         }
     },

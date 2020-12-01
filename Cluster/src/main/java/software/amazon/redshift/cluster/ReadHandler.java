@@ -1,28 +1,18 @@
 package software.amazon.redshift.cluster;
 
-import com.amazonaws.util.CollectionUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceededException;
-import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
-import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
-import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
-import software.amazon.awssdk.services.redshift.model.LimitExceededException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
-import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
-import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
-import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -74,10 +64,20 @@ public class ReadHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
+                    if(model.getRedshiftCommand() != null && (model.getRedshiftCommand().equals("describe-cluster-snapshots") ||
+                            model.getRedshiftCommand().equals("modify-cluster-snapshot"))) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster-Snapshots", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDescribeClusterSnapshotRequest)
+                                .makeServiceCall(this::readClusterSnapshot)
+                                .done(this::constructResourceModelFromDescribeClusterSnapshotResponse);
+                    }
+                    return progress;
+                })
+                .then(progress -> {
                     //if(model.getRedshiftCommand() == null || model.getRedshiftCommand().equals("describe-cluster")) {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToReadRequest)
-                                .makeServiceCall(this::readResource)
+                                .makeServiceCall(this::readCluster)
                                 .done(this::constructResourceModelFromResponse);
                     //}
                     //return progress;
@@ -92,12 +92,37 @@ public class ReadHandler extends BaseHandlerStd {
      * @param proxyClient the aws service client to make the call
      * @return describe resource response
      */
-    private DescribeClustersResponse readResource(
+    private DescribeClustersResponse readCluster(
             final DescribeClustersRequest awsRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         DescribeClustersResponse awsResponse = null;
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
+
+    /**
+     * Implement client invocation of the read request through the proxyClient, which is already initialised with
+     * caller credentials, correct region and retry settings
+     * @param awsRequest the aws service request to describe a resource
+     * @param proxyClient the aws service client to make the call
+     * @return describe resource response
+     */
+    private DescribeClusterSnapshotsResponse readClusterSnapshot(
+            final DescribeClusterSnapshotsRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeClusterSnapshotsResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterSnapshots);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
@@ -144,5 +169,10 @@ public class ReadHandler extends BaseHandlerStd {
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeClusterDbRevisionsResponse(
             final DescribeClusterDbRevisionsResponse awsResponse) {
         return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadDescribeClusterDbRevisionsResponse(awsResponse));
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeClusterSnapshotResponse(
+            final DescribeClusterSnapshotsResponse awsResponse) {
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadDescribeClusterSnapshotResponse(awsResponse));
     }
 }

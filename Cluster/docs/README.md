@@ -58,7 +58,32 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#defermaintenanceendtime" title="DeferMaintenanceEndTime">DeferMaintenanceEndTime</a>" : <i>String</i>,
         "<a href="#defermaintenancestarttime" title="DeferMaintenanceStartTime">DeferMaintenanceStartTime</a>" : <i>String</i>,
         "<a href="#defermaintenanceidentifier" title="DeferMaintenanceIdentifier">DeferMaintenanceIdentifier</a>" : <i>String</i>,
-        "<a href="#defermaintenancewindows" title="DeferMaintenanceWindows">DeferMaintenanceWindows</a>" : <i>[ String, ... ]</i>
+        "<a href="#defermaintenancewindows" title="DeferMaintenanceWindows">DeferMaintenanceWindows</a>" : <i>[ String, ... ]</i>,
+        "<a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>" : <i>String</i>,
+        "<a href="#force" title="Force">Force</a>" : <i>Boolean</i>,
+        "<a href="#accountswithrestoreaccess" title="AccountsWithRestoreAccess">AccountsWithRestoreAccess</a>" : <i>[ String, ... ]</i>,
+        "<a href="#actualincrementalbackupsizeinmegabytes" title="ActualIncrementalBackupSizeInMegaBytes">ActualIncrementalBackupSizeInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#backupprogressinmegabytes" title="BackupProgressInMegaBytes">BackupProgressInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#clustercreatetime" title="ClusterCreateTime">ClusterCreateTime</a>" : <i>String</i>,
+        "<a href="#currentbackuprateinmegabytespersecond" title="CurrentBackupRateInMegaBytesPerSecond">CurrentBackupRateInMegaBytesPerSecond</a>" : <i>Double</i>,
+        "<a href="#elapsedtimeinseconds" title="ElapsedTimeInSeconds">ElapsedTimeInSeconds</a>" : <i>Double</i>,
+        "<a href="#encryptedwithhsm" title="EncryptedWithHSM">EncryptedWithHSM</a>" : <i>Boolean</i>,
+        "<a href="#estimatedsecondstocompletion" title="EstimatedSecondsToCompletion">EstimatedSecondsToCompletion</a>" : <i>Double</i>,
+        "<a href="#manualsnapshotremainingdays" title="ManualSnapshotRemainingDays">ManualSnapshotRemainingDays</a>" : <i>Integer</i>,
+        "<a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>" : <i>String</i>,
+        "<a href="#restorablenodetypes" title="RestorableNodeTypes">RestorableNodeTypes</a>" : <i>[ String, ... ]</i>,
+        "<a href="#snapshotcreatetime" title="SnapshotCreateTime">SnapshotCreateTime</a>" : <i>String</i>,
+        "<a href="#snapshotretentionstarttime" title="SnapshotRetentionStartTime">SnapshotRetentionStartTime</a>" : <i>String</i>,
+        "<a href="#snapshottype" title="SnapshotType">SnapshotType</a>" : <i>String</i>,
+        "<a href="#sourceregion" title="SourceRegion">SourceRegion</a>" : <i>String</i>,
+        "<a href="#status" title="Status">Status</a>" : <i>String</i>,
+        "<a href="#totalbackupsizeinmegabytes" title="TotalBackupSizeInMegaBytes">TotalBackupSizeInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#vpcid" title="VpcId">VpcId</a>" : <i>String</i>,
+        "<a href="#starttime" title="StartTime">StartTime</a>" : <i>String</i>,
+        "<a href="#endtime" title="EndTime">EndTime</a>" : <i>String</i>,
+        "<a href="#tagkeys" title="TagKeys">TagKeys</a>" : <i>[ String, ... ]</i>,
+        "<a href="#tagvalues" title="TagValues">TagValues</a>" : <i>[ String, ... ]</i>,
+        "<a href="#clusterexists" title="ClusterExists">ClusterExists</a>" : <i>Boolean</i>
     }
 }
 </pre>
@@ -123,6 +148,35 @@ Properties:
     <a href="#defermaintenanceidentifier" title="DeferMaintenanceIdentifier">DeferMaintenanceIdentifier</a>: <i>String</i>
     <a href="#defermaintenancewindows" title="DeferMaintenanceWindows">DeferMaintenanceWindows</a>: <i>
       - String</i>
+    <a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>: <i>String</i>
+    <a href="#force" title="Force">Force</a>: <i>Boolean</i>
+    <a href="#accountswithrestoreaccess" title="AccountsWithRestoreAccess">AccountsWithRestoreAccess</a>: <i>
+      - String</i>
+    <a href="#actualincrementalbackupsizeinmegabytes" title="ActualIncrementalBackupSizeInMegaBytes">ActualIncrementalBackupSizeInMegaBytes</a>: <i>Double</i>
+    <a href="#backupprogressinmegabytes" title="BackupProgressInMegaBytes">BackupProgressInMegaBytes</a>: <i>Double</i>
+    <a href="#clustercreatetime" title="ClusterCreateTime">ClusterCreateTime</a>: <i>String</i>
+    <a href="#currentbackuprateinmegabytespersecond" title="CurrentBackupRateInMegaBytesPerSecond">CurrentBackupRateInMegaBytesPerSecond</a>: <i>Double</i>
+    <a href="#elapsedtimeinseconds" title="ElapsedTimeInSeconds">ElapsedTimeInSeconds</a>: <i>Double</i>
+    <a href="#encryptedwithhsm" title="EncryptedWithHSM">EncryptedWithHSM</a>: <i>Boolean</i>
+    <a href="#estimatedsecondstocompletion" title="EstimatedSecondsToCompletion">EstimatedSecondsToCompletion</a>: <i>Double</i>
+    <a href="#manualsnapshotremainingdays" title="ManualSnapshotRemainingDays">ManualSnapshotRemainingDays</a>: <i>Integer</i>
+    <a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>: <i>String</i>
+    <a href="#restorablenodetypes" title="RestorableNodeTypes">RestorableNodeTypes</a>: <i>
+      - String</i>
+    <a href="#snapshotcreatetime" title="SnapshotCreateTime">SnapshotCreateTime</a>: <i>String</i>
+    <a href="#snapshotretentionstarttime" title="SnapshotRetentionStartTime">SnapshotRetentionStartTime</a>: <i>String</i>
+    <a href="#snapshottype" title="SnapshotType">SnapshotType</a>: <i>String</i>
+    <a href="#sourceregion" title="SourceRegion">SourceRegion</a>: <i>String</i>
+    <a href="#status" title="Status">Status</a>: <i>String</i>
+    <a href="#totalbackupsizeinmegabytes" title="TotalBackupSizeInMegaBytes">TotalBackupSizeInMegaBytes</a>: <i>Double</i>
+    <a href="#vpcid" title="VpcId">VpcId</a>: <i>String</i>
+    <a href="#starttime" title="StartTime">StartTime</a>: <i>String</i>
+    <a href="#endtime" title="EndTime">EndTime</a>: <i>String</i>
+    <a href="#tagkeys" title="TagKeys">TagKeys</a>: <i>
+      - String</i>
+    <a href="#tagvalues" title="TagValues">TagValues</a>: <i>
+      - String</i>
+    <a href="#clusterexists" title="ClusterExists">ClusterExists</a>: <i>Boolean</i>
 </pre>
 
 ## Properties
@@ -594,6 +648,256 @@ A list of Deferred maintenance windows.
 _Required_: No
 
 _Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotIdentifier
+
+The identifier of the snapshot whose setting you want to modify.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Force
+
+A Boolean option to override an exception if the retention period has already passed.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AccountsWithRestoreAccess
+
+A list of the AWS customer accounts authorized to restore the snapshot. Returns null if no accounts are authorized. Visible only to the snapshot owner.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ActualIncrementalBackupSizeInMegaBytes
+
+The size of the incremental backup.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### BackupProgressInMegaBytes
+
+The number of megabytes that have been transferred to the snapshot backup.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterCreateTime
+
+The time (UTC) when the cluster was originally created.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CurrentBackupRateInMegaBytesPerSecond
+
+The number of megabytes per second being transferred to the snapshot backup. Returns 0 for a completed backup.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ElapsedTimeInSeconds
+
+The amount of time an in-progress snapshot backup has been running, or the amount of time it took a completed backup to finish.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EncryptedWithHSM
+
+A boolean that indicates whether the snapshot data is encrypted using the HSM keys of the source cluster. true indicates that the data is encrypted using HSM keys.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EstimatedSecondsToCompletion
+
+The estimate of the time remaining before the snapshot backup will complete. Returns 0 for a completed backup.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ManualSnapshotRemainingDays
+
+The number of days until a manual snapshot will pass its retention period.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### OwnerAccount
+
+For manual snapshots, the AWS customer account used to create or copy the snapshot. For automatic snapshots, the owner of the cluster. The owner can perform all snapshot actions, such as sharing a manual snapshot.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RestorableNodeTypes
+
+The list of node types that this cluster snapshot is able to restore into.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotCreateTime
+
+The time (in UTC format) when Amazon Redshift began the snapshot. A snapshot contains a copy of the cluster data as of this exact time.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotRetentionStartTime
+
+A timestamp representing the start of the retention period for the snapshot.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotType
+
+The snapshot type. Snapshots created using CreateClusterSnapshot and CopyClusterSnapshot are of type "manual".
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SourceRegion
+
+The source region from which the snapshot was copied.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Status
+
+The snapshot status. The value of the status depends on the API operation used.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TotalBackupSizeInMegaBytes
+
+The size of the complete set of backup data that would be used to restore the cluster.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### VpcId
+
+The VPC identifier of the cluster if the snapshot is from a cluster in a VPC. Otherwise, this field is not in the output.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### StartTime
+
+A value that requests only snapshots created at or after the specified time. The time value is specified in ISO 8601 format
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EndTime
+
+A value that requests only snapshots created at or before the specified time. The time value is specified in ISO 8601 format
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TagKeys
+
+A tag key or keys for which you want to return all matching cluster snapshots that are associated with the specified key or keys.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TagValues
+
+A tag value or values for which you want to return all matching cluster snapshots that are associated with the specified tag value or values.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterExists
+
+A value that indicates whether to return snapshots only for an existing cluster.
+
+_Required_: No
+
+_Type_: Boolean
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

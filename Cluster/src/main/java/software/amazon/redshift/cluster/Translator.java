@@ -4,6 +4,7 @@ import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AccountWithRestoreAccess;
 import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
@@ -12,6 +13,8 @@ import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
@@ -108,6 +111,25 @@ public class Translator {
     return DescribeClusterDbRevisionsRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .marker(model.getMarker())
+            .build();
+  }
+
+  /**
+   * Describe a Cluster Snapshot  Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeClusterSnapshotsRequest translateToDescribeClusterSnapshotRequest(final ResourceModel model) {
+    return DescribeClusterSnapshotsRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .snapshotIdentifier(model.getSnapshotIdentifier())
+            .snapshotType(model.getSnapshotType())
+            .startTime(model.getStartTime() == null ? null : Instant.parse(model.getStartTime()))
+            .endTime(model.getEndTime() == null ? null : Instant.parse(model.getEndTime()))
+            .ownerAccount(model.getOwnerAccount())
+            .tagKeys(model.getTagKeys())
+            .tagValues(model.getTagValues())
+            .clusterExists(model.getCLusterExists())
             .build();
   }
 
@@ -248,11 +270,6 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    System.out.println("translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows) = "+translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows));
-    System.out.println("START TIME = "+translateDeferMaintenanceStartTimeFromSdk(deferMaintenanceWindows));
-    System.out.println("END TIME = "+translateDeferMaintenanceEndTimeFromSdk(deferMaintenanceWindows));
-
-
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -312,6 +329,253 @@ public class Translator {
             .revisionTargets(translateRevisionTargetsFromSdk(revisionTargets))
             .build();
   }
+
+  static ResourceModel translateFromReadDescribeClusterSnapshotResponse(final DescribeClusterSnapshotsResponse awsResponse) {
+    final String clusterIdentifier = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String snapshotIdentifier = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::snapshotIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<AccountWithRestoreAccess> accountWithRestoreAccesses = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::accountsWithRestoreAccess)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final double actualIncrementalBackupSizeInMegaBytes = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::actualIncrementalBackupSizeInMegaBytes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0.0);
+
+    final String availabilityZone = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::availabilityZone)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final double backupProgressInMegaBytes = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::backupProgressInMegaBytes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0.0);
+
+    final Instant clusterCreateTime = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::clusterCreateTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String clusterVersion = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::clusterVersion)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final double currentBackupRateInMegaBytesPerSecond = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::currentBackupRateInMegaBytesPerSecond)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0.0);
+
+    final String dbName = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::dbName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final long elapsedTimeInSeconds = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::elapsedTimeInSeconds)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0L);
+
+    final boolean encrypted = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::encrypted)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(false);
+
+    final boolean encryptedWithHSM = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::encryptedWithHSM)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(false);
+
+    final boolean enhancedVpcRouting = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::enhancedVpcRouting)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(false);
+
+    final long estimatedSecondsToCompletion = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::estimatedSecondsToCompletion)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0L);
+
+    final String kmsKeyId = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::kmsKeyId)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String maintenanceTrackName = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::maintenanceTrackName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final int manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::manualSnapshotRetentionPeriod)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0);
+
+    final int manualSnapshotRemainingDays = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::manualSnapshotRemainingDays)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0);
+
+    final String masterUsername = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::masterUsername)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String nodeType = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::nodeType)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final int numberOfNodes = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::numberOfNodes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0);
+
+    final String ownerAccount = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::ownerAccount)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final int port = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::port)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0);
+
+    final List<String> restorableNodeTypes = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::restorableNodeTypes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Instant snapshotCreateTime = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::snapshotCreateTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Instant snapshotRetentionStartTime = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::snapshotRetentionStartTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String snapshotType = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::snapshotType)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String sourceRegion = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::sourceRegion)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String status = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::status)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<software.amazon.awssdk.services.redshift.model.Tag> tags = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::tags)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final double totalBackupSizeInMegaBytes = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::totalBackupSizeInMegaBytes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0.0);
+
+    final String vpcId = streamOfOrEmpty(awsResponse.snapshots())
+            .map(software.amazon.awssdk.services.redshift.model.Snapshot::vpcId)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+
+    System.out.println("CLUSTER CREATE TIME = "+clusterCreateTime.toString());
+    System.out.println("SNAPSHOT CREATE TIME = "+snapshotCreateTime.toString());
+
+
+    return ResourceModel.builder()
+            .clusterIdentifier(clusterIdentifier)
+            .snapshotIdentifier(snapshotIdentifier)
+            .accountsWithRestoreAccess(translateAccountWithRestoreAccessesFromSdk(accountWithRestoreAccesses))
+            .actualIncrementalBackupSizeInMegaBytes(actualIncrementalBackupSizeInMegaBytes)
+            .availabilityZone(availabilityZone)
+            .backupProgressInMegaBytes(backupProgressInMegaBytes)
+            .clusterCreateTime(clusterCreateTime.toString())
+            .clusterVersion(clusterVersion)
+            .currentBackupRateInMegaBytesPerSecond(currentBackupRateInMegaBytesPerSecond)
+            .dBName(dbName)
+            .elapsedTimeInSeconds((double) elapsedTimeInSeconds)
+            .encrypted(encrypted)
+            .encryptedWithHSM(encryptedWithHSM)
+            .enhancedVpcRouting(enhancedVpcRouting)
+            .estimatedSecondsToCompletion((double) estimatedSecondsToCompletion)
+            .kmsKeyId(kmsKeyId)
+            .maintenanceTrackName(maintenanceTrackName)
+            .manualSnapshotRetentionPeriod(manualSnapshotRetentionPeriod)
+            .manualSnapshotRemainingDays(manualSnapshotRemainingDays)
+            .masterUsername(masterUsername)
+            .nodeType(nodeType)
+            .numberOfNodes(numberOfNodes)
+            .ownerAccount(ownerAccount)
+            .port(port)
+            .restorableNodeTypes(restorableNodeTypes)
+            .snapshotCreateTime(snapshotCreateTime.toString())
+            .snapshotRetentionStartTime(snapshotRetentionStartTime)
+            .snapshotType(snapshotType)
+            .sourceRegion(sourceRegion)
+            .status(status)
+            .tags(tags)
+            .totalBackupSizeInMegaBytes(totalBackupSizeInMegaBytes)
+            .vpcId(vpcId)
+            .build();
+  }
+
+  static List<String> translateAccountWithRestoreAccessesFromSdk (final List<AccountWithRestoreAccess> accountWithRestoreAccesses) {
+    return accountWithRestoreAccesses.stream().map((accountWithRestoreAccess ->
+            accountWithRestoreAccess.accountId())).collect(Collectors.toList());
+  }
+
 
   static List<String> translateClusterSecurityGroupsFromSdk (final List<ClusterSecurityGroupMembership> clusterSecurityGroups) {
     return clusterSecurityGroups.stream().map((clusterSecurityGroup ->
