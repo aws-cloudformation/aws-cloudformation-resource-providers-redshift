@@ -150,7 +150,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 return progress;
             })
             .then(progress -> {
-                if(model.getRedshiftCommand().equals("modify-cluster-maintenance")) {
+                if(model.getRedshiftCommand().equals("modify-cluster-snapshot")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterSnapshot", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToModifyClusterSnapshotRequest)
                             .makeServiceCall(this::modifyClusterSnapshot)
@@ -239,7 +239,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(modifyClusterMaintenanceRequest.toString(), e);
         }
 
-        logger.log(String.format("%s Update cluster DB Revision.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }
@@ -259,7 +259,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(modifyClusterSnapshotRequest.toString(), e);
         }
 
-        logger.log(String.format("%s Update cluster DB Revision.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Update cluster Snapshot.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }
