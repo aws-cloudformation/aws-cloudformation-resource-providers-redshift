@@ -244,7 +244,7 @@ public class UpdateHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
-    private ModifyClusterSnapshotResponse modifyClusterMaintenance(
+    private ModifyClusterSnapshotResponse modifyClusterSnapshot(
             final ModifyClusterSnapshotRequest modifyClusterSnapshotRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         ModifyClusterSnapshotResponse awsResponse = null;
