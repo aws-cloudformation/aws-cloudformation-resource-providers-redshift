@@ -71,9 +71,34 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return true;
   }
 
+  protected boolean isClusterActiveAfterDelete (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    try {
+      DescribeClustersResponse awsResponse =
+              proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+    } catch (final ClusterNotFoundException e) {
+      return true;
+    }
+    return false;
+  }
+
+
   // check for required parameters to not have null values
   protected boolean invalidCreateClusterRequest(ResourceModel model) {
     return model.getClusterIdentifier() == null || model.getNodeType() == null
             || model.getMasterUsername() == null || model.getMasterUserPassword() == null;
   }
+
+  protected boolean issueModifyClusterRequest(ResourceModel model) {
+    return model.getNodeType() != null || model.getNumberOfNodes() != null || model.getNewClusterIdentifier() != null ||
+            model.getAllowVersionUpgrade() != null || model.getAutomatedSnapshotRetentionPeriod() != null ||
+            model.getClusterParameterGroupName() != null || model.getClusterType() != null || model.getClusterVersion() != null ||
+            model.getElasticIp() != null || model.getEncrypted() != null || model.getEnhancedVpcRouting() != null ||
+            model.getHsmClientCertificateIdentifier() != null || model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
+            model.getKmsKeyId() != null || model.getMaintenanceTrackName() != null || model.getManualSnapshotRetentionPeriod() != null ||
+            model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null || model.getClusterSecurityGroups() != null ||
+            model.getVpcSecurityGroupIds() != null;
+  }
+
 }
