@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionReq
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
@@ -129,7 +130,7 @@ public class Translator {
             .ownerAccount(model.getOwnerAccount())
             .tagKeys(model.getTagKeys())
             .tagValues(model.getTagValues())
-            .clusterExists(model.getCLusterExists())
+            .clusterExists(model.getClusterExists())
             .build();
   }
 
@@ -511,11 +512,11 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final List<software.amazon.awssdk.services.redshift.model.Tag> tags = streamOfOrEmpty(awsResponse.snapshots())
-            .map(software.amazon.awssdk.services.redshift.model.Snapshot::tags)
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElse(null);
+//    final List<software.amazon.awssdk.services.redshift.model.Tag> tags = streamOfOrEmpty(awsResponse.snapshots())
+//            .map(software.amazon.awssdk.services.redshift.model.Snapshot::tags)
+//            .filter(Objects::nonNull)
+//            .findAny()
+//            .orElse(null);
 
     final double totalBackupSizeInMegaBytes = streamOfOrEmpty(awsResponse.snapshots())
             .map(software.amazon.awssdk.services.redshift.model.Snapshot::totalBackupSizeInMegaBytes)
@@ -561,11 +562,11 @@ public class Translator {
             .port(port)
             .restorableNodeTypes(restorableNodeTypes)
             .snapshotCreateTime(snapshotCreateTime.toString())
-            .snapshotRetentionStartTime(snapshotRetentionStartTime)
+            .snapshotRetentionStartTime(snapshotRetentionStartTime.toString())
             .snapshotType(snapshotType)
             .sourceRegion(sourceRegion)
             .status(status)
-            .tags(tags)
+            //.tags(tags)
             .totalBackupSizeInMegaBytes(totalBackupSizeInMegaBytes)
             .vpcId(vpcId)
             .build();
@@ -743,6 +744,19 @@ public class Translator {
             .deferMaintenanceEndTime(model.getDeferMaintenanceEndTime() == null ? null : Instant.parse(model.getDeferMaintenanceEndTime()))
             .build();
 
+  }
+
+  /**
+   * Request to Modify Cluster Maintence
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterSnapshotRequest translateToModifyClusterSnapshotRequest(final ResourceModel model) {
+    return ModifyClusterSnapshotRequest.builder()
+            .snapshotIdentifier(model.getSnapshotIdentifier())
+            .force(model.getForce())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .build();
   }
 
 

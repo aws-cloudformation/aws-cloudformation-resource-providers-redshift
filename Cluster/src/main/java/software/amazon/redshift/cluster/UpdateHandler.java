@@ -27,6 +27,8 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRe
 import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterSnapshotRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterSnapshotResponse;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.PauseClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
@@ -147,6 +149,16 @@ public class UpdateHandler extends BaseHandlerStd {
                 }
                 return progress;
             })
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("modify-cluster-maintenance")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterSnapshot", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifyClusterSnapshotRequest)
+                            .makeServiceCall(this::modifyClusterSnapshot)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
@@ -225,6 +237,26 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyClusterMaintenanceRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(modifyClusterMaintenanceRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Update cluster DB Revision.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private ModifyClusterSnapshotResponse modifyClusterMaintenance(
+            final ModifyClusterSnapshotRequest modifyClusterSnapshotRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ModifyClusterSnapshotResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyClusterSnapshotRequest, proxyClient.client()::modifyClusterSnapshot);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(modifyClusterSnapshotRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyClusterSnapshotRequest.snapshotIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(modifyClusterSnapshotRequest.toString(), e);
         }
 
         logger.log(String.format("%s Update cluster DB Revision.", ResourceModel.TYPE_NAME));
