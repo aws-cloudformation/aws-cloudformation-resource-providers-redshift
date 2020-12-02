@@ -545,6 +545,7 @@
     },
     "additionalProperties": false,
     "required": [
+        "ClusterIdentifier"
     ],
     "primaryIdentifier": [
         "/properties/ClusterIdentifier"
