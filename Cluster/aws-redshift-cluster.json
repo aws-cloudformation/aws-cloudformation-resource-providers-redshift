@@ -481,17 +481,26 @@
             "description": "The specific revision number of the database in the cluster.",
             "type": "string"
         },
-        "NodeRole": {
+        "ClusterNodeRole": {
             "description": "Whether the node is a leader node or a compute node.",
-            "type": "string"
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
-        "PrivateIPAddress": {
+        "ClusterNodePrivateIPAddress": {
             "description": "The private IP address of a node within a cluster.",
-            "type": "string"
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
-        "PublicIPAddress": {
+        "ClusterNodePublicIPAddress": {
             "description": "The public IP address of a node within a cluster.",
-            "type": "string"
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
         },
         "DestinationRegion": {
             "description": "The destination region that snapshots are automatically copied to when cross-region snapshot copy is enabled.",

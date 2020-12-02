@@ -393,11 +393,12 @@ public class Translator {
             .availabilityZone(availabilityZone)
             .clusterAvailabilityStatus(clusterAvailabilityStatus)
             .clusterCreateTime(clusterCreateTime)
-            //.clusterNodes(translate ClusterNodes)
-            //.clusterParameterGroups(translate clusterParameterGroups)
+            .clusterNodeRole(translateClusterNodesNodeRoleFromSdk(clusterNodes))
+            .clusterNodePrivateIPAddress(translateClusterNodesPrivateIPAdressFromSdk(clusterNodes))
+            .clusterNodePublicIPAddress(translateClusterNodesPublicIPAdressFromSdk(clusterNodes))
+            .clusterParameterGroups(translateClusterParameterGroupFromSdk(clusterParameterGroups))
             .clusterPublicKey(clusterPublicKey)
             .clusterRevisionNumber(clusterRevisionNumber)
-            //.clusterSecurityGroups( translate to clusterSecurityGroups)
             .destinationRegion(clusterSnapshotCopyStatus.destinationRegion())
             .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
             .retentionPeriod(clusterSnapshotCopyStatus.retentionPeriod().intValue())
@@ -443,8 +444,8 @@ public class Translator {
             .restoreProgressInMegaBytes(restoreStatus.progressInMegaBytes().doubleValue())
             .restoreStatus(restoreStatus.status())
             .restoreEstimatedTimeToCompletionInSeconds(restoreStatus.estimatedTimeToCompletionInSeconds().doubleValue())
-            .restoreElapsedTimeInSeconds(restoreStatus.elapsedTimeInSeconds())
-            .restoreSnapshotSizeInMegaBytes(restoreStatus.snapshotSizeInMegaBytes())
+            .restoreElapsedTimeInSeconds(restoreStatus.elapsedTimeInSeconds().doubleValue())
+            .restoreSnapshotSizeInMegaBytes(restoreStatus.snapshotSizeInMegaBytes().doubleValue())
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
             .build();
 
@@ -733,6 +734,24 @@ public class Translator {
   static List<String> translateClusterSecurityGroupsFromSdk (final List<ClusterSecurityGroupMembership> clusterSecurityGroups) {
     return clusterSecurityGroups.stream().map((clusterSecurityGroup ->
             clusterSecurityGroup.clusterSecurityGroupName())).collect(Collectors.toList());
+  }
+  static List<String> translateClusterNodesPrivateIPAdressFromSdk (final List<ClusterNode> clusterNodes) {
+    return clusterNodes.stream().map((clusterNode ->
+            clusterNode.privateIPAddress())).collect(Collectors.toList());
+  }
+  static List<String> translateClusterNodesPublicIPAdressFromSdk (final List<ClusterNode> clusterNodes) {
+    return clusterNodes.stream().map((clusterNode ->
+            clusterNode.publicIPAddress())).collect(Collectors.toList());
+  }
+
+  static List<String> translateClusterNodesNodeRoleFromSdk (final List<ClusterNode> clusterNodes) {
+    return clusterNodes.stream().map((clusterNode ->
+            clusterNode.nodeRole())).collect(Collectors.toList());
+  }
+
+  static List<String> translateClusterParameterGroupFromSdk (final List<ClusterParameterGroupStatus> clusterParameterGroups) {
+    return clusterParameterGroups.stream().map((clusterParameterGroup ->
+            clusterParameterGroup.parameterGroupName())).collect(Collectors.toList());
   }
 
   static List<String> translateVpcSecurityGroupIdsFromSdk (final List<VpcSecurityGroupMembership> vpcSecurityGroupIds) {

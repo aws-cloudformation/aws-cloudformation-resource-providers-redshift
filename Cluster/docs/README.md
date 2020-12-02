@@ -51,6 +51,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#restoresnapshotsizeinmegabytes" title="RestoreSnapshotSizeInMegaBytes">RestoreSnapshotSizeInMegaBytes</a>" : <i>Double</i>,
         "<a href="#restorestatus" title="RestoreStatus">RestoreStatus</a>" : <i>String</i>,
         "<a href="#snapshotscheduleidentifier" title="SnapshotScheduleIdentifier">SnapshotScheduleIdentifier</a>" : <i>String</i>,
+        "<a href="#snapshotschedulestate" title="SnapshotScheduleState">SnapshotScheduleState</a>" : <i>String</i>,
         "<a href="#clustersecuritygroups" title="ClusterSecurityGroups">ClusterSecurityGroups</a>" : <i>[ String, ... ]</i>,
         "<a href="#iamroles" title="IamRoles">IamRoles</a>" : <i>[ String, ... ]</i>,
         "<a href="#iamrolearn" title="IamRoleArn">IamRoleArn</a>" : <i>String</i>,
@@ -111,9 +112,9 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#clusterparametergroups" title="ClusterParameterGroups">ClusterParameterGroups</a>" : <i>[ String, ... ]</i>,
         "<a href="#clusterpublickey" title="ClusterPublicKey">ClusterPublicKey</a>" : <i>String</i>,
         "<a href="#clusterrevisionnumber" title="ClusterRevisionNumber">ClusterRevisionNumber</a>" : <i>String</i>,
-        "<a href="#noderole" title="NodeRole">NodeRole</a>" : <i>String</i>,
-        "<a href="#privateipaddress" title="PrivateIPAddress">PrivateIPAddress</a>" : <i>String</i>,
-        "<a href="#publicipaddress" title="PublicIPAddress">PublicIPAddress</a>" : <i>String</i>,
+        "<a href="#clusternoderole" title="ClusterNodeRole">ClusterNodeRole</a>" : <i>[ String, ... ]</i>,
+        "<a href="#clusternodeprivateipaddress" title="ClusterNodePrivateIPAddress">ClusterNodePrivateIPAddress</a>" : <i>[ String, ... ]</i>,
+        "<a href="#clusternodepublicipaddress" title="ClusterNodePublicIPAddress">ClusterNodePublicIPAddress</a>" : <i>[ String, ... ]</i>,
         "<a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>" : <i>String</i>,
         "<a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>" : <i>String</i>,
         "<a href="#clusterstatus" title="ClusterStatus">ClusterStatus</a>" : <i>String</i>,
@@ -172,6 +173,7 @@ Properties:
     <a href="#restoresnapshotsizeinmegabytes" title="RestoreSnapshotSizeInMegaBytes">RestoreSnapshotSizeInMegaBytes</a>: <i>Double</i>
     <a href="#restorestatus" title="RestoreStatus">RestoreStatus</a>: <i>String</i>
     <a href="#snapshotscheduleidentifier" title="SnapshotScheduleIdentifier">SnapshotScheduleIdentifier</a>: <i>String</i>
+    <a href="#snapshotschedulestate" title="SnapshotScheduleState">SnapshotScheduleState</a>: <i>String</i>
     <a href="#clustersecuritygroups" title="ClusterSecurityGroups">ClusterSecurityGroups</a>: <i>
       - String</i>
     <a href="#iamroles" title="IamRoles">IamRoles</a>: <i>
@@ -246,9 +248,12 @@ Properties:
       - String</i>
     <a href="#clusterpublickey" title="ClusterPublicKey">ClusterPublicKey</a>: <i>String</i>
     <a href="#clusterrevisionnumber" title="ClusterRevisionNumber">ClusterRevisionNumber</a>: <i>String</i>
-    <a href="#noderole" title="NodeRole">NodeRole</a>: <i>String</i>
-    <a href="#privateipaddress" title="PrivateIPAddress">PrivateIPAddress</a>: <i>String</i>
-    <a href="#publicipaddress" title="PublicIPAddress">PublicIPAddress</a>: <i>String</i>
+    <a href="#clusternoderole" title="ClusterNodeRole">ClusterNodeRole</a>: <i>
+      - String</i>
+    <a href="#clusternodeprivateipaddress" title="ClusterNodePrivateIPAddress">ClusterNodePrivateIPAddress</a>: <i>
+      - String</i>
+    <a href="#clusternodepublicipaddress" title="ClusterNodePublicIPAddress">ClusterNodePublicIPAddress</a>: <i>
+      - String</i>
     <a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>: <i>String</i>
     <a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>: <i>String</i>
     <a href="#clusterstatus" title="ClusterStatus">ClusterStatus</a>: <i>String</i>
@@ -646,6 +651,16 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### SnapshotScheduleIdentifier
 
 A unique identifier for the snapshot schedule.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotScheduleState
+
+The current state of the cluster snapshot schedule.
 
 _Required_: No
 
@@ -1253,33 +1268,33 @@ _Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### NodeRole
+#### ClusterNodeRole
 
 Whether the node is a leader node or a compute node.
 
 _Required_: No
 
-_Type_: String
+_Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### PrivateIPAddress
+#### ClusterNodePrivateIPAddress
 
 The private IP address of a node within a cluster.
 
 _Required_: No
 
-_Type_: String
+_Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### PublicIPAddress
+#### ClusterNodePublicIPAddress
 
 The public IP address of a node within a cluster.
 
 _Required_: No
 
-_Type_: String
+_Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
