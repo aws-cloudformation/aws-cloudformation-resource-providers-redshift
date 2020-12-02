@@ -83,6 +83,22 @@
             "description": "The Elastic IP (EIP) address for the cluster.",
             "type": "string"
         },
+        "ElasticIpStatus": {
+            "description": "The status of the elastic IP (EIP) address.",
+            "type": "string"
+        },
+        "ElasticResizeNumberOfNodeOptions" : {
+            "description": "The number of nodes that you can resize the cluster to with the elastic resize method.",
+            "type": "string"
+        },
+        "EndpointAddress" : {
+            "description": "The DNS address of the Cluster.",
+            "type": "string"
+        },
+        "EndpointPort" : {
+            "description": "The DNS address of the Port.",
+            "type": "integer"
+        },
         "Encrypted": {
             "description": "If true, the data in the cluster is encrypted at rest.",
             "type": "boolean"
@@ -90,6 +106,18 @@
         "EnhancedVpcRouting": {
             "description": "An option that specifies whether to create the cluster with enhanced VPC routing enabled. To create a cluster that uses enhanced VPC routing, the cluster must be in a VPC.",
             "type": "boolean"
+        },
+        "ExpectedNextSnapshotScheduleTime": {
+            "description": "The date and time when the next snapshot is expected to be taken for clusters with a valid snapshot schedule and backups enabled.",
+            "type": "string"
+        },
+        "ExpectedNextSnapshotScheduleTimeStatus": {
+            "description": "The status of next expected snapshot for clusters having a valid snapshot schedule and backups enabled. Possible values are the following OnTrack, Pending",
+            "type": "string"
+        },
+        "HsmStatus": {
+            "description": "A value that reports whether the Amazon Redshift cluster has finished applying any hardware security module (HSM) settings changes specified in a modify cluster command. Values active, applying",
+            "type": "string"
         },
         "HsmClientCertificateIdentifier": {
             "description": "Specifies the name of the HSM client certificate the Amazon Redshift cluster uses to retrieve the data encryption keys stored in an HSM",
@@ -127,8 +155,44 @@
             "description": "If true, the cluster can be accessed from a public network.",
             "type": "boolean"
         },
+        "AllowCancelResize": {
+            "description": "A boolean value indicating if the resize operation can be cancelled.",
+            "type": "boolean"
+        },
+        "ResizeType": {
+            "description": "Returns the value ClassicResize.",
+            "type": "string"
+        },
+        "CurrentRestoreRateInMegaBytesPerSecond": {
+            "description": "The number of megabytes per second being transferred from the backup storage. Returns the average rate for a completed backup. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreProgressInMegaBytes": {
+            "description": "The number of megabytes that have been transferred from snapshot storage. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreElapsedTimeInSeconds": {
+            "description": "The amount of time an in-progress restore has been running, or the amount of time it took a completed restore to finish. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreEstimatedTimeToCompletionInSeconds": {
+            "description": "The estimate of the time remaining before the restore will complete. Returns 0 for a completed restore. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreSnapshotSizeInMegaBytes": {
+            "description": "The size of the set of snapshot data used to restore the cluster. This field is only updated when you restore to DC2 and DS2 node types..",
+            "type": "number"
+        },
+        "RestoreStatus": {
+            "description": " The status of the restore action. Returns starting, restoring, completed, or failed.",
+            "type": "string"
+        },
         "SnapshotScheduleIdentifier": {
             "description": "A unique identifier for the snapshot schedule.",
+            "type": "string"
+        },
+        "SnapshotScheduleState": {
+            "description": "The current state of the cluster snapshot schedule.",
             "type": "string"
         },
         "ClusterSecurityGroups": {
@@ -145,6 +209,22 @@
             "items": {
                 "type": "string"
             }
+        },
+        "IamRoleArn": {
+            "description": "The Amazon Resource Name (ARN) of the IAM role.",
+            "type": "string"
+        },
+        "IamRoleApplyStatus": {
+            "description": "A value that describes the status of the IAM role's association with an Amazon Redshift cluster. Adding, Removing, In-sync",
+            "type": "string"
+        },
+        "ModifyStatus": {
+            "description": "The status of a modify operation, if any, initiated for the cluster.",
+            "type": "string"
+        },
+        "NextMaintenanceWindowStartTime": {
+            "description": "The date and time in UTC when system maintenance can begin.",
+            "type": "string"
         },
         "Tags": {
             "description": "The list of tags for the cluster parameter group.",
@@ -362,6 +442,96 @@
         "ClusterExists": {
             "description": "A value that indicates whether to return snapshots only for an existing cluster.",
             "type": "boolean"
+        },
+        "RetentionPeriod": {
+            "description": "The number of days to retain automated snapshots in the destination AWS Region after they are copied from the source AWS Region.By default, this only changes the retention period of copied automated snapshots.",
+            "type": "integer"
+        },
+        "Manual": {
+            "description": "Indicates whether to apply the snapshot retention period to newly copied manual snapshots instead of automated snapshots.",
+            "type": "boolean"
+        },
+        "ClusterAvailabilityStatus": {
+            "description": "The availability status of the cluster for queries. Possible values are Available, Unavailable, Modifying, Maintenance, Failed. ",
+            "type": "string"
+        },
+        "ClusterNamespaceArn": {
+            "description": "The namespace Amazon Resource Name (ARN) of the cluster.",
+            "type": "string"
+        },
+        "ClusterNodes": {
+            "description": "The nodes in the cluster.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterParameterGroups": {
+            "description": "The list of cluster parameter groups that are associated with this cluster. Each parameter group in the list is returned with its status.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterPublicKey": {
+            "description": "The public key for the cluster.",
+            "type": "string"
+        },
+        "ClusterRevisionNumber": {
+            "description": "The specific revision number of the database in the cluster.",
+            "type": "string"
+        },
+        "NodeRole": {
+            "description": "Whether the node is a leader node or a compute node.",
+            "type": "string"
+        },
+        "PrivateIPAddress": {
+            "description": "The private IP address of a node within a cluster.",
+            "type": "string"
+        },
+        "PublicIPAddress": {
+            "description": "The public IP address of a node within a cluster.",
+            "type": "string"
+        },
+        "DestinationRegion": {
+            "description": "The destination region that snapshots are automatically copied to when cross-region snapshot copy is enabled.",
+            "type": "string"
+        },
+        "SnapshotCopyGrantName": {
+            "description": "The name of the snapshot copy grant.",
+            "type": "string"
+        },
+        "ClusterStatus": {
+            "description": "The current state of the cluster. ",
+            "type": "string"
+        },
+        "ClusterSubnetGroupName": {
+            "description": "The name of the subnet group that is associated with the cluster. This parameter is valid only when the cluster is in a VPC. ",
+            "type": "string"
+        },
+        "CurrentRateInMegaBytesPerSecond": {
+            "description": "Describes the data transfer rate in MB's per second.",
+            "type": "number"
+        },
+        "DataTransferredInMegaBytes": {
+            "description": "Describes the total amount of data that has been transfered in MB's.",
+            "type": "number"
+        },
+        "DataTransferProgressElapsedTimeInSeconds": {
+            "description": "Describes the number of seconds that have elapsed during the data transfer.",
+            "type": "number"
+        },
+        "EstimatedTimeToCompletionInSeconds": {
+            "description": "Describes the estimated number of seconds remaining to complete the transfer.",
+            "type": "number"
+        },
+        "DataTransferProgressStatus": {
+            "description": "Describes the status of the cluster. While the transfer is in progress the status is transferring data.",
+            "type": "string"
+        },
+        "TotalDataInMegaBytes": {
+            "description": "Describes the total amount of data to be transferred in megabytes.",
+            "type": "number"
         }
     },
     "additionalProperties": false,

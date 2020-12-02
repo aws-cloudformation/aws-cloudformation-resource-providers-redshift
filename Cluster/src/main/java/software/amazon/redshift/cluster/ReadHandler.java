@@ -47,12 +47,6 @@ public class ReadHandler extends BaseHandlerStd {
                     .build();
         }
 
-//        return proxy.initiate("AWS-Redshift-Cluster::Read", proxyClient, model, callbackContext)
-//                .translateToServiceRequest(Translator::translateToReadRequest)
-//                .makeServiceCall(this::readResource)
-//                .done(this::constructResourceModelFromResponse);
-
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
                     if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("describe-cluster-db-revisions")) {
@@ -64,23 +58,10 @@ public class ReadHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
-                    if(model.getRedshiftCommand() != null && (model.getRedshiftCommand().equals("describe-cluster-snapshots") ||
-                            model.getRedshiftCommand().equals("modify-cluster-snapshot"))) {
-                        return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster-Snapshots", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator::translateToDescribeClusterSnapshotRequest)
-                                .makeServiceCall(this::readClusterSnapshot)
-                                .done(this::constructResourceModelFromDescribeClusterSnapshotResponse);
-                    }
-                    return progress;
-                })
-                .then(progress -> {
-                    //if(model.getRedshiftCommand() == null || model.getRedshiftCommand().equals("describe-cluster")) {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToReadRequest)
                                 .makeServiceCall(this::readCluster)
                                 .done(this::constructResourceModelFromResponse);
-                    //}
-                    //return progress;
                 });
 
     }

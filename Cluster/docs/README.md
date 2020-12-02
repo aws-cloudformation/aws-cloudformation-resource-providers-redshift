@@ -24,8 +24,15 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#clusterversion" title="ClusterVersion">ClusterVersion</a>" : <i>String</i>,
         "<a href="#dbname" title="DBName">DBName</a>" : <i>String</i>,
         "<a href="#elasticip" title="ElasticIp">ElasticIp</a>" : <i>String</i>,
+        "<a href="#elasticipstatus" title="ElasticIpStatus">ElasticIpStatus</a>" : <i>String</i>,
+        "<a href="#elasticresizenumberofnodeoptions" title="ElasticResizeNumberOfNodeOptions">ElasticResizeNumberOfNodeOptions</a>" : <i>String</i>,
+        "<a href="#endpointaddress" title="EndpointAddress">EndpointAddress</a>" : <i>String</i>,
+        "<a href="#endpointport" title="EndpointPort">EndpointPort</a>" : <i>Integer</i>,
         "<a href="#encrypted" title="Encrypted">Encrypted</a>" : <i>Boolean</i>,
         "<a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>" : <i>Boolean</i>,
+        "<a href="#expectednextsnapshotscheduletime" title="ExpectedNextSnapshotScheduleTime">ExpectedNextSnapshotScheduleTime</a>" : <i>String</i>,
+        "<a href="#expectednextsnapshotscheduletimestatus" title="ExpectedNextSnapshotScheduleTimeStatus">ExpectedNextSnapshotScheduleTimeStatus</a>" : <i>String</i>,
+        "<a href="#hsmstatus" title="HsmStatus">HsmStatus</a>" : <i>String</i>,
         "<a href="#hsmclientcertificateidentifier" title="HsmClientCertificateIdentifier">HsmClientCertificateIdentifier</a>" : <i>String</i>,
         "<a href="#hsmconfigurationidentifier" title="HsmConfigurationIdentifier">HsmConfigurationIdentifier</a>" : <i>String</i>,
         "<a href="#kmskeyid" title="KmsKeyId">KmsKeyId</a>" : <i>String</i>,
@@ -35,9 +42,21 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#port" title="Port">Port</a>" : <i>Integer</i>,
         "<a href="#preferredmaintenancewindow" title="PreferredMaintenanceWindow">PreferredMaintenanceWindow</a>" : <i>String</i>,
         "<a href="#publiclyaccessible" title="PubliclyAccessible">PubliclyAccessible</a>" : <i>Boolean</i>,
+        "<a href="#allowcancelresize" title="AllowCancelResize">AllowCancelResize</a>" : <i>Boolean</i>,
+        "<a href="#resizetype" title="ResizeType">ResizeType</a>" : <i>String</i>,
+        "<a href="#currentrestorerateinmegabytespersecond" title="CurrentRestoreRateInMegaBytesPerSecond">CurrentRestoreRateInMegaBytesPerSecond</a>" : <i>Double</i>,
+        "<a href="#restoreprogressinmegabytes" title="RestoreProgressInMegaBytes">RestoreProgressInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#restoreelapsedtimeinseconds" title="RestoreElapsedTimeInSeconds">RestoreElapsedTimeInSeconds</a>" : <i>Double</i>,
+        "<a href="#restoreestimatedtimetocompletioninseconds" title="RestoreEstimatedTimeToCompletionInSeconds">RestoreEstimatedTimeToCompletionInSeconds</a>" : <i>Double</i>,
+        "<a href="#restoresnapshotsizeinmegabytes" title="RestoreSnapshotSizeInMegaBytes">RestoreSnapshotSizeInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#restorestatus" title="RestoreStatus">RestoreStatus</a>" : <i>String</i>,
         "<a href="#snapshotscheduleidentifier" title="SnapshotScheduleIdentifier">SnapshotScheduleIdentifier</a>" : <i>String</i>,
         "<a href="#clustersecuritygroups" title="ClusterSecurityGroups">ClusterSecurityGroups</a>" : <i>[ String, ... ]</i>,
         "<a href="#iamroles" title="IamRoles">IamRoles</a>" : <i>[ String, ... ]</i>,
+        "<a href="#iamrolearn" title="IamRoleArn">IamRoleArn</a>" : <i>String</i>,
+        "<a href="#iamroleapplystatus" title="IamRoleApplyStatus">IamRoleApplyStatus</a>" : <i>String</i>,
+        "<a href="#modifystatus" title="ModifyStatus">ModifyStatus</a>" : <i>String</i>,
+        "<a href="#nextmaintenancewindowstarttime" title="NextMaintenanceWindowStartTime">NextMaintenanceWindowStartTime</a>" : <i>String</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>" : <i>[ String, ... ]</i>,
         "<a href="#finalclustersnapshotidentifier" title="FinalClusterSnapshotIdentifier">FinalClusterSnapshotIdentifier</a>" : <i>String</i>,
@@ -83,7 +102,28 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#endtime" title="EndTime">EndTime</a>" : <i>String</i>,
         "<a href="#tagkeys" title="TagKeys">TagKeys</a>" : <i>[ String, ... ]</i>,
         "<a href="#tagvalues" title="TagValues">TagValues</a>" : <i>[ String, ... ]</i>,
-        "<a href="#clusterexists" title="ClusterExists">ClusterExists</a>" : <i>Boolean</i>
+        "<a href="#clusterexists" title="ClusterExists">ClusterExists</a>" : <i>Boolean</i>,
+        "<a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>" : <i>Integer</i>,
+        "<a href="#manual" title="Manual">Manual</a>" : <i>Boolean</i>,
+        "<a href="#clusteravailabilitystatus" title="ClusterAvailabilityStatus">ClusterAvailabilityStatus</a>" : <i>String</i>,
+        "<a href="#clusternamespacearn" title="ClusterNamespaceArn">ClusterNamespaceArn</a>" : <i>String</i>,
+        "<a href="#clusternodes" title="ClusterNodes">ClusterNodes</a>" : <i>[ String, ... ]</i>,
+        "<a href="#clusterparametergroups" title="ClusterParameterGroups">ClusterParameterGroups</a>" : <i>[ String, ... ]</i>,
+        "<a href="#clusterpublickey" title="ClusterPublicKey">ClusterPublicKey</a>" : <i>String</i>,
+        "<a href="#clusterrevisionnumber" title="ClusterRevisionNumber">ClusterRevisionNumber</a>" : <i>String</i>,
+        "<a href="#noderole" title="NodeRole">NodeRole</a>" : <i>String</i>,
+        "<a href="#privateipaddress" title="PrivateIPAddress">PrivateIPAddress</a>" : <i>String</i>,
+        "<a href="#publicipaddress" title="PublicIPAddress">PublicIPAddress</a>" : <i>String</i>,
+        "<a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>" : <i>String</i>,
+        "<a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>" : <i>String</i>,
+        "<a href="#clusterstatus" title="ClusterStatus">ClusterStatus</a>" : <i>String</i>,
+        "<a href="#clustersubnetgroupname" title="ClusterSubnetGroupName">ClusterSubnetGroupName</a>" : <i>String</i>,
+        "<a href="#currentrateinmegabytespersecond" title="CurrentRateInMegaBytesPerSecond">CurrentRateInMegaBytesPerSecond</a>" : <i>Double</i>,
+        "<a href="#datatransferredinmegabytes" title="DataTransferredInMegaBytes">DataTransferredInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#datatransferprogresselapsedtimeinseconds" title="DataTransferProgressElapsedTimeInSeconds">DataTransferProgressElapsedTimeInSeconds</a>" : <i>Double</i>,
+        "<a href="#estimatedtimetocompletioninseconds" title="EstimatedTimeToCompletionInSeconds">EstimatedTimeToCompletionInSeconds</a>" : <i>Double</i>,
+        "<a href="#datatransferprogressstatus" title="DataTransferProgressStatus">DataTransferProgressStatus</a>" : <i>String</i>,
+        "<a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>" : <i>Double</i>
     }
 }
 </pre>
@@ -105,8 +145,15 @@ Properties:
     <a href="#clusterversion" title="ClusterVersion">ClusterVersion</a>: <i>String</i>
     <a href="#dbname" title="DBName">DBName</a>: <i>String</i>
     <a href="#elasticip" title="ElasticIp">ElasticIp</a>: <i>String</i>
+    <a href="#elasticipstatus" title="ElasticIpStatus">ElasticIpStatus</a>: <i>String</i>
+    <a href="#elasticresizenumberofnodeoptions" title="ElasticResizeNumberOfNodeOptions">ElasticResizeNumberOfNodeOptions</a>: <i>String</i>
+    <a href="#endpointaddress" title="EndpointAddress">EndpointAddress</a>: <i>String</i>
+    <a href="#endpointport" title="EndpointPort">EndpointPort</a>: <i>Integer</i>
     <a href="#encrypted" title="Encrypted">Encrypted</a>: <i>Boolean</i>
     <a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>: <i>Boolean</i>
+    <a href="#expectednextsnapshotscheduletime" title="ExpectedNextSnapshotScheduleTime">ExpectedNextSnapshotScheduleTime</a>: <i>String</i>
+    <a href="#expectednextsnapshotscheduletimestatus" title="ExpectedNextSnapshotScheduleTimeStatus">ExpectedNextSnapshotScheduleTimeStatus</a>: <i>String</i>
+    <a href="#hsmstatus" title="HsmStatus">HsmStatus</a>: <i>String</i>
     <a href="#hsmclientcertificateidentifier" title="HsmClientCertificateIdentifier">HsmClientCertificateIdentifier</a>: <i>String</i>
     <a href="#hsmconfigurationidentifier" title="HsmConfigurationIdentifier">HsmConfigurationIdentifier</a>: <i>String</i>
     <a href="#kmskeyid" title="KmsKeyId">KmsKeyId</a>: <i>String</i>
@@ -116,11 +163,23 @@ Properties:
     <a href="#port" title="Port">Port</a>: <i>Integer</i>
     <a href="#preferredmaintenancewindow" title="PreferredMaintenanceWindow">PreferredMaintenanceWindow</a>: <i>String</i>
     <a href="#publiclyaccessible" title="PubliclyAccessible">PubliclyAccessible</a>: <i>Boolean</i>
+    <a href="#allowcancelresize" title="AllowCancelResize">AllowCancelResize</a>: <i>Boolean</i>
+    <a href="#resizetype" title="ResizeType">ResizeType</a>: <i>String</i>
+    <a href="#currentrestorerateinmegabytespersecond" title="CurrentRestoreRateInMegaBytesPerSecond">CurrentRestoreRateInMegaBytesPerSecond</a>: <i>Double</i>
+    <a href="#restoreprogressinmegabytes" title="RestoreProgressInMegaBytes">RestoreProgressInMegaBytes</a>: <i>Double</i>
+    <a href="#restoreelapsedtimeinseconds" title="RestoreElapsedTimeInSeconds">RestoreElapsedTimeInSeconds</a>: <i>Double</i>
+    <a href="#restoreestimatedtimetocompletioninseconds" title="RestoreEstimatedTimeToCompletionInSeconds">RestoreEstimatedTimeToCompletionInSeconds</a>: <i>Double</i>
+    <a href="#restoresnapshotsizeinmegabytes" title="RestoreSnapshotSizeInMegaBytes">RestoreSnapshotSizeInMegaBytes</a>: <i>Double</i>
+    <a href="#restorestatus" title="RestoreStatus">RestoreStatus</a>: <i>String</i>
     <a href="#snapshotscheduleidentifier" title="SnapshotScheduleIdentifier">SnapshotScheduleIdentifier</a>: <i>String</i>
     <a href="#clustersecuritygroups" title="ClusterSecurityGroups">ClusterSecurityGroups</a>: <i>
       - String</i>
     <a href="#iamroles" title="IamRoles">IamRoles</a>: <i>
       - String</i>
+    <a href="#iamrolearn" title="IamRoleArn">IamRoleArn</a>: <i>String</i>
+    <a href="#iamroleapplystatus" title="IamRoleApplyStatus">IamRoleApplyStatus</a>: <i>String</i>
+    <a href="#modifystatus" title="ModifyStatus">ModifyStatus</a>: <i>String</i>
+    <a href="#nextmaintenancewindowstarttime" title="NextMaintenanceWindowStartTime">NextMaintenanceWindowStartTime</a>: <i>String</i>
     <a href="#tags" title="Tags">Tags</a>: <i>
       - <a href="tag.md">Tag</a></i>
     <a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>: <i>
@@ -177,6 +236,29 @@ Properties:
     <a href="#tagvalues" title="TagValues">TagValues</a>: <i>
       - String</i>
     <a href="#clusterexists" title="ClusterExists">ClusterExists</a>: <i>Boolean</i>
+    <a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>: <i>Integer</i>
+    <a href="#manual" title="Manual">Manual</a>: <i>Boolean</i>
+    <a href="#clusteravailabilitystatus" title="ClusterAvailabilityStatus">ClusterAvailabilityStatus</a>: <i>String</i>
+    <a href="#clusternamespacearn" title="ClusterNamespaceArn">ClusterNamespaceArn</a>: <i>String</i>
+    <a href="#clusternodes" title="ClusterNodes">ClusterNodes</a>: <i>
+      - String</i>
+    <a href="#clusterparametergroups" title="ClusterParameterGroups">ClusterParameterGroups</a>: <i>
+      - String</i>
+    <a href="#clusterpublickey" title="ClusterPublicKey">ClusterPublicKey</a>: <i>String</i>
+    <a href="#clusterrevisionnumber" title="ClusterRevisionNumber">ClusterRevisionNumber</a>: <i>String</i>
+    <a href="#noderole" title="NodeRole">NodeRole</a>: <i>String</i>
+    <a href="#privateipaddress" title="PrivateIPAddress">PrivateIPAddress</a>: <i>String</i>
+    <a href="#publicipaddress" title="PublicIPAddress">PublicIPAddress</a>: <i>String</i>
+    <a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>: <i>String</i>
+    <a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>: <i>String</i>
+    <a href="#clusterstatus" title="ClusterStatus">ClusterStatus</a>: <i>String</i>
+    <a href="#clustersubnetgroupname" title="ClusterSubnetGroupName">ClusterSubnetGroupName</a>: <i>String</i>
+    <a href="#currentrateinmegabytespersecond" title="CurrentRateInMegaBytesPerSecond">CurrentRateInMegaBytesPerSecond</a>: <i>Double</i>
+    <a href="#datatransferredinmegabytes" title="DataTransferredInMegaBytes">DataTransferredInMegaBytes</a>: <i>Double</i>
+    <a href="#datatransferprogresselapsedtimeinseconds" title="DataTransferProgressElapsedTimeInSeconds">DataTransferProgressElapsedTimeInSeconds</a>: <i>Double</i>
+    <a href="#estimatedtimetocompletioninseconds" title="EstimatedTimeToCompletionInSeconds">EstimatedTimeToCompletionInSeconds</a>: <i>Double</i>
+    <a href="#datatransferprogressstatus" title="DataTransferProgressStatus">DataTransferProgressStatus</a>: <i>String</i>
+    <a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>: <i>Double</i>
 </pre>
 
 ## Properties
@@ -301,6 +383,46 @@ _Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### ElasticIpStatus
+
+The status of the elastic IP (EIP) address.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ElasticResizeNumberOfNodeOptions
+
+The number of nodes that you can resize the cluster to with the elastic resize method.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EndpointAddress
+
+The DNS address of the Cluster.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EndpointPort
+
+The DNS address of the Port.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 #### Encrypted
 
 If true, the data in the cluster is encrypted at rest.
@@ -318,6 +440,36 @@ An option that specifies whether to create the cluster with enhanced VPC routing
 _Required_: No
 
 _Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ExpectedNextSnapshotScheduleTime
+
+The date and time when the next snapshot is expected to be taken for clusters with a valid snapshot schedule and backups enabled.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ExpectedNextSnapshotScheduleTimeStatus
+
+The status of next expected snapshot for clusters having a valid snapshot schedule and backups enabled. Possible values are the following OnTrack, Pending
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### HsmStatus
+
+A value that reports whether the Amazon Redshift cluster has finished applying any hardware security module (HSM) settings changes specified in a modify cluster command. Values active, applying
+
+_Required_: No
+
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -411,6 +563,86 @@ _Type_: Boolean
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### AllowCancelResize
+
+A boolean value indicating if the resize operation can be cancelled.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ResizeType
+
+Returns the value ClassicResize.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CurrentRestoreRateInMegaBytesPerSecond
+
+The number of megabytes per second being transferred from the backup storage. Returns the average rate for a completed backup. This field is only updated when you restore to DC2 and DS2 node types.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RestoreProgressInMegaBytes
+
+The number of megabytes that have been transferred from snapshot storage. This field is only updated when you restore to DC2 and DS2 node types.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RestoreElapsedTimeInSeconds
+
+The amount of time an in-progress restore has been running, or the amount of time it took a completed restore to finish. This field is only updated when you restore to DC2 and DS2 node types.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RestoreEstimatedTimeToCompletionInSeconds
+
+The estimate of the time remaining before the restore will complete. Returns 0 for a completed restore. This field is only updated when you restore to DC2 and DS2 node types.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RestoreSnapshotSizeInMegaBytes
+
+The size of the set of snapshot data used to restore the cluster. This field is only updated when you restore to DC2 and DS2 node types..
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RestoreStatus
+
+ The status of the restore action. Returns starting, restoring, completed, or failed.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 #### SnapshotScheduleIdentifier
 
 A unique identifier for the snapshot schedule.
@@ -438,6 +670,46 @@ A list of AWS Identity and Access Management (IAM) roles that can be used by the
 _Required_: No
 
 _Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### IamRoleArn
+
+The Amazon Resource Name (ARN) of the IAM role.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### IamRoleApplyStatus
+
+A value that describes the status of the IAM role's association with an Amazon Redshift cluster. Adding, Removing, In-sync
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ModifyStatus
+
+The status of a modify operation, if any, initiated for the cluster.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### NextMaintenanceWindowStartTime
+
+The date and time in UTC when system maintenance can begin.
+
+_Required_: No
+
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -898,6 +1170,216 @@ A value that indicates whether to return snapshots only for an existing cluster.
 _Required_: No
 
 _Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RetentionPeriod
+
+The number of days to retain automated snapshots in the destination AWS Region after they are copied from the source AWS Region.By default, this only changes the retention period of copied automated snapshots.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Manual
+
+Indicates whether to apply the snapshot retention period to newly copied manual snapshots instead of automated snapshots.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterAvailabilityStatus
+
+The availability status of the cluster for queries. Possible values are Available, Unavailable, Modifying, Maintenance, Failed. 
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterNamespaceArn
+
+The namespace Amazon Resource Name (ARN) of the cluster.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterNodes
+
+The nodes in the cluster.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterParameterGroups
+
+The list of cluster parameter groups that are associated with this cluster. Each parameter group in the list is returned with its status.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterPublicKey
+
+The public key for the cluster.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterRevisionNumber
+
+The specific revision number of the database in the cluster.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### NodeRole
+
+Whether the node is a leader node or a compute node.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### PrivateIPAddress
+
+The private IP address of a node within a cluster.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### PublicIPAddress
+
+The public IP address of a node within a cluster.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DestinationRegion
+
+The destination region that snapshots are automatically copied to when cross-region snapshot copy is enabled.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotCopyGrantName
+
+The name of the snapshot copy grant.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterStatus
+
+The current state of the cluster. 
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ClusterSubnetGroupName
+
+The name of the subnet group that is associated with the cluster. This parameter is valid only when the cluster is in a VPC. 
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CurrentRateInMegaBytesPerSecond
+
+Describes the data transfer rate in MB's per second.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DataTransferredInMegaBytes
+
+Describes the total amount of data that has been transfered in MB's.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DataTransferProgressElapsedTimeInSeconds
+
+Describes the number of seconds that have elapsed during the data transfer.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EstimatedTimeToCompletionInSeconds
+
+Describes the estimated number of seconds remaining to complete the transfer.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DataTransferProgressStatus
+
+Describes the status of the cluster. While the transfer is in progress the status is transferring data.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TotalDataInMegaBytes
+
+Describes the total amount of data to be transferred in megabytes.
+
+_Required_: No
+
+_Type_: Double
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
