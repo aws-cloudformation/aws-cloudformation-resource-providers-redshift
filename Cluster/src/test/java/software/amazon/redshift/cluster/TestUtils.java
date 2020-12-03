@@ -27,6 +27,8 @@ public class TestUtils {
     final static int  NUMBER_OF_NODES = 2;
     final static String IAM_ROLE_ARN = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role";
     final static String CURRENT_DB_REVISION = "1";
+    final static String CLUSTER_AVAILABLE = "available";
+    final static String CLUSTER_PAUSED = "paused";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -42,6 +44,7 @@ public class TestUtils {
             .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
             .iamRoles(new LinkedList<ClusterIamRole>())
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+            .clusterStatus(CLUSTER_AVAILABLE)
             .build();
 
     final static Cluster BASIC_CLUSTER_READ = Cluster.builder()
@@ -49,7 +52,7 @@ public class TestUtils {
             .masterUsername(MASTER_USERNAME)
             .nodeType(NODETYPE)
             .numberOfNodes(NUMBER_OF_NODES)
-            .clusterStatus("available")
+            .clusterStatus(CLUSTER_AVAILABLE)
             .allowVersionUpgrade(true)
             .automatedSnapshotRetentionPeriod(0)
             .encrypted(false)
@@ -113,6 +116,11 @@ public class TestUtils {
             .clusterSecurityGroups(new LinkedList<String>())
             .iamRoles(new LinkedList<String>())
             .vpcSecurityGroupIds(new LinkedList<String>())
+            .clusterParameterGroups(new LinkedList<String>())
+            .clusterNodeRole(new LinkedList<String>())
+            .clusterNodePrivateIPAddress(new LinkedList<String>())
+            .clusterNodePublicIPAddress(new LinkedList<String>())
+            .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
             .build();
 
     final static ResourceModel DESCRIBE_DB_REVISIONS_MODEL = ResourceModel.builder()

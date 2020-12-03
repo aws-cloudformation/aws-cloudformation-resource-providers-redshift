@@ -13,6 +13,10 @@ import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceeded
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
+import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyResponse;
+import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
+import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
@@ -60,6 +64,7 @@ public class UpdateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
+        logger.log("Starting UPDATE HANDLER");
 
         final ResourceModel model = request.getDesiredResourceState();
 
@@ -149,6 +154,30 @@ public class UpdateHandler extends BaseHandlerStd {
                 }
                 return progress;
             })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("enable-snapshot-copy")) {
+                    logger.log("Starting enable-snapshot-copy");
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableSnapshotCopy", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToEnableSnapshotRequest)
+                            .makeServiceCall(this::enableSnapshotCopy)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("disable-snapshot-copy")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableSnapshotCopy", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDisableSnapshotRequest)
+                            .makeServiceCall(this::disableSnapshotCopy)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
@@ -227,6 +256,47 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyClusterMaintenanceRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(modifyClusterMaintenanceRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private EnableSnapshotCopyResponse enableSnapshotCopy(
+            final EnableSnapshotCopyRequest enableSnapshotCopyRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        EnableSnapshotCopyResponse awsResponse = null;
+        logger.log("in enable snap method.....######");
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(enableSnapshotCopyRequest, proxyClient.client()::enableSnapshotCopy);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(enableSnapshotCopyRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableSnapshotCopyRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            System.out.println("in enable snap method catch.....######");
+            throw new CfnGeneralServiceException(enableSnapshotCopyRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));
+        logger.log("in enable snap method before return.....######");
+        return awsResponse;
+    }
+
+    private DisableSnapshotCopyResponse disableSnapshotCopy(
+            final DisableSnapshotCopyRequest enableSnapshotCopyRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DisableSnapshotCopyResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(enableSnapshotCopyRequest, proxyClient.client()::disableSnapshotCopy);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(enableSnapshotCopyRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableSnapshotCopyRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(enableSnapshotCopyRequest.toString(), e);
         }
 
         logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));

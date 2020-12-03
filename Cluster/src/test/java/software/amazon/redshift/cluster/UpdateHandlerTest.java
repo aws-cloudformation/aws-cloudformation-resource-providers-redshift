@@ -48,7 +48,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
+import static software.amazon.redshift.cluster.TestUtils.CLUSTER_AVAILABLE;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
+import static software.amazon.redshift.cluster.TestUtils.CLUSTER_PAUSED;
 import static software.amazon.redshift.cluster.TestUtils.CURRENT_DB_REVISION;
 import static software.amazon.redshift.cluster.TestUtils.DEFERRED_MAINTENANCE_WINDOW;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
@@ -100,6 +102,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .redshiftCommand("modify-cluster")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -164,6 +171,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .redshiftCommand("modify-cluster")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -351,9 +363,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
     }
 
-
-
-
     @Test
     public void testModifyDbRevision() {
         ResourceModel model = ResourceModel.builder()
@@ -492,6 +501,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .redshiftCommand("reboot-cluster")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
         Cluster rebootCluster = Cluster.builder()
@@ -547,6 +561,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .redshiftCommand("pause-cluster")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
         Cluster pausedCluster = Cluster.builder()
@@ -579,7 +598,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModel().getClusterStatus()).isEqualTo(CLUSTER_PAUSED);
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
@@ -602,6 +621,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .redshiftCommand("resume-cluster")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
         Cluster resumeCluster = Cluster.builder()

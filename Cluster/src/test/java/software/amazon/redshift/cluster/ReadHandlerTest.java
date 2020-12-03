@@ -79,7 +79,6 @@ public class ReadHandlerTest extends AbstractTestBase {
             .build();
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
 
         assertThat(response).isNotNull();

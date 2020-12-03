@@ -39,6 +39,7 @@ import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
+import static software.amazon.redshift.cluster.TestUtils.CLUSTER_AVAILABLE;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
 
 @ExtendWith(MockitoExtension.class)
@@ -91,7 +92,6 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
 
         assertThat(response).isNotNull();

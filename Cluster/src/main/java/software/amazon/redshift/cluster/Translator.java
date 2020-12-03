@@ -21,7 +21,9 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRe
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
+import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
@@ -177,12 +179,11 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final String clusterCreateTime = streamOfOrEmpty(awsResponse.clusters())
+    final Instant clusterCreateTime = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterCreateTime)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(null)
-            .toString();
+            .orElse(null);
 
     final List<ClusterNode> clusterNodes = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterNodes)
@@ -234,10 +235,10 @@ public class Translator {
 
 
     final String clusterVersion = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterVersion)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(null);
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterVersion)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
     final String dbName = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::dbName)
@@ -276,12 +277,11 @@ public class Translator {
             .findAny()
             .orElse(false);
 
-    final String expectedNextSnapshotScheduleTime = streamOfOrEmpty(awsResponse.clusters())
+    final Instant expectedNextSnapshotScheduleTime = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::expectedNextSnapshotScheduleTime)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(null)
-            .toString();
+            .orElse(null);
 
     final String expectedNextSnapshotScheduleTimeStatus = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::expectedNextSnapshotScheduleTimeStatus)
@@ -320,13 +320,11 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final String nextMaintenanceWindowStartTime = streamOfOrEmpty(awsResponse.clusters())
+    final Instant nextMaintenanceWindowStartTime = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::nextMaintenanceWindowStartTime)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(null)
-            .toString();
-
+            .orElse(null);
 
     final String preferredMaintenanceWindow = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::preferredMaintenanceWindow)
@@ -351,7 +349,6 @@ public class Translator {
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
-
 
     final String snapshotScheduleIdentifier = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::snapshotScheduleIdentifier)
@@ -392,42 +389,42 @@ public class Translator {
             .automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
             .availabilityZone(availabilityZone)
             .clusterAvailabilityStatus(clusterAvailabilityStatus)
-            .clusterCreateTime(clusterCreateTime)
+            .clusterCreateTime(clusterCreateTime == null ? null : clusterCreateTime.toString())
             .clusterNodeRole(translateClusterNodesNodeRoleFromSdk(clusterNodes))
             .clusterNodePrivateIPAddress(translateClusterNodesPrivateIPAdressFromSdk(clusterNodes))
             .clusterNodePublicIPAddress(translateClusterNodesPublicIPAdressFromSdk(clusterNodes))
             .clusterParameterGroups(translateClusterParameterGroupFromSdk(clusterParameterGroups))
             .clusterPublicKey(clusterPublicKey)
             .clusterRevisionNumber(clusterRevisionNumber)
-            .destinationRegion(clusterSnapshotCopyStatus.destinationRegion())
-            .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
-            .retentionPeriod(clusterSnapshotCopyStatus.retentionPeriod().intValue())
-            .snapshotCopyGrantName(clusterSnapshotCopyStatus.snapshotCopyGrantName())
+            .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion())
+            .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
+            .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod().intValue())
+            .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName())
             .clusterVersion(clusterVersion)
             .clusterStatus(clusterStatus)
             .clusterSubnetGroupName(clusterSubnetGroupName)
-            .currentRateInMegaBytesPerSecond(dataTransferProgress.currentRateInMegaBytesPerSecond())
-            .dataTransferredInMegaBytes(dataTransferProgress.dataTransferredInMegaBytes().doubleValue())
-            .dataTransferProgressElapsedTimeInSeconds(dataTransferProgress.elapsedTimeInSeconds().doubleValue())
-            .estimatedTimeToCompletionInSeconds(dataTransferProgress.estimatedTimeToCompletionInSeconds().doubleValue())
-            .dataTransferProgressStatus(dataTransferProgress.status())
-            .totalDataInMegaBytes(dataTransferProgress.totalDataInMegaBytes().doubleValue())
+            .currentRateInMegaBytesPerSecond(dataTransferProgress == null ? null : dataTransferProgress.currentRateInMegaBytesPerSecond())
+            .dataTransferredInMegaBytes(dataTransferProgress == null ? null : dataTransferProgress.dataTransferredInMegaBytes().doubleValue())
+            .dataTransferProgressElapsedTimeInSeconds(dataTransferProgress == null ? null : dataTransferProgress.elapsedTimeInSeconds().doubleValue())
+            .estimatedTimeToCompletionInSeconds(dataTransferProgress == null ? null : dataTransferProgress.estimatedTimeToCompletionInSeconds().doubleValue())
+            .dataTransferProgressStatus(dataTransferProgress == null ? null : dataTransferProgress.status())
+            .totalDataInMegaBytes(dataTransferProgress == null ? null : dataTransferProgress.totalDataInMegaBytes().doubleValue())
             .dBName(dbName)
             .deferMaintenanceIdentifier(translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows))
             .deferMaintenanceStartTime(translateDeferMaintenanceStartTimeFromSdk(deferMaintenanceWindows))
             .deferMaintenanceEndTime(translateDeferMaintenanceEndTimeFromSdk(deferMaintenanceWindows))
-            .elasticIp(elasticIpStatus.elasticIp())
-            .elasticIpStatus(elasticIpStatus.status())
+            .elasticIp(elasticIpStatus == null ? null : elasticIpStatus.elasticIp())
+            .elasticIpStatus(elasticIpStatus == null ? null : elasticIpStatus.status())
             .encrypted(encrypted)
-            .endpointAddress(endpoint.address())
-            .endpointPort(endpoint.port())
+            .endpointAddress(endpoint == null ? null : endpoint.address())
+            .endpointPort(endpoint == null ? null : endpoint.port())
             .elasticResizeNumberOfNodeOptions(elasticResizeNumberOfNodeOptions)
             .enhancedVpcRouting(enhancedVpcRouting)
-            .expectedNextSnapshotScheduleTime(expectedNextSnapshotScheduleTime)
+            .expectedNextSnapshotScheduleTime(expectedNextSnapshotScheduleTime == null ? null : expectedNextSnapshotScheduleTime.toString())
             .expectedNextSnapshotScheduleTimeStatus(expectedNextSnapshotScheduleTimeStatus)
-            .hsmClientCertificateIdentifier(hsmStatus.hsmClientCertificateIdentifier())
-            .hsmConfigurationIdentifier(hsmStatus.hsmConfigurationIdentifier())
-            .hsmStatus(hsmStatus.status())
+            .hsmClientCertificateIdentifier(hsmStatus == null ? null : hsmStatus.hsmClientCertificateIdentifier())
+            .hsmConfigurationIdentifier(hsmStatus == null ? null : hsmStatus.hsmConfigurationIdentifier())
+            .hsmStatus(hsmStatus == null ? null : hsmStatus.status())
             .kmsKeyId(kmsKeyId)
             .maintenanceTrackName(maintenanceTrackName)
             .manualSnapshotRetentionPeriod(manualSnapshotRetentionPeriod)
@@ -437,15 +434,15 @@ public class Translator {
             .clusterSecurityGroups(translateClusterSecurityGroupsFromSdk(clusterSecurityGroups))
             .iamRoles(translateIamRolesFromSdk(iamRoles))
             .modifyStatus(modifyStatus)
-            .nextMaintenanceWindowStartTime(nextMaintenanceWindowStartTime)
-            .allowCancelResize(resizeInfo.allowCancelResize())
-            .resizeType(resizeInfo.resizeType())
-            .currentRestoreRateInMegaBytesPerSecond(restoreStatus.currentRestoreRateInMegaBytesPerSecond())
-            .restoreProgressInMegaBytes(restoreStatus.progressInMegaBytes().doubleValue())
-            .restoreStatus(restoreStatus.status())
-            .restoreEstimatedTimeToCompletionInSeconds(restoreStatus.estimatedTimeToCompletionInSeconds().doubleValue())
-            .restoreElapsedTimeInSeconds(restoreStatus.elapsedTimeInSeconds().doubleValue())
-            .restoreSnapshotSizeInMegaBytes(restoreStatus.snapshotSizeInMegaBytes().doubleValue())
+            .nextMaintenanceWindowStartTime(nextMaintenanceWindowStartTime == null ? null : nextMaintenanceWindowStartTime.toString())
+            .allowCancelResize(resizeInfo == null ? null : resizeInfo.allowCancelResize())
+            .resizeType(resizeInfo == null ? null : resizeInfo.resizeType())
+            .currentRestoreRateInMegaBytesPerSecond(restoreStatus == null ? null : restoreStatus.currentRestoreRateInMegaBytesPerSecond())
+            .restoreProgressInMegaBytes(restoreStatus == null ? null : restoreStatus.progressInMegaBytes().doubleValue())
+            .restoreStatus(restoreStatus == null ? null : restoreStatus.status())
+            .restoreEstimatedTimeToCompletionInSeconds(restoreStatus == null ? null : restoreStatus.estimatedTimeToCompletionInSeconds().doubleValue())
+            .restoreElapsedTimeInSeconds(restoreStatus == null ? null : restoreStatus.elapsedTimeInSeconds().doubleValue())
+            .restoreSnapshotSizeInMegaBytes(restoreStatus == null ? null : restoreStatus.snapshotSizeInMegaBytes().doubleValue())
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
             .build();
 
@@ -914,7 +911,32 @@ public class Translator {
             .deferMaintenanceStartTime(model.getDeferMaintenanceStartTime() == null ? null : Instant.parse(model.getDeferMaintenanceStartTime()))
             .deferMaintenanceEndTime(model.getDeferMaintenanceEndTime() == null ? null : Instant.parse(model.getDeferMaintenanceEndTime()))
             .build();
+  }
 
+  /**
+   * Request to Enable Cluster Snapshot
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static EnableSnapshotCopyRequest translateToEnableSnapshotRequest(final ResourceModel model) {
+    return EnableSnapshotCopyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .destinationRegion(model.getDestinationRegion())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
+            .retentionPeriod(model.getRetentionPeriod())
+            .build();
+  }
+
+  /**
+   * Request to Disable Cluster Snapshot
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static DisableSnapshotCopyRequest translateToDisableSnapshotRequest(final ResourceModel model) {
+    return DisableSnapshotCopyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
   }
 
 
