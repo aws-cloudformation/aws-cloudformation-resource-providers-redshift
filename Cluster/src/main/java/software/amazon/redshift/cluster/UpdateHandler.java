@@ -64,7 +64,6 @@ public class UpdateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
-        logger.log("Starting UPDATE HANDLER");
 
         final ResourceModel model = request.getDesiredResourceState();
 
@@ -93,7 +92,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 if(issueModifyClusterRequest(model) && model.getRedshiftCommand().equals("modify-cluster")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToUpdateRequest)
-                            .makeServiceCall(this::updateResource)
+                            .makeServiceCall(this::updateCluster)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
@@ -157,7 +156,6 @@ public class UpdateHandler extends BaseHandlerStd {
 
             .then(progress -> {
                 if(model.getRedshiftCommand().equals("enable-snapshot-copy")) {
-                    logger.log("Starting enable-snapshot-copy");
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableSnapshotCopy", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToEnableSnapshotRequest)
                             .makeServiceCall(this::enableSnapshotCopy)
@@ -181,7 +179,7 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
-    private ModifyClusterResponse updateResource(
+    private ModifyClusterResponse updateCluster(
             final ModifyClusterRequest modifyRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         ModifyClusterResponse awsResponse = null;
@@ -267,7 +265,6 @@ public class UpdateHandler extends BaseHandlerStd {
             final EnableSnapshotCopyRequest enableSnapshotCopyRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         EnableSnapshotCopyResponse awsResponse = null;
-        logger.log("in enable snap method.....######");
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(enableSnapshotCopyRequest, proxyClient.client()::enableSnapshotCopy);
         } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
@@ -275,12 +272,10 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableSnapshotCopyRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
-            System.out.println("in enable snap method catch.....######");
             throw new CfnGeneralServiceException(enableSnapshotCopyRequest.toString(), e);
         }
 
         logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));
-        logger.log("in enable snap method before return.....######");
         return awsResponse;
     }
 

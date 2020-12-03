@@ -151,9 +151,4 @@ public class ReadHandler extends BaseHandlerStd {
             final DescribeClusterDbRevisionsResponse awsResponse) {
         return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadDescribeClusterDbRevisionsResponse(awsResponse));
     }
-
-    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeClusterSnapshotResponse(
-            final DescribeClusterSnapshotsResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadDescribeClusterSnapshotResponse(awsResponse));
-    }
 }

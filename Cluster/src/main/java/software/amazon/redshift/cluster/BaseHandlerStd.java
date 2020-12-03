@@ -44,6 +44,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
 
   protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    // For case when we update cluster identifier, since Modify request is issued, new cluster Identifier
+    // need to be used for polling the cluster to check if it is in "available" status.
+
     String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
             ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
 
