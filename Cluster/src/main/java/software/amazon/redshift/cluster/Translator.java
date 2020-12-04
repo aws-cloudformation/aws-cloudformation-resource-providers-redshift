@@ -21,8 +21,10 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRe
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionReq
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
@@ -37,6 +40,7 @@ import software.amazon.awssdk.services.redshift.model.ResizeInfo;
 import software.amazon.awssdk.services.redshift.model.RestoreStatus;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
+import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -312,7 +316,7 @@ public class Translator {
             .map(software.amazon.awssdk.services.redshift.model.Cluster::manualSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(-1);
+            .orElse(1);
 
     final String modifyStatus = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::modifyStatus)
@@ -693,6 +697,54 @@ public class Translator {
    */
   static DisableSnapshotCopyRequest translateToDisableSnapshotRequest(final ResourceModel model) {
     return DisableSnapshotCopyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Modify Snapshot Copy Retention Period
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifySnapshotCopyRetentionPeriodRequest translateToModifySnapshotCopyRetentionPeriodRequest(final ResourceModel model) {
+    return ModifySnapshotCopyRetentionPeriodRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .retentionPeriod(model.getRetentionPeriod())
+            .manual(model.getManual())
+            .build();
+  }
+
+  /**
+   * Request to Enable Logging
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static EnableLoggingRequest translateToEnableLoggingRequest(final ResourceModel model) {
+    return EnableLoggingRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .bucketName(model.getBucketName())
+            .s3KeyPrefix(model.getS3Prefix())
+            .build();
+  }
+
+  /**
+   * Request to Disable Logging
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static DisableLoggingRequest translateToDisableLoggingRequest(final ResourceModel model) {
+    return DisableLoggingRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Rotate Encryption key
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static RotateEncryptionKeyRequest translateToRotateEncryptionKeyRequest(final ResourceModel model) {
+    return RotateEncryptionKeyRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .build();
   }

@@ -541,6 +541,14 @@
         "TotalDataInMegaBytes": {
             "description": "Describes the total amount of data to be transferred in megabytes.",
             "type": "number"
+        },
+        "BucketName": {
+            "description": "The name of an existing S3 bucket where the log files are to be stored.",
+            "type": "string"
+        },
+        "S3Prefix": {
+            "description": "The prefix applied to the log file names.",
+            "type": "string"
         }
     },
     "additionalProperties": false,

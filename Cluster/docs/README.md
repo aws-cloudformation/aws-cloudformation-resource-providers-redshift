@@ -124,7 +124,9 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#datatransferprogresselapsedtimeinseconds" title="DataTransferProgressElapsedTimeInSeconds">DataTransferProgressElapsedTimeInSeconds</a>" : <i>Double</i>,
         "<a href="#estimatedtimetocompletioninseconds" title="EstimatedTimeToCompletionInSeconds">EstimatedTimeToCompletionInSeconds</a>" : <i>Double</i>,
         "<a href="#datatransferprogressstatus" title="DataTransferProgressStatus">DataTransferProgressStatus</a>" : <i>String</i>,
-        "<a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>" : <i>Double</i>
+        "<a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#bucketname" title="BucketName">BucketName</a>" : <i>String</i>,
+        "<a href="#s3prefix" title="S3Prefix">S3Prefix</a>" : <i>String</i>
     }
 }
 </pre>
@@ -264,6 +266,8 @@ Properties:
     <a href="#estimatedtimetocompletioninseconds" title="EstimatedTimeToCompletionInSeconds">EstimatedTimeToCompletionInSeconds</a>: <i>Double</i>
     <a href="#datatransferprogressstatus" title="DataTransferProgressStatus">DataTransferProgressStatus</a>: <i>String</i>
     <a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>: <i>Double</i>
+    <a href="#bucketname" title="BucketName">BucketName</a>: <i>String</i>
+    <a href="#s3prefix" title="S3Prefix">S3Prefix</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -1395,6 +1399,26 @@ Describes the total amount of data to be transferred in megabytes.
 _Required_: No
 
 _Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### BucketName
+
+The name of an existing S3 bucket where the log files are to be stored.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### S3Prefix
+
+The prefix applied to the log file names.
+
+_Required_: No
+
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

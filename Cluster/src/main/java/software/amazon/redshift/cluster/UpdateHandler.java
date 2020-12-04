@@ -13,8 +13,12 @@ import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceeded
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.DisableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyResponse;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
@@ -33,6 +37,8 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterSnapshotResponse;
+import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
+import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodResponse;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.PauseClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
@@ -40,6 +46,8 @@ import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterResponse;
+import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
+import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyResponse;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
@@ -176,6 +184,50 @@ public class UpdateHandler extends BaseHandlerStd {
                 return progress;
             })
 
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("modify-snapshot-copy-retention-period")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableSnapshotCopy", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifySnapshotCopyRetentionPeriodRequest)
+                            .makeServiceCall(this::modifySnapshotCopyRetentionPeriod)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("enable-logging")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableLogging", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
+                            .makeServiceCall(this::enableLogging)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("disable-logging")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableLogging", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
+                            .makeServiceCall(this::disableLogging)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("rotate-encryption-key")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RotateEncryptionKey", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToRotateEncryptionKeyRequest)
+                            .makeServiceCall(this::rotateEncryptionKey)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
@@ -236,7 +288,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(modifyClusterDbRevisionRequest.toString(), e);
         }
 
-        logger.log(String.format("%s Update cluster DB Revision.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Update Cluster DB Revision.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }
@@ -256,7 +308,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(modifyClusterMaintenanceRequest.toString(), e);
         }
 
-        logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Update Cluster Maintenance.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }
@@ -275,7 +327,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(enableSnapshotCopyRequest.toString(), e);
         }
 
-        logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Enable Cluster Snapshot Copy.", ResourceModel.TYPE_NAME));
         return awsResponse;
     }
 
@@ -294,7 +346,87 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(enableSnapshotCopyRequest.toString(), e);
         }
 
-        logger.log(String.format("%s Update cluster Maintenance.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Disable Cluster Snapshot Copy.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private ModifySnapshotCopyRetentionPeriodResponse modifySnapshotCopyRetentionPeriod(
+            final ModifySnapshotCopyRetentionPeriodRequest modifySnapshotCopyRetentionPeriodRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ModifySnapshotCopyRetentionPeriodResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifySnapshotCopyRetentionPeriodRequest, proxyClient.client()::modifySnapshotCopyRetentionPeriod);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(modifySnapshotCopyRetentionPeriodRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifySnapshotCopyRetentionPeriodRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(modifySnapshotCopyRetentionPeriodRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Modify Cluster Snapshot Copy.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private EnableLoggingResponse enableLogging(
+            final EnableLoggingRequest enableLoggingRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        EnableLoggingResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Enable Logging.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private DisableLoggingResponse disableLogging(
+            final DisableLoggingRequest disableLoggingRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DisableLoggingResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(disableLoggingRequest, proxyClient.client()::disableLogging);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(disableLoggingRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, disableLoggingRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(disableLoggingRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Disable Logging.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private RotateEncryptionKeyResponse rotateEncryptionKey(
+            final RotateEncryptionKeyRequest rotateEncryptionKeyRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        RotateEncryptionKeyResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(rotateEncryptionKeyRequest, proxyClient.client()::rotateEncryptionKey);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(rotateEncryptionKeyRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rotateEncryptionKeyRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(rotateEncryptionKeyRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Rotate Encryption Key.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }

@@ -12,6 +12,10 @@ import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMember
 import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
+import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyResponse;
+import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
+import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
@@ -397,6 +401,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(null)
                 .manualSnapshotRetentionPeriod(null)
                 .publiclyAccessible(null)
+                .clusterRevisionNumber(CURRENT_DB_REVISION + ".1")
                 .build();
 
         when(proxyClient.client().modifyClusterDbRevision(any(ModifyClusterDbRevisionRequest.class)))
@@ -412,10 +417,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         response.getResourceModel().setRedshiftCommand("modify-cluster-db-revision");
-        System.out.println("HERE (null, no value of Revision Target since API doc lists to return clusters which doesn't provide revision Targets. >> "+response.getResourceModel().getRevisionTarget());
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        //assertThat(response.getResourceModel().getRevisionTarget()).isEqualTo(request.getDesiredResourceState().getCurrentDatabaseRevision()+".1");
+        // revision Target should be the same as the cluster Revision Number which provides the target database version number
+        assertThat(response.getResourceModel().getRevisionTarget()).isEqualTo(
+                request.getDesiredResourceState().getClusterRevisionNumber());
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
@@ -654,6 +660,129 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         response.getResourceModel().setRedshiftCommand("resume-cluster");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testEnableSnapshotCopy() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("enable-snapshot-copy")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .destinationRegion("us-west-1")
+                .manualSnapshotRetentionPeriod(5)
+                .build();
+
+        Cluster snapshotCopyEnabledCLuster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus(CLUSTER_AVAILABLE)
+                .manualSnapshotRetentionPeriod(5)
+                .publiclyAccessible(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().enableSnapshotCopy(any(EnableSnapshotCopyRequest.class)))
+                .thenReturn(EnableSnapshotCopyResponse.builder()
+                        .cluster(snapshotCopyEnabledCLuster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(snapshotCopyEnabledCLuster)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("enable-snapshot-copy");
+        // destination region isn't a param in cluster so doesn't reflect in response.
+        response.getResourceModel().setDestinationRegion("us-west-1");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testDisableSnapshotCopy() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("disable-snapshot-copy")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .build();
+
+        Cluster snapshotCopyEnabledCLuster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus(CLUSTER_AVAILABLE)
+                .publiclyAccessible(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().disableSnapshotCopy(any(DisableSnapshotCopyRequest.class)))
+                .thenReturn(DisableSnapshotCopyResponse.builder()
+                        .cluster(snapshotCopyEnabledCLuster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(snapshotCopyEnabledCLuster)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("disable-snapshot-copy");
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
