@@ -126,7 +126,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#datatransferprogressstatus" title="DataTransferProgressStatus">DataTransferProgressStatus</a>" : <i>String</i>,
         "<a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>" : <i>Double</i>,
         "<a href="#bucketname" title="BucketName">BucketName</a>" : <i>String</i>,
-        "<a href="#s3prefix" title="S3Prefix">S3Prefix</a>" : <i>String</i>
+        "<a href="#s3prefix" title="S3Prefix">S3Prefix</a>" : <i>String</i>,
+        "<a href="#classic" title="Classic">Classic</a>" : <i>Boolean</i>
     }
 }
 </pre>
@@ -268,6 +269,7 @@ Properties:
     <a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>: <i>Double</i>
     <a href="#bucketname" title="BucketName">BucketName</a>: <i>String</i>
     <a href="#s3prefix" title="S3Prefix">S3Prefix</a>: <i>String</i>
+    <a href="#classic" title="Classic">Classic</a>: <i>Boolean</i>
 </pre>
 
 ## Properties
@@ -1419,6 +1421,16 @@ The prefix applied to the log file names.
 _Required_: No
 
 _Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Classic
+
+A boolean value indicating whether the resize operation is using the classic resize process. If you don't provide this parameter or set the value to false, the resize type is elastic.
+
+_Required_: No
+
+_Type_: Boolean
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

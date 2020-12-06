@@ -44,6 +44,8 @@ import software.amazon.awssdk.services.redshift.model.PauseClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
@@ -222,6 +224,17 @@ public class UpdateHandler extends BaseHandlerStd {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RotateEncryptionKey", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToRotateEncryptionKeyRequest)
                             .makeServiceCall(this::rotateEncryptionKey)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("resize-cluster")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ResizeCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToResizeClusterRequest)
+                            .makeServiceCall(this::resizeCluster)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
@@ -424,6 +437,26 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rotateEncryptionKeyRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(rotateEncryptionKeyRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Rotate Encryption Key.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private ResizeClusterResponse resizeCluster(
+            final ResizeClusterRequest resizeClusterRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ResizeClusterResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(resizeClusterRequest, proxyClient.client()::resizeCluster);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(resizeClusterRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, resizeClusterRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(resizeClusterRequest.toString(), e);
         }
 
         logger.log(String.format("%s Rotate Encryption Key.", ResourceModel.TYPE_NAME));

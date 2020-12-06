@@ -749,6 +749,21 @@ public class Translator {
             .build();
   }
 
+  /**
+   * Request to Resize CLuster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ResizeClusterRequest translateToResizeClusterRequest(final ResourceModel model) {
+    return ResizeClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .clusterType(model.getClusterType())
+            .nodeType(model.getNodeType())
+            .numberOfNodes(model.getNumberOfNodes())
+            .classic(model.getClassic())
+            .build();
+  }
+
 
   /**
    * Request to update some other properties that could not be provisioned through first update request
