@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.awssdk.services.redshift.model.Tag;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -46,6 +47,9 @@ public class Translator {
      * @return awsRequest the aws service request to describe a resource
      */
     static DescribeClusterParameterGroupsRequest translateToReadRequest(final ResourceModel model) {
+        if (model.getParameterGroupName() == null) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getParameterGroupName());
+        }
         return DescribeClusterParameterGroupsRequest.builder()
                 .parameterGroupName(model.getParameterGroupName())
                 .build();
@@ -110,6 +114,9 @@ public class Translator {
      * @return awsRequest the aws service request to delete a resource
      */
     static DeleteClusterParameterGroupRequest translateToDeleteRequest(final ResourceModel model) {
+        if (model.getParameterGroupName() == null) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getParameterGroupName());
+        }
         return DeleteClusterParameterGroupRequest.builder()
                 .parameterGroupName(model.getParameterGroupName())
                 .build();
