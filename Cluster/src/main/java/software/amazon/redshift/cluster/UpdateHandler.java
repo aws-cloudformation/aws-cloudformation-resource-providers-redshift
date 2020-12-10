@@ -90,10 +90,10 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress -> {
                 if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles()) || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
-                    .makeServiceCall(this::updateIAMRoles)
-                    .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                    .progress();
+                        .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
+                        .makeServiceCall(this::updateIAMRoles)
+                        .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                        .progress();
                 }
                 return progress;
             })
@@ -188,7 +188,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
             .then(progress -> {
                 if(model.getRedshiftCommand().equals("modify-snapshot-copy-retention-period")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableSnapshotCopy", proxyClient, model, callbackContext)
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterSnapshotRetentionCopy", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToModifySnapshotCopyRetentionPeriodRequest)
                             .makeServiceCall(this::modifySnapshotCopyRetentionPeriod)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))

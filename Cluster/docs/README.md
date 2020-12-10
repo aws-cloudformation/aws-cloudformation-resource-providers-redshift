@@ -127,7 +127,25 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#totaldatainmegabytes" title="TotalDataInMegaBytes">TotalDataInMegaBytes</a>" : <i>Double</i>,
         "<a href="#bucketname" title="BucketName">BucketName</a>" : <i>String</i>,
         "<a href="#s3prefix" title="S3Prefix">S3Prefix</a>" : <i>String</i>,
-        "<a href="#classic" title="Classic">Classic</a>" : <i>Boolean</i>
+        "<a href="#classic" title="Classic">Classic</a>" : <i>Boolean</i>,
+        "<a href="#snapshotclusteridentifier" title="SnapshotClusterIdentifier">SnapshotClusterIdentifier</a>" : <i>String</i>,
+        "<a href="#newtablename" title="NewTableName">NewTableName</a>" : <i>String</i>,
+        "<a href="#sourcedatabasename" title="SourceDatabaseName">SourceDatabaseName</a>" : <i>String</i>,
+        "<a href="#sourcetablename" title="SourceTableName">SourceTableName</a>" : <i>String</i>,
+        "<a href="#sourceschemaname" title="SourceSchemaName">SourceSchemaName</a>" : <i>String</i>,
+        "<a href="#targetdatabasename" title="TargetDatabaseName">TargetDatabaseName</a>" : <i>String</i>,
+        "<a href="#targetschemaname" title="TargetSchemaName">TargetSchemaName</a>" : <i>String</i>,
+        "<a href="#tablerestorestatusmessage" title="TableRestoreStatusMessage">TableRestoreStatusMessage</a>" : <i>String</i>,
+        "<a href="#tablerestorestatusprogressinmegabytes" title="TableRestoreStatusProgressInMegaBytes">TableRestoreStatusProgressInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#tablerestorestatusrequesttime" title="TableRestoreStatusRequestTime">TableRestoreStatusRequestTime</a>" : <i>String</i>,
+        "<a href="#tablerestorestatusstatus" title="TableRestoreStatusStatus">TableRestoreStatusStatus</a>" : <i>String</i>,
+        "<a href="#tablerestorerequestid" title="TableRestoreRequestId">TableRestoreRequestId</a>" : <i>String</i>,
+        "<a href="#tablerestorestatustotaldatainmegabytes" title="TableRestoreStatusTotalDataInMegaBytes">TableRestoreStatusTotalDataInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#lastfailuremessage" title="LastFailureMessage">LastFailureMessage</a>" : <i>String</i>,
+        "<a href="#lastfailuretime" title="LastFailureTime">LastFailureTime</a>" : <i>String</i>,
+        "<a href="#lastsuccessfuldeliverytime" title="LastSuccessfulDeliveryTime">LastSuccessfulDeliveryTime</a>" : <i>String</i>,
+        "<a href="#loggingenabled" title="LoggingEnabled">LoggingEnabled</a>" : <i>Boolean</i>,
+        "<a href="#s3keyprefix" title="S3KeyPrefix">S3KeyPrefix</a>" : <i>String</i>
     }
 }
 </pre>
@@ -270,6 +288,24 @@ Properties:
     <a href="#bucketname" title="BucketName">BucketName</a>: <i>String</i>
     <a href="#s3prefix" title="S3Prefix">S3Prefix</a>: <i>String</i>
     <a href="#classic" title="Classic">Classic</a>: <i>Boolean</i>
+    <a href="#snapshotclusteridentifier" title="SnapshotClusterIdentifier">SnapshotClusterIdentifier</a>: <i>String</i>
+    <a href="#newtablename" title="NewTableName">NewTableName</a>: <i>String</i>
+    <a href="#sourcedatabasename" title="SourceDatabaseName">SourceDatabaseName</a>: <i>String</i>
+    <a href="#sourcetablename" title="SourceTableName">SourceTableName</a>: <i>String</i>
+    <a href="#sourceschemaname" title="SourceSchemaName">SourceSchemaName</a>: <i>String</i>
+    <a href="#targetdatabasename" title="TargetDatabaseName">TargetDatabaseName</a>: <i>String</i>
+    <a href="#targetschemaname" title="TargetSchemaName">TargetSchemaName</a>: <i>String</i>
+    <a href="#tablerestorestatusmessage" title="TableRestoreStatusMessage">TableRestoreStatusMessage</a>: <i>String</i>
+    <a href="#tablerestorestatusprogressinmegabytes" title="TableRestoreStatusProgressInMegaBytes">TableRestoreStatusProgressInMegaBytes</a>: <i>Double</i>
+    <a href="#tablerestorestatusrequesttime" title="TableRestoreStatusRequestTime">TableRestoreStatusRequestTime</a>: <i>String</i>
+    <a href="#tablerestorestatusstatus" title="TableRestoreStatusStatus">TableRestoreStatusStatus</a>: <i>String</i>
+    <a href="#tablerestorerequestid" title="TableRestoreRequestId">TableRestoreRequestId</a>: <i>String</i>
+    <a href="#tablerestorestatustotaldatainmegabytes" title="TableRestoreStatusTotalDataInMegaBytes">TableRestoreStatusTotalDataInMegaBytes</a>: <i>Double</i>
+    <a href="#lastfailuremessage" title="LastFailureMessage">LastFailureMessage</a>: <i>String</i>
+    <a href="#lastfailuretime" title="LastFailureTime">LastFailureTime</a>: <i>String</i>
+    <a href="#lastsuccessfuldeliverytime" title="LastSuccessfulDeliveryTime">LastSuccessfulDeliveryTime</a>: <i>String</i>
+    <a href="#loggingenabled" title="LoggingEnabled">LoggingEnabled</a>: <i>Boolean</i>
+    <a href="#s3keyprefix" title="S3KeyPrefix">S3KeyPrefix</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -1431,6 +1467,186 @@ A boolean value indicating whether the resize operation is using the classic res
 _Required_: No
 
 _Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotClusterIdentifier
+
+The name of the cluster the source snapshot was created from. This parameter is required if your IAM user has a policy containing a snapshot resource element that specifies anything other than * for the cluster name.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### NewTableName
+
+The name of the table to create as a result of the current request.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SourceDatabaseName
+
+The name of the source database that contains the table to restore from.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SourceTableName
+
+The name of the source table to restore from.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SourceSchemaName
+
+The name of the source schema that contains the table to restore from. If you do not specify a SourceSchemaName value, the default is public.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TargetDatabaseName
+
+The name of the database to restore the table to.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TargetSchemaName
+
+The name of the schema to restore the table to.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TableRestoreStatusMessage
+
+A description of the status of the table restore request. Status values include SUCCEEDED, FAILED, CANCELED, PENDING, IN_PROGRESS.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TableRestoreStatusProgressInMegaBytes
+
+The amount of data restored to the new table so far, in megabytes (MB).
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TableRestoreStatusRequestTime
+
+The time that the table restore request was made, in Universal Coordinated Time (UTC).
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TableRestoreStatusStatus
+
+The time that the table restore request was made, in Universal Coordinated Time (UTC).
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TableRestoreRequestId
+
+The unique identifier for the table restore request.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TableRestoreStatusTotalDataInMegaBytes
+
+The total amount of data to restore to the new table, in megabytes (MB).
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### LastFailureMessage
+
+The message indicating that logs failed to be delivered.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### LastFailureTime
+
+The last time when logs failed to be delivered.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### LastSuccessfulDeliveryTime
+
+The last time that logs were delivered.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### LoggingEnabled
+
+true if logging is on, false if logging is off.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### S3KeyPrefix
+
+The prefix applied to the log file names.
+
+_Required_: No
+
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

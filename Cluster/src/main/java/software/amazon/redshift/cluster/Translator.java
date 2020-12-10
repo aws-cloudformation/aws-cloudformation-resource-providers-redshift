@@ -21,6 +21,10 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRe
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusResponse;
 import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
@@ -37,10 +41,14 @@ import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeInfo;
+import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreStatus;
+import software.amazon.awssdk.services.redshift.model.RestoreTableFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
+import software.amazon.awssdk.services.redshift.model.TableRestoreStatus;
+import software.amazon.awssdk.services.redshift.model.TableRestoreStatusType;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -103,6 +111,60 @@ public class Translator {
   }
 
   /**
+   * RestoreFromClusterSnapshot Request
+   * @param model resource model
+   * @return awsRequest the aws service request to create a resource
+   */
+  static RestoreFromClusterSnapshotRequest translateToRestoreFromClusterSnapshotRequest(final ResourceModel model) {
+    return RestoreFromClusterSnapshotRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .snapshotIdentifier(model.getSnapshotIdentifier())
+            .snapshotClusterIdentifier(model.getSnapshotClusterIdentifier())
+            .port(model.getPort())
+            .availabilityZone(model.getAvailabilityZone())
+            .allowVersionUpgrade(model.getAllowVersionUpgrade())
+            .clusterSubnetGroupName(model.getClusterSubnetGroupName())
+            .publiclyAccessible(model.getPubliclyAccessible())
+            .ownerAccount(model.getOwnerAccount())
+            .hsmClientCertificateIdentifier(model.getHsmClientCertificateIdentifier())
+            .hsmConfigurationIdentifier(model.getHsmConfigurationIdentifier())
+            .elasticIp(model.getElasticIp())
+            .clusterParameterGroupName(model.getClusterParameterGroupName())
+            .clusterSecurityGroups(model.getClusterSecurityGroups())
+            .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow())
+            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .kmsKeyId(model.getKmsKeyId())
+            .nodeType(model.getNodeType())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting())
+            .additionalInfo(model.getAdditionalInfo())
+            .iamRoles(model.getIamRoles())
+            .maintenanceTrackName(model.getMaintenanceTrackName())
+            .snapshotScheduleIdentifier(model.getSnapshotScheduleIdentifier())
+            .numberOfNodes(model.getNumberOfNodes())
+            .build();
+  }
+
+  /**
+   * RestoreFromClusterSnapshot Request
+   * @param model resource model
+   * @return awsRequest the aws service request to create a resource
+   */
+  static RestoreTableFromClusterSnapshotRequest translateToRestoreTableFromClusterSnapshotRequest(final ResourceModel model) {
+    return RestoreTableFromClusterSnapshotRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .snapshotIdentifier(model.getSnapshotIdentifier())
+            .sourceDatabaseName(model.getSourceDatabaseName())
+            .sourceSchemaName(model.getSourceSchemaName())
+            .sourceTableName(model.getSourceTableName())
+            .newTableName(model.getNewTableName())
+            .targetDatabaseName(model.getTargetDatabaseName())
+            .targetSchemaName(model.getTargetSchemaName())
+            .build();
+  }
+
+  /**
    * Request to read a resource
    * @param model resource model
    * @return awsRequest the aws service request to describe a resource
@@ -127,6 +189,159 @@ public class Translator {
             .marker(model.getMarker())
             .build();
   }
+
+  /**
+   * Describe a TableRestoreStatus Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+
+  static DescribeTableRestoreStatusRequest translateToTableRestoreStatusRequest(final ResourceModel model) {
+    return DescribeTableRestoreStatusRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .marker(model.getMarker())
+            .tableRestoreRequestId(model.getTableRestoreRequestId())
+            .build();
+
+  }
+
+  /**
+   * Describe a Logging Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+
+  static DescribeLoggingStatusRequest translateToDescribeLoggingRequest(final ResourceModel model) {
+    return DescribeLoggingStatusRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+
+  }
+
+
+  static ResourceModel translateFromTableRestoreStatus(final DescribeTableRestoreStatusResponse awsResponse) {
+    final String clusterIdentifier = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String tableRestoreStatusMessage= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::message)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String newTableName= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::newTableName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Long tableRestoreStatusProgressInMegaBytes= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::progressInMegaBytes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0L);
+
+    final Instant tableRestoreStatusRequestTime= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::requestTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String snapshotIdentifier = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::snapshotIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String sourceDatabaseName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::sourceDatabaseName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String sourceSchemaName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::sourceSchemaName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String sourceTableName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::sourceTableName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final TableRestoreStatusType tableRestoreStatusStatus = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::status)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String tableRestoreRequestId = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::tableRestoreRequestId)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String targetDatabaseName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::targetDatabaseName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String targetSchemaName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::targetSchemaName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Long tableRestoreStatusTotalDataInMegaBytes = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::totalDataInMegaBytes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0L);
+
+    return ResourceModel.builder()
+            .clusterIdentifier(clusterIdentifier)
+            .tableRestoreStatusMessage(tableRestoreStatusMessage)
+            .newTableName(newTableName)
+            .tableRestoreStatusProgressInMegaBytes(tableRestoreStatusProgressInMegaBytes.doubleValue())
+            .tableRestoreStatusRequestTime(tableRestoreStatusRequestTime == null ? null : tableRestoreStatusRequestTime.toString())
+            .snapshotIdentifier(snapshotIdentifier)
+            .sourceDatabaseName(sourceDatabaseName)
+            .sourceSchemaName(sourceSchemaName)
+            .sourceTableName(sourceTableName)
+            .tableRestoreStatusStatus(tableRestoreStatusStatus == null ? null : tableRestoreStatusStatus.toString())
+            .tableRestoreRequestId(tableRestoreRequestId)
+            .targetDatabaseName(targetDatabaseName)
+            .targetSchemaName(targetSchemaName)
+            .tableRestoreStatusTotalDataInMegaBytes(tableRestoreStatusTotalDataInMegaBytes.doubleValue())
+            .build();
+  }
+
+
+  /**
+   * Translates resource object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeLoggingResponse(final DescribeLoggingStatusResponse awsResponse) {
+    return ResourceModel.builder()
+            .bucketName(awsResponse.bucketName())
+            .lastFailureMessage(awsResponse.lastFailureMessage())
+            .lastFailureTime(awsResponse.lastFailureTime() == null ? null : awsResponse.lastFailureTime().toString())
+            .lastSuccessfulDeliveryTime(awsResponse.lastSuccessfulDeliveryTime() == null ? null : awsResponse.lastFailureTime().toString())
+            .loggingEnabled(awsResponse.loggingEnabled())
+            .s3KeyPrefix(awsResponse.s3KeyPrefix())
+            .build();
+  }
+
+
+
+
 
   /**
    * Translates resource object from sdk into a resource model
@@ -452,7 +667,7 @@ public class Translator {
 
   }
 
-  static ResourceModel translateFromReadDescribeClusterDbRevisionsResponse(final DescribeClusterDbRevisionsResponse awsResponse) {
+  static ResourceModel translateFromDescribeClusterDbRevisionsResponse(final DescribeClusterDbRevisionsResponse awsResponse) {
     final String clusterIdentifier = streamOfOrEmpty(awsResponse.clusterDbRevisions())
             .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision::clusterIdentifier)
             .filter(Objects::nonNull)

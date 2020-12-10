@@ -11,8 +11,14 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRe
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
+import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.TableRestoreStatus;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -57,6 +63,28 @@ public class ReadHandler extends BaseHandlerStd {
                     }
                     return progress;
                 })
+
+                .then(progress -> {
+                    if(model.getRedshiftCommand() != null &&
+                            (model.getRedshiftCommand().equals("restore-table-from-cluster-snapshot") || model.getRedshiftCommand().equals("describe-table-restore-status"))) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DescribeTableRestoreStatus", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToTableRestoreStatusRequest)
+                                .makeServiceCall(this::tableRestoreStatus)
+                                .done(this::constructResourceModelFromTableRestoreStatus);
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if(model.getBucketName() != null || (model.getRedshiftCommand() != null && model.getRedshiftCommand().contains("logging"))) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DescribeLogging", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDescribeLoggingRequest)
+                                .makeServiceCall(this::describeLogging)
+                                .done(this::constructResourceModelFromDescribeLoggingResponse);
+                    }
+                    return progress;
+                })
+
                 .then(progress -> {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToReadRequest)
@@ -91,31 +119,6 @@ public class ReadHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
-    /**
-     * Implement client invocation of the read request through the proxyClient, which is already initialised with
-     * caller credentials, correct region and retry settings
-     * @param awsRequest the aws service request to describe a resource
-     * @param proxyClient the aws service client to make the call
-     * @return describe resource response
-     */
-    private DescribeClusterSnapshotsResponse readClusterSnapshot(
-            final DescribeClusterSnapshotsRequest awsRequest,
-            final ProxyClient<RedshiftClient> proxyClient) {
-        DescribeClusterSnapshotsResponse awsResponse = null;
-        try {
-            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterSnapshots);
-        } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
-        } catch (SdkClientException | RedshiftException e) {
-            throw new CfnGeneralServiceException(awsRequest.toString(), e);
-        } catch (final AwsServiceException e) { // ResourceNotFoundException
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
-        }
-
-        logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
-        return awsResponse;
-    }
-
     private DescribeClusterDbRevisionsResponse readDescribeClusterDbRevisionsResponse(
             final DescribeClusterDbRevisionsRequest awsRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
@@ -136,6 +139,47 @@ public class ReadHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
+    private DescribeTableRestoreStatusResponse tableRestoreStatus(
+            final DescribeTableRestoreStatusRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeTableRestoreStatusResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeTableRestoreStatus);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+        } catch (final InvalidClusterStateException | InvalidRestoreException e ) {
+            throw new CfnInvalidRequestException(awsRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s Table Restore status read", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
+
+
+    private DescribeLoggingStatusResponse describeLogging(
+            final DescribeLoggingStatusRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeLoggingStatusResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeLoggingStatus);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+        } catch (final InvalidClusterStateException | InvalidRestoreException e ) {
+            throw new CfnInvalidRequestException(awsRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s Logging Status read.", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
+
     /**
      * Implement client invocation of the read request through the proxyClient, which is already initialised with
      * caller credentials, correct region and retry settings
@@ -149,6 +193,17 @@ public class ReadHandler extends BaseHandlerStd {
 
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeClusterDbRevisionsResponse(
             final DescribeClusterDbRevisionsResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadDescribeClusterDbRevisionsResponse(awsResponse));
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeClusterDbRevisionsResponse(awsResponse));
     }
+
+    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromTableRestoreStatus(
+            final DescribeTableRestoreStatusResponse awsResponse) {
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromTableRestoreStatus(awsResponse));
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeLoggingResponse(
+            final DescribeLoggingStatusResponse awsResponse) {
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeLoggingResponse(awsResponse));
+    }
+
 }
