@@ -6,6 +6,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.CancelResizeRequest;
+import software.amazon.awssdk.services.redshift.model.CancelResizeResponse;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
@@ -24,13 +26,21 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRe
 import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
+import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodResponse;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.PauseClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResumeClusterResponse;
+import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
+import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyResponse;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -791,5 +801,236 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testModifySnapshotCopyRetentionPeriod() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(1)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("modify-snapshot-copy-retention-period")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .retentionPeriod(7)
+                .manual(true)
+                .build();
+
+        Cluster modifySnapshotRetentionPeriod = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus(CLUSTER_AVAILABLE)
+                .publiclyAccessible(true)
+                .manualSnapshotRetentionPeriod(7)
+                .automatedSnapshotRetentionPeriod(1)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().modifySnapshotCopyRetentionPeriod(any(ModifySnapshotCopyRetentionPeriodRequest.class)))
+                .thenReturn(ModifySnapshotCopyRetentionPeriodResponse.builder()
+                        .cluster(modifySnapshotRetentionPeriod)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifySnapshotRetentionPeriod)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testRotateEncryptionKeys() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(1)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("rotate-encryption-key")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .build();
+
+        Cluster cluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus(CLUSTER_AVAILABLE)
+                .publiclyAccessible(true)
+                .manualSnapshotRetentionPeriod(7)
+                .automatedSnapshotRetentionPeriod(1)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().rotateEncryptionKey(any(RotateEncryptionKeyRequest.class)))
+                .thenThrow(CfnGeneralServiceException.class);
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(cluster)
+                        .build());
+        ProgressEvent<ResourceModel, CallbackContext> response = null;
+        try{
+            response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        } catch (CfnGeneralServiceException e) {
+            assertThat(response).isNull();
+        }
+    }
+
+    @Test
+    public void testResize() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES * 2)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(1)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("resize-cluster")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .build();
+
+        Cluster resizeCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES * 2)
+                .clusterStatus(CLUSTER_AVAILABLE)
+                .publiclyAccessible(true)
+                .manualSnapshotRetentionPeriod(1)
+                .automatedSnapshotRetentionPeriod(1)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().resizeCluster(any(ResizeClusterRequest.class)))
+                .thenReturn(ResizeClusterResponse.builder()
+                        .cluster(resizeCluster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(resizeCluster)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        response.getResourceModel().setRedshiftCommand("resize-cluster");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testCancelResize() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(1)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(true)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .redshiftCommand("cancel-resize")
+                .clusterParameterGroups(new LinkedList<String>())
+                .clusterNodeRole(new LinkedList<String>())
+                .clusterNodePrivateIPAddress(new LinkedList<String>())
+                .clusterNodePublicIPAddress(new LinkedList<String>())
+                .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .build();
+
+        Cluster cancelResizeCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus(CLUSTER_AVAILABLE)
+                .publiclyAccessible(true)
+                .manualSnapshotRetentionPeriod(7)
+                .automatedSnapshotRetentionPeriod(1)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().cancelResize(any(CancelResizeRequest.class)))
+                .thenThrow(CfnNotFoundException.class);  //ResizeNotFoundException
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(cancelResizeCluster)
+                        .build());
+        ProgressEvent<ResourceModel, CallbackContext> response = null;
+        try{
+            response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        } catch (CfnNotFoundException e) {
+            assertThat(response).isNull();
+        }
     }
 }

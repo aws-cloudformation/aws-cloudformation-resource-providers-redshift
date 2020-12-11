@@ -4,54 +4,7 @@ import com.amazonaws.util.CollectionUtils;;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.Cluster;
-import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterOnLatestRevisionException;
-import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceededException;
-import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingResponse;
-import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
-import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyResponse;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
-import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
-import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyResponse;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
-import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
-import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
-import software.amazon.awssdk.services.redshift.model.LimitExceededException;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterSnapshotRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterSnapshotResponse;
-import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
-import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodResponse;
-import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
-import software.amazon.awssdk.services.redshift.model.PauseClusterResponse;
-import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
-import software.amazon.awssdk.services.redshift.model.RedshiftException;
-import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
-import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ResumeClusterResponse;
-import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
-import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyResponse;
-import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
-import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
+import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -235,6 +188,17 @@ public class UpdateHandler extends BaseHandlerStd {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ResizeCluster", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToResizeClusterRequest)
                             .makeServiceCall(this::resizeCluster)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("cancel-resize")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-CancelResize", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToCancelResizeClusterRequest)
+                            .makeServiceCall(this::cancelResize)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
@@ -459,7 +423,27 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(resizeClusterRequest.toString(), e);
         }
 
-        logger.log(String.format("%s Rotate Encryption Key.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Resize Cluster.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private CancelResizeResponse cancelResize(
+            final CancelResizeRequest cancelResizeRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        CancelResizeResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(cancelResizeRequest, proxyClient.client()::cancelResize);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(cancelResizeRequest.toString(), e);
+        } catch (final ClusterNotFoundException | ResizeNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, cancelResizeRequest.clusterIdentifier());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(cancelResizeRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Cancel Resize.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }

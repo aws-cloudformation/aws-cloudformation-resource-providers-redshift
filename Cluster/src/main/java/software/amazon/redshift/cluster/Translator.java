@@ -5,6 +5,7 @@ import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AccountWithRestoreAccess;
+import software.amazon.awssdk.services.redshift.model.CancelResizeRequest;
 import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterNode;
@@ -976,6 +977,17 @@ public class Translator {
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
             .classic(model.getClassic())
+            .build();
+  }
+
+  /**
+   * Request to Cancel Resize CLuster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static CancelResizeRequest translateToCancelResizeClusterRequest(final ResourceModel model) {
+    return CancelResizeRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
             .build();
   }
 

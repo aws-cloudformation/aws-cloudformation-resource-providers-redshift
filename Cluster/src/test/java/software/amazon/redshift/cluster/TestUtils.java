@@ -9,17 +9,18 @@ import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.stream.Collectors;
+
 
 public class TestUtils {
     final static String AWS_REGION = "us-east-1";
-    final static String DESCRIPTION = "description";
-    final static String SUBNET_GROUP_NAME = "name";
     final static String AWS_ACCOUNT_ID ="1111";
     final static String CLUSTER_IDENTIFIER = "redshift-cluster-1";
+    final static String SNAPSHOT_IDENTIFIER = "redshift-cluster-snapshot-1";
+    final static String SOURCE_DB = "dev";
+    final static String SOURCE_TABLE = "source_table";
+    final static String TARGET_DB = "dev";
+    final static String NEW_TABLE = "source_table_copy";
     final static String CLUSTER_IDENTIFIER_COMPLETE = "redshift-cluster-2";
     final static String MASTER_USERNAME = "master";
     final static String MASTER_USERPASSWORD = "Test1234";
