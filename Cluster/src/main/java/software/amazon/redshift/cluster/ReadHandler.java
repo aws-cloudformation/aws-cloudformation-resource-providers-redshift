@@ -104,6 +104,8 @@ public class ReadHandler extends BaseHandlerStd {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeResize", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDescribeResizeRequest)
                                 .makeServiceCall(this::describeResize)
+                                //.handleError(BaseHandlerStd::handleResizeNotFound)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .done(this::constructResourceModelFromDescribeResizeResponse);
                     }
                     return progress;

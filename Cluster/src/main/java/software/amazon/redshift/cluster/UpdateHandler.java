@@ -198,7 +198,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-CancelResize", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToCancelResizeClusterRequest)
                             .makeServiceCall(this::cancelResize)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            //.stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
                 return progress;
