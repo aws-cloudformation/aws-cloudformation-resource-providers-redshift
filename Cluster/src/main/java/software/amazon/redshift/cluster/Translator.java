@@ -4,53 +4,8 @@ import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.AccountWithRestoreAccess;
-import software.amazon.awssdk.services.redshift.model.CancelResizeRequest;
-import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
-import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
-import software.amazon.awssdk.services.redshift.model.ClusterNode;
-import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
-import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
-import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
-import software.amazon.awssdk.services.redshift.model.DataTransferProgress;
-import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusResponse;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
-import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
-import software.amazon.awssdk.services.redshift.model.Endpoint;
-import software.amazon.awssdk.services.redshift.model.HsmStatus;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
-import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ResizeInfo;
-import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
-import software.amazon.awssdk.services.redshift.model.RestoreStatus;
-import software.amazon.awssdk.services.redshift.model.RestoreTableFromClusterSnapshotRequest;
-import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RevisionTarget;
-import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
-import software.amazon.awssdk.services.redshift.model.TableRestoreStatus;
-import software.amazon.awssdk.services.redshift.model.TableRestoreStatusType;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.Tag;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
@@ -166,6 +121,23 @@ public class Translator {
   }
 
   /**
+   * Create Cluster Usage Limit Request
+   * @param model resource model
+   * @return awsRequest the aws service request to create a resource
+   */
+  static CreateUsageLimitRequest translateToCreateUsageLimitRequest(final ResourceModel model) {
+    return CreateUsageLimitRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .amount(model.getAmount() ==  null ? null : model.getAmount().longValue())
+            .breachAction(model.getBreachAction())
+            .featureType(model.getFeatureType())
+            .limitType(model.getLimitType())
+            .period(model.getPeriod())
+            //.tags(model.getTags())
+            .build();
+  }
+
+  /**
    * Request to read a resource
    * @param model resource model
    * @return awsRequest the aws service request to describe a resource
@@ -218,6 +190,33 @@ public class Translator {
             .build();
 
   }
+
+  /**
+   * Describe a Usage Limit Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeUsageLimitsRequest translateToDescribeUsageLimitRequest(final ResourceModel model) {
+    return DescribeUsageLimitsRequest.builder()
+            .usageLimitId(model.getUsageLimitId())
+            .clusterIdentifier(model.getClusterIdentifier())
+            .featureType(model.getFeatureType())
+            .tagKeys(model.getTagKeys())
+            .tagValues(model.getTagValues())
+            .marker(model.getMarker())
+            .build();
+  }
+  /**
+   * Describe a Resize Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeResizeRequest translateToDescribeResizeRequest(final ResourceModel model) {
+    return DescribeResizeRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
 
 
   static ResourceModel translateFromTableRestoreStatus(final DescribeTableRestoreStatusResponse awsResponse) {
@@ -325,7 +324,7 @@ public class Translator {
 
 
   /**
-   * Translates resource object from sdk into a resource model
+   * Translates DescribeLoggingStatusResponse object from sdk into a resource model
    * @param awsResponse the aws service describe resource response
    * @return model resource model
    */
@@ -340,7 +339,96 @@ public class Translator {
             .build();
   }
 
+  /**
+   * Translates DescribeResizeResponse object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeResizeResponse(final DescribeResizeResponse awsResponse) {
+    return ResourceModel.builder()
+            .avgResizeRateInMegaBytesPerSecond(awsResponse.avgResizeRateInMegaBytesPerSecond())
+            .dataTransferProgressPercent(awsResponse.dataTransferProgressPercent())
+            .cancelResizeElapsedTimeInSeconds(awsResponse.elapsedTimeInSeconds() == null ? null : awsResponse.elapsedTimeInSeconds().doubleValue())
+            .cancelResizeEstimatedTimeToCompletionInSeconds(awsResponse.estimatedTimeToCompletionInSeconds() == null ? null : awsResponse.estimatedTimeToCompletionInSeconds().doubleValue())
+            .importTablesCompleted(awsResponse.importTablesCompleted())
+            .importTablesInProgress(awsResponse.importTablesInProgress())
+            .importTablesNotStarted(awsResponse.importTablesNotStarted())
+            .cancelResizeMessage(awsResponse.message())
+            .progressInMegaBytes(awsResponse.progressInMegaBytes() == null ? null : awsResponse.progressInMegaBytes().doubleValue() )
+            .cancelResizeStatus(awsResponse.status())
+            .targetClusterType(awsResponse.targetClusterType())
+            .targetEncryptionType(awsResponse.targetEncryptionType())
+            .targetNodeType(awsResponse.targetNodeType())
+            .targetNumberOfNodes(awsResponse.targetNumberOfNodes())
+            .totalResizeDataInMegaBytes(awsResponse.totalResizeDataInMegaBytes() == null ? null : awsResponse.totalResizeDataInMegaBytes().doubleValue())
+            .build();
+  }
 
+  /**
+   * Translates DescribeLoggingStatusResponse object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeUsageLimitResponse(final DescribeUsageLimitsResponse awsResponse) {
+    final String clusterIdentifier = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String usageLimitId = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::usageLimitId)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String featureType = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::featureTypeAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String limitType = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::limitTypeAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Long amount = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::amount)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(0L);
+
+    final String period = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::periodAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String breachAction = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::breachActionAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<Tag> tags = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::tags)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    return ResourceModel.builder()
+            .clusterIdentifier(clusterIdentifier)
+            .usageLimitId(usageLimitId)
+            .featureType(featureType)
+            .limitType(limitType)
+            .amount(amount.doubleValue())
+            .period(period)
+            .breachAction(breachAction)
+            //.tags(tags)
+            .build();
+  }
 
 
 
@@ -773,13 +861,22 @@ public class Translator {
     boolean skipFinalClusterSnapshot = model.getFinalClusterSnapshotIdentifier() == null ||
             model.getFinalClusterSnapshotIdentifier().equalsIgnoreCase("true");
 
-    return DeleteClusterRequest
-            .builder()
+    return DeleteClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            //.skipFinalClusterSnapshot(model.getSkipFinalClusterSnapshot())
             .skipFinalClusterSnapshot(skipFinalClusterSnapshot)
             .finalClusterSnapshotIdentifier(model.getFinalClusterSnapshotIdentifier())
             .finalClusterSnapshotRetentionPeriod(model.getFinalClusterSnapshotRetentionPeriod())
+            .build();
+  }
+
+  /**
+   * Request to delete a usage limit
+   * @param model resource model
+   * @return awsRequest the aws service request to delete a resource
+   */
+  static DeleteUsageLimitRequest translateToDeleteUsageLimitRequest (final ResourceModel model) {
+    return DeleteUsageLimitRequest.builder()
+            .usageLimitId(model.getUsageLimitId())
             .build();
   }
 
@@ -988,6 +1085,19 @@ public class Translator {
   static CancelResizeRequest translateToCancelResizeClusterRequest(final ResourceModel model) {
     return CancelResizeRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Modify Usage Limit of Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyUsageLimitRequest translateToModifyUsageLimitRequest(final ResourceModel model) {
+    return ModifyUsageLimitRequest.builder()
+            .usageLimitId(model.getUsageLimitId())
+            .amount(model.getAmount() == null ? null : model.getAmount().longValue())
+            .breachAction(model.getBreachAction())
             .build();
   }
 

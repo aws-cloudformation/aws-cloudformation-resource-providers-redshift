@@ -1,17 +1,11 @@
 package software.amazon.redshift.cluster;
 
-import com.amazonaws.SdkClientException;
 import com.amazonaws.util.StringUtils;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
-import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
-import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -78,8 +72,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return awsResponse.clusters().get(0).clusterStatus().equals("paused");
   }
 
-  protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model,
-                                                 String clusterIdentifier) {
+  protected boolean isClusterAvailableForNextOperation(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model,
+                                                       String clusterIdentifier) {
     DescribeClustersResponse awsResponse = null;
     DescribeClustersRequest awsRequest =
             DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
@@ -87,7 +81,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
     } catch (final ClusterNotFoundException e) {
         if (!StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())) {
-          return isClusterAvailableForUpdate(proxyClient, model, model.getNewClusterIdentifier());
+          return isClusterAvailableForNextOperation(proxyClient, model, model.getNewClusterIdentifier());
         }
         return false;
     }

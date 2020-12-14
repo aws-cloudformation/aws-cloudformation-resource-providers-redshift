@@ -145,7 +145,28 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#lastfailuretime" title="LastFailureTime">LastFailureTime</a>" : <i>String</i>,
         "<a href="#lastsuccessfuldeliverytime" title="LastSuccessfulDeliveryTime">LastSuccessfulDeliveryTime</a>" : <i>String</i>,
         "<a href="#loggingenabled" title="LoggingEnabled">LoggingEnabled</a>" : <i>Boolean</i>,
-        "<a href="#s3keyprefix" title="S3KeyPrefix">S3KeyPrefix</a>" : <i>String</i>
+        "<a href="#s3keyprefix" title="S3KeyPrefix">S3KeyPrefix</a>" : <i>String</i>,
+        "<a href="#amount" title="Amount">Amount</a>" : <i>Double</i>,
+        "<a href="#featuretype" title="FeatureType">FeatureType</a>" : <i>String</i>,
+        "<a href="#limittype" title="LimitType">LimitType</a>" : <i>String</i>,
+        "<a href="#breachaction" title="BreachAction">BreachAction</a>" : <i>String</i>,
+        "<a href="#period" title="Period">Period</a>" : <i>String</i>,
+        "<a href="#usagelimitid" title="UsageLimitId">UsageLimitId</a>" : <i>String</i>,
+        "<a href="#avgresizerateinmegabytespersecond" title="AvgResizeRateInMegaBytesPerSecond">AvgResizeRateInMegaBytesPerSecond</a>" : <i>Double</i>,
+        "<a href="#datatransferprogresspercent" title="DataTransferProgressPercent">DataTransferProgressPercent</a>" : <i>Double</i>,
+        "<a href="#cancelresizeelapsedtimeinseconds" title="CancelResizeElapsedTimeInSeconds">CancelResizeElapsedTimeInSeconds</a>" : <i>Double</i>,
+        "<a href="#cancelresizeestimatedtimetocompletioninseconds" title="CancelResizeEstimatedTimeToCompletionInSeconds">CancelResizeEstimatedTimeToCompletionInSeconds</a>" : <i>Double</i>,
+        "<a href="#importtablescompleted" title="ImportTablesCompleted">ImportTablesCompleted</a>" : <i>[ String, ... ]</i>,
+        "<a href="#importtablesinprogress" title="ImportTablesInProgress">ImportTablesInProgress</a>" : <i>[ String, ... ]</i>,
+        "<a href="#importtablesnotstarted" title="ImportTablesNotStarted">ImportTablesNotStarted</a>" : <i>[ String, ... ]</i>,
+        "<a href="#cancelresizemessage" title="CancelResizeMessage">CancelResizeMessage</a>" : <i>String</i>,
+        "<a href="#progressinmegabytes" title="ProgressInMegaBytes">ProgressInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#cancelresizestatus" title="CancelResizeStatus">CancelResizeStatus</a>" : <i>String</i>,
+        "<a href="#targetclustertype" title="TargetClusterType">TargetClusterType</a>" : <i>String</i>,
+        "<a href="#targetencryptiontype" title="TargetEncryptionType">TargetEncryptionType</a>" : <i>String</i>,
+        "<a href="#targetnodetype" title="TargetNodeType">TargetNodeType</a>" : <i>String</i>,
+        "<a href="#targetnumberofnodes" title="TargetNumberOfNodes">TargetNumberOfNodes</a>" : <i>Integer</i>,
+        "<a href="#totalresizedatainmegabytes" title="TotalResizeDataInMegaBytes">TotalResizeDataInMegaBytes</a>" : <i>Double</i>
     }
 }
 </pre>
@@ -306,6 +327,30 @@ Properties:
     <a href="#lastsuccessfuldeliverytime" title="LastSuccessfulDeliveryTime">LastSuccessfulDeliveryTime</a>: <i>String</i>
     <a href="#loggingenabled" title="LoggingEnabled">LoggingEnabled</a>: <i>Boolean</i>
     <a href="#s3keyprefix" title="S3KeyPrefix">S3KeyPrefix</a>: <i>String</i>
+    <a href="#amount" title="Amount">Amount</a>: <i>Double</i>
+    <a href="#featuretype" title="FeatureType">FeatureType</a>: <i>String</i>
+    <a href="#limittype" title="LimitType">LimitType</a>: <i>String</i>
+    <a href="#breachaction" title="BreachAction">BreachAction</a>: <i>String</i>
+    <a href="#period" title="Period">Period</a>: <i>String</i>
+    <a href="#usagelimitid" title="UsageLimitId">UsageLimitId</a>: <i>String</i>
+    <a href="#avgresizerateinmegabytespersecond" title="AvgResizeRateInMegaBytesPerSecond">AvgResizeRateInMegaBytesPerSecond</a>: <i>Double</i>
+    <a href="#datatransferprogresspercent" title="DataTransferProgressPercent">DataTransferProgressPercent</a>: <i>Double</i>
+    <a href="#cancelresizeelapsedtimeinseconds" title="CancelResizeElapsedTimeInSeconds">CancelResizeElapsedTimeInSeconds</a>: <i>Double</i>
+    <a href="#cancelresizeestimatedtimetocompletioninseconds" title="CancelResizeEstimatedTimeToCompletionInSeconds">CancelResizeEstimatedTimeToCompletionInSeconds</a>: <i>Double</i>
+    <a href="#importtablescompleted" title="ImportTablesCompleted">ImportTablesCompleted</a>: <i>
+      - String</i>
+    <a href="#importtablesinprogress" title="ImportTablesInProgress">ImportTablesInProgress</a>: <i>
+      - String</i>
+    <a href="#importtablesnotstarted" title="ImportTablesNotStarted">ImportTablesNotStarted</a>: <i>
+      - String</i>
+    <a href="#cancelresizemessage" title="CancelResizeMessage">CancelResizeMessage</a>: <i>String</i>
+    <a href="#progressinmegabytes" title="ProgressInMegaBytes">ProgressInMegaBytes</a>: <i>Double</i>
+    <a href="#cancelresizestatus" title="CancelResizeStatus">CancelResizeStatus</a>: <i>String</i>
+    <a href="#targetclustertype" title="TargetClusterType">TargetClusterType</a>: <i>String</i>
+    <a href="#targetencryptiontype" title="TargetEncryptionType">TargetEncryptionType</a>: <i>String</i>
+    <a href="#targetnodetype" title="TargetNodeType">TargetNodeType</a>: <i>String</i>
+    <a href="#targetnumberofnodes" title="TargetNumberOfNodes">TargetNumberOfNodes</a>: <i>Integer</i>
+    <a href="#totalresizedatainmegabytes" title="TotalResizeDataInMegaBytes">TotalResizeDataInMegaBytes</a>: <i>Double</i>
 </pre>
 
 ## Properties
@@ -1647,6 +1692,216 @@ The prefix applied to the log file names.
 _Required_: No
 
 _Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Amount
+
+The limit amount. If time-based, this amount is in minutes. If data-based, this amount is in terabytes (TB). The value must be a positive number.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### FeatureType
+
+The Amazon Redshift feature that you want to limit. spectrum , concurrency-scaling valid values.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### LimitType
+
+The type of limit. Depending on the feature type, this can be based on a time duration or data size. If FeatureType is spectrum, then LimitType must be data-scanned. If FeatureType is concurrency-scaling, then LimitType must be time. time, data-scanned are two values.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### BreachAction
+
+The action that Amazon Redshift takes when the limit is reached. The default is log. log | emit-metric | disable
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Period
+
+The time period that the amount applies to. A weekly period begins on Sunday. The default is monthly.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### UsageLimitId
+
+The identifier of the usage limit.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AvgResizeRateInMegaBytesPerSecond
+
+The average rate of the resize operation over the last few minutes, measured in megabytes per second. After the resize operation completes, this value shows the average rate of the entire resize operation.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DataTransferProgressPercent
+
+The percent of data transferred from source cluster to target cluster.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CancelResizeElapsedTimeInSeconds
+
+The amount of seconds that have elapsed since the resize operation began. After the resize operation completes, this value shows the total actual time, in seconds, for the resize operation.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CancelResizeEstimatedTimeToCompletionInSeconds
+
+The estimated time remaining, in seconds, until the resize operation is complete. This value is calculated based on the average resize rate and the estimated amount of data remaining to be processed. Once the resize operation is complete, this value will be 0.
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ImportTablesCompleted
+
+The names of tables that have been completely imported.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ImportTablesInProgress
+
+The names of tables that are being currently imported.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ImportTablesNotStarted
+
+The names of tables that have not been yet imported.
+
+_Required_: No
+
+_Type_: List of String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CancelResizeMessage
+
+An optional string to provide additional details about the resize action.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ProgressInMegaBytes
+
+While the resize operation is in progress, this value shows the current amount of data, in megabytes, that has been processed so far. When the resize operation is complete, this value shows the total amount of data, in megabytes, on the cluster, which may be more or less than TotalResizeDataInMegaBytes (the estimated total amount of data before resize).
+
+_Required_: No
+
+_Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### CancelResizeStatus
+
+The status of the resize operation. Valid Values: NONE | IN_PROGRESS | FAILED | SUCCEEDED | CANCELLING
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TargetClusterType
+
+The cluster type after the resize operation is complete.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TargetEncryptionType
+
+The type of encryption for the cluster after the resize is complete.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TargetNodeType
+
+The node type of cluster  after the resize operation is complete.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TargetNumberOfNodes
+
+The number of nodes in cluster type after the resize operation is complete.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TotalResizeDataInMegaBytes
+
+The estimated total amount of data, in megabytes, on the cluster before the resize operation began.
+
+_Required_: No
+
+_Type_: Double
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

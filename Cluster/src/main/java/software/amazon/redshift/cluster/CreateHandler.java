@@ -8,8 +8,8 @@ import software.amazon.awssdk.services.redshift.model.ClusterSnapshotAlreadyExis
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitRequest;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
@@ -21,7 +21,6 @@ import software.amazon.awssdk.services.redshift.model.TableRestoreNotFoundExcept
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -66,6 +65,23 @@ public class CreateHandler extends BaseHandlerStd {
                         .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                         .progress())
                         .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+        } else if (resourceModel.getRedshiftCommand() != null && resourceModel.getRedshiftCommand().equals("create-usage-limit")) {
+            boolean clusterExists = isClusterAvailableForNextOperation(proxyClient, resourceModel, resourceModel.getClusterIdentifier());
+            if(!clusterExists) {
+                return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                        .status(OperationStatus.FAILED)
+                        .errorCode(HandlerErrorCode.NotFound)
+                        .message(HandlerErrorCode.NotFound.getMessage())
+                        .build();
+            } else {
+                return ProgressEvent.progress(resourceModel, callbackContext)
+                        .then(progress -> proxy.initiate("AWS-Redshift-Cluster::CreateClusterUsageLimit", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest((m) -> Translator.translateToCreateUsageLimitRequest(resourceModel))
+                                .makeServiceCall(this::clusterUsageLimit)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress())
+                        .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+            }
         }
 
         if(invalidCreateClusterRequest(resourceModel)) {
@@ -143,6 +159,27 @@ public class CreateHandler extends BaseHandlerStd {
         logger.log(String.format("%s Restore Table from Cluster Snapshot.", ResourceModel.TYPE_NAME));
 
         return restoreTableFromClusterSnapshotResponse;
+    }
+
+    private CreateUsageLimitResponse clusterUsageLimit(
+            final CreateUsageLimitRequest createUsageLimitRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        CreateUsageLimitResponse createUsageLimitResponse = null;
+
+        try {
+            createUsageLimitResponse = proxyClient.injectCredentialsAndInvokeV2(createUsageLimitRequest,
+                    proxyClient.client()::createUsageLimit);
+        } catch (final ClusterAlreadyExistsException e) {
+            throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createUsageLimitRequest.clusterIdentifier());
+        }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException
+                | ClusterSnapshotNotFoundException | TableRestoreNotFoundException e) {
+            throw new CfnInvalidRequestException(createUsageLimitRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(createUsageLimitRequest.toString(), e);
+        }
+        logger.log(String.format("%s Restore Table from Cluster Snapshot.", ResourceModel.TYPE_NAME));
+
+        return createUsageLimitResponse;
     }
 
     private void prepareResourceModel(ResourceHandlerRequest<ResourceModel> request) {

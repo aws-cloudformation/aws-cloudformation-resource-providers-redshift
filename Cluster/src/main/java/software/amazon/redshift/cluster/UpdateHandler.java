@@ -1,7 +1,6 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
@@ -30,8 +29,8 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model, model.getClusterIdentifier());
-        if(!clusterExists) {
+        boolean clusterAvailableForNextOperation = isClusterAvailableForNextOperation(proxyClient, model, model.getClusterIdentifier());
+        if(!clusterAvailableForNextOperation) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
                     .errorCode(HandlerErrorCode.NotFound)
@@ -199,6 +198,17 @@ public class UpdateHandler extends BaseHandlerStd {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-CancelResize", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToCancelResizeClusterRequest)
                             .makeServiceCall(this::cancelResize)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand().equals("modify-usage-limit")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyUsageLimit", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifyUsageLimitRequest)
+                            .makeServiceCall(this::modifyUsageLimit)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
@@ -444,6 +454,26 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("%s Cancel Resize.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private ModifyUsageLimitResponse modifyUsageLimit(
+            final  ModifyUsageLimitRequest modifyUsageLimitRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ModifyUsageLimitResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyUsageLimitRequest, proxyClient.client()::modifyUsageLimit);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+            throw new CfnInvalidRequestException(modifyUsageLimitRequest.toString(), e);
+        } catch (final UsageLimitNotFoundException | UsageLimitAlreadyExistsException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyUsageLimitRequest.usageLimitId());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(modifyUsageLimitRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Modify Usage Limit.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }

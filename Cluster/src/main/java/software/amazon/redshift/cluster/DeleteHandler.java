@@ -8,11 +8,14 @@ import software.amazon.awssdk.services.redshift.model.ClusterSnapshotAlreadyExis
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterResponse;
+import software.amazon.awssdk.services.redshift.model.DeleteUsageLimitRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteUsageLimitResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.UsageLimitNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -36,13 +39,23 @@ public class DeleteHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
         return ProgressEvent.progress(model, callbackContext)
-                .then(progress ->
-                        proxy.initiate("AWS-Redshift-Cluster::Delete", proxyClient, model, callbackContext)
+                .then(progress -> {
+                    if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("delete-usage-limit")) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DeleteUsageLimit", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDeleteUsageLimitRequest)
+                                .makeServiceCall(this::deleteUsageLimit)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .done((response) -> ProgressEvent.defaultSuccessHandler(null));
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                        return proxy.initiate("AWS-Redshift-Cluster::DeleteCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDeleteRequest)
                                 .makeServiceCall(this::deleteResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterDelete(_client, _model, _context))
-                                //.success());
-                                .done((response) -> ProgressEvent.defaultSuccessHandler(null)));
+                                .done((response) -> ProgressEvent.defaultSuccessHandler(null));
+                });
 
     }
 
@@ -55,6 +68,26 @@ public class DeleteHandler extends BaseHandlerStd {
             logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, deleteRequest.clusterIdentifier()));
         } catch (final ClusterNotFoundException | ClusterSnapshotAlreadyExistsException | ClusterSnapshotQuotaExceededException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteRequest.clusterIdentifier());
+        } catch (final InvalidClusterStateException | InvalidRetentionPeriodException e) {
+            throw new CfnInvalidRequestException(deleteRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(deleteRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s successfully deleted.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private DeleteUsageLimitResponse deleteUsageLimit(
+            final DeleteUsageLimitRequest deleteRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DeleteUsageLimitResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteRequest, proxyClient.client()::deleteUsageLimit);
+            logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, deleteRequest.usageLimitId()));
+        } catch (final ClusterNotFoundException | UsageLimitNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteRequest.usageLimitId());
         } catch (final InvalidClusterStateException | InvalidRetentionPeriodException e) {
             throw new CfnInvalidRequestException(deleteRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {

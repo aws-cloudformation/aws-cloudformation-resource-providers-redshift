@@ -4,21 +4,25 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.CancelResizeResponse;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterSnapshotsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeResizeRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeResizeResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
-import software.amazon.awssdk.services.redshift.model.TableRestoreStatus;
+import software.amazon.awssdk.services.redshift.model.ResizeNotFoundException;
+import software.amazon.awssdk.services.redshift.model.UsageLimitNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -44,8 +48,8 @@ public class ReadHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model, model.getClusterIdentifier());
-        if(!clusterExists) {
+        boolean clusterAvailableForNextOperation = isClusterAvailableForNextOperation(proxyClient, model, model.getClusterIdentifier());
+        if(!clusterAvailableForNextOperation) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
                     .errorCode(HandlerErrorCode.NotFound)
@@ -81,6 +85,26 @@ public class ReadHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(Translator::translateToDescribeLoggingRequest)
                                 .makeServiceCall(this::describeLogging)
                                 .done(this::constructResourceModelFromDescribeLoggingResponse);
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if(model.getRedshiftCommand() != null && model.getRedshiftCommand().contains("limit")) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DescribeUsageLimit", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDescribeUsageLimitRequest)
+                                .makeServiceCall(this::describeUsageLimit)
+                                .done(this::constructResourceModelFromDescribeUsageLimitResponse);
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if(model.getRedshiftCommand() != null && (model.getRedshiftCommand().equals("cancel-resize") || model.getRedshiftCommand().equals("describe-resize"))) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DescribeResize", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDescribeResizeRequest)
+                                .makeServiceCall(this::describeResize)
+                                .done(this::constructResourceModelFromDescribeResizeResponse);
                     }
                     return progress;
                 })
@@ -180,6 +204,46 @@ public class ReadHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
+    private DescribeUsageLimitsResponse describeUsageLimit(
+            final  DescribeUsageLimitsRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeUsageLimitsResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeUsageLimits);
+        } catch (final ClusterNotFoundException | UsageLimitNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+        } catch (final InvalidClusterStateException  e ) {
+            throw new CfnInvalidRequestException(awsRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s Describe Usage Limit.", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
+
+    private DescribeResizeResponse describeResize(
+            final DescribeResizeRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeResizeResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeResize);
+        } catch (final ClusterNotFoundException | ResizeNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+        } catch (final InvalidClusterStateException  e ) {
+            throw new CfnInvalidRequestException(awsRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s Describe Resize", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
+
     /**
      * Implement client invocation of the read request through the proxyClient, which is already initialised with
      * caller credentials, correct region and retry settings
@@ -205,5 +269,12 @@ public class ReadHandler extends BaseHandlerStd {
             final DescribeLoggingStatusResponse awsResponse) {
         return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeLoggingResponse(awsResponse));
     }
-
+    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeUsageLimitResponse(
+            final DescribeUsageLimitsResponse awsResponse) {
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeUsageLimitResponse(awsResponse));
+    }
+    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeResizeResponse(
+            final DescribeResizeResponse awsResponse) {
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeResizeResponse(awsResponse));
+    }
 }
