@@ -889,6 +889,18 @@ public class Translator {
   }
 
   /**
+   * Request to delete tag
+   * @param model resource model
+   * @return awsRequest the aws service request to delete a resource
+   */
+  static DeleteTagsRequest translateToDeleteTagsRequest (final ResourceModel model) {
+    return DeleteTagsRequest.builder()
+            .resourceName(model.getResourceName())
+            .tagKeys(model.getTagKeys())
+            .build();
+  }
+
+  /**
    * Request to update properties of a previously created resource
    * @param model resource model
    * @return awsRequest the aws service request to modify a resource

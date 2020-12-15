@@ -61,24 +61,24 @@ public class UpdateHandler extends BaseHandlerStd {
                 }
                 return progress;
             })
-                //call .then() -> Read Handler and handle specific case for enable logging in Read Handler.
-
-            .then(progress -> {
-                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("disable-logging")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableLogging", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
-                            .makeServiceCall(this::disableLogging)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
 
             .then(progress -> {
                 if(model.getResourceName() != null || (model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("create-tags"))) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-CreateTags", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToCreateTagsRequest)
                             .makeServiceCall(this::createTags)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+                //.then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger))
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("disable-logging")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableLogging", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
+                            .makeServiceCall(this::disableLogging)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }

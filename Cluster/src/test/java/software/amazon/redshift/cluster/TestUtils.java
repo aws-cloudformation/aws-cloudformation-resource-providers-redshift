@@ -31,6 +31,8 @@ public class TestUtils {
     final static String CURRENT_DB_REVISION = "1";
     final static String CLUSTER_AVAILABLE = "available";
     final static String CLUSTER_PAUSED = "paused";
+    final static String RESOURCE_NAME = "arn:aws:redshift:"+AWS_REGION+":"+AWS_ACCOUNT_ID+":"+CLUSTER_IDENTIFIER;
+    final static String USAGE_LIMIT_ID = "usage-limit-id";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -135,6 +137,11 @@ public class TestUtils {
             .currentDatabaseRevision("0")
             .databaseRevisionReleaseDate(DB_RELEASE_DATE.toString())
             .revisionTargets(null)
+            .build();
+
+    final static ResourceModel DESCRIBE_RESIZE_MODEL = ResourceModel.builder()
+            .redshiftCommand("describe-resize")
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
             .build();
 
 }

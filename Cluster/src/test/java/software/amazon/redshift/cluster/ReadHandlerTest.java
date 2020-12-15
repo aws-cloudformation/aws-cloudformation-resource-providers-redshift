@@ -12,6 +12,8 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroup
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeResizeRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeResizeResponse;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -35,7 +37,9 @@ import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_DB_REVISION;
+import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.DESCRIBE_DB_REVISIONS_MODEL;
+import static software.amazon.redshift.cluster.TestUtils.DESCRIBE_RESIZE_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
 import static software.amazon.redshift.cluster.TestUtils.REVISION_TARGET;
 
@@ -119,6 +123,45 @@ public class ReadHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+    }
 
+    @Test
+    public void testDescribeResize() {
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build());
+
+        when(proxyClient.client().describeResize(any(DescribeResizeRequest.class)))
+                .thenReturn(DescribeResizeResponse.builder()
+                        .avgResizeRateInMegaBytesPerSecond(0.0)
+                        .dataTransferProgressPercent(0.0)
+                        .elapsedTimeInSeconds(null)
+                        .estimatedTimeToCompletionInSeconds(null)
+                        .message("")
+                        .progressInMegaBytes(null)
+                        .status(null)
+                        .targetClusterType(null)
+                        .targetEncryptionType(null)
+                        .targetNodeType(null)
+                        .targetNumberOfNodes(null)
+                        .totalResizeDataInMegaBytes(null)
+                        .build());
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(DESCRIBE_RESIZE_MODEL)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("describe-resize");
+        response.getResourceModel().setClusterIdentifier(CLUSTER_IDENTIFIER);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
     }
 }

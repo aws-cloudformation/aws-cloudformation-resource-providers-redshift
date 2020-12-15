@@ -93,4 +93,16 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return model.getClusterIdentifier() == null || model.getNodeType() == null
             || model.getMasterUsername() == null || model.getMasterUserPassword() == null;
   }
+
+  protected boolean isClusterActiveAfterDelete (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    try {
+      DescribeClustersResponse awsResponse =
+              proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+    } catch (final ClusterNotFoundException e) {
+      return true;
+    }
+    return false;
+  }
 }
