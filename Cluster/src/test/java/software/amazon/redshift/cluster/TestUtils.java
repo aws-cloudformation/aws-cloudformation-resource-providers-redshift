@@ -6,6 +6,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
+import software.amazon.awssdk.services.redshift.model.Tag;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 
 import java.time.Instant;
@@ -45,6 +46,7 @@ public class TestUtils {
             .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
             .iamRoles(new LinkedList<ClusterIamRole>())
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+            .tags(new LinkedList<Tag>())
             .clusterStatus(CLUSTER_AVAILABLE)
             .build();
 
@@ -63,6 +65,7 @@ public class TestUtils {
             .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
             .iamRoles(new LinkedList<ClusterIamRole>())
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+            .tags(new LinkedList<Tag>())
             .build();
 
     final static Cluster BASIC_CLUSTER_READ_AFTER_DELETE = Cluster.builder()
@@ -80,6 +83,7 @@ public class TestUtils {
             .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
             .iamRoles(new LinkedList<ClusterIamRole>())
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+            .tags(new LinkedList<Tag>())
             .build();
 
     final static Instant DB_RELEASE_DATE = Instant.ofEpochSecond(1000000000);
@@ -121,6 +125,7 @@ public class TestUtils {
             .clusterNodeRole(new LinkedList<String>())
             .clusterNodePrivateIPAddress(new LinkedList<String>())
             .clusterNodePublicIPAddress(new LinkedList<String>())
+            .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
             .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
             .build();
 

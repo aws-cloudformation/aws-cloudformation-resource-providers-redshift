@@ -166,7 +166,10 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#targetencryptiontype" title="TargetEncryptionType">TargetEncryptionType</a>" : <i>String</i>,
         "<a href="#targetnodetype" title="TargetNodeType">TargetNodeType</a>" : <i>String</i>,
         "<a href="#targetnumberofnodes" title="TargetNumberOfNodes">TargetNumberOfNodes</a>" : <i>Integer</i>,
-        "<a href="#totalresizedatainmegabytes" title="TotalResizeDataInMegaBytes">TotalResizeDataInMegaBytes</a>" : <i>Double</i>
+        "<a href="#totalresizedatainmegabytes" title="TotalResizeDataInMegaBytes">TotalResizeDataInMegaBytes</a>" : <i>Double</i>,
+        "<a href="#resourcename" title="ResourceName">ResourceName</a>" : <i>String</i>,
+        "<a href="#tagkey" title="TagKey">TagKey</a>" : <i>String</i>,
+        "<a href="#tagvalue" title="TagValue">TagValue</a>" : <i>String</i>
     }
 }
 </pre>
@@ -351,6 +354,9 @@ Properties:
     <a href="#targetnodetype" title="TargetNodeType">TargetNodeType</a>: <i>String</i>
     <a href="#targetnumberofnodes" title="TargetNumberOfNodes">TargetNumberOfNodes</a>: <i>Integer</i>
     <a href="#totalresizedatainmegabytes" title="TotalResizeDataInMegaBytes">TotalResizeDataInMegaBytes</a>: <i>Double</i>
+    <a href="#resourcename" title="ResourceName">ResourceName</a>: <i>String</i>
+    <a href="#tagkey" title="TagKey">TagKey</a>: <i>String</i>
+    <a href="#tagvalue" title="TagValue">TagValue</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -817,7 +823,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### Tags
 
-The list of tags for the cluster parameter group.
+The list of tags for the cluster.
 
 _Required_: No
 
@@ -1902,6 +1908,36 @@ The estimated total amount of data, in megabytes, on the cluster before the resi
 _Required_: No
 
 _Type_: Double
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ResourceName
+
+The Amazon Resource Name (ARN) to which you want to add the tag or tags. For example, arn:aws:redshift:us-east-2:123456789:cluster:t1.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TagKey
+
+The key, or name, for the resource tag.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### TagValue
+
+The value for the resource tag.
+
+_Required_: No
+
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

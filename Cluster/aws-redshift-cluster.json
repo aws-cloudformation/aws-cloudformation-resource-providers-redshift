@@ -227,7 +227,7 @@
             "type": "string"
         },
         "Tags": {
-            "description": "The list of tags for the cluster parameter group.",
+            "description": "The list of tags for the cluster.",
             "type": "array",
             "maxItems": 50,
             "items": {
@@ -718,6 +718,18 @@
         "TotalResizeDataInMegaBytes": {
             "description": "The estimated total amount of data, in megabytes, on the cluster before the resize operation began.",
             "type": "number"
+        },
+        "ResourceName": {
+            "description": "The Amazon Resource Name (ARN) to which you want to add the tag or tags. For example, arn:aws:redshift:us-east-2:123456789:cluster:t1.",
+            "type": "string"
+        },
+        "TagKey": {
+            "description": "The key, or name, for the resource tag.",
+            "type": "string"
+        },
+        "TagValue": {
+            "description": "The value for the resource tag.",
+            "type": "string"
         }
     },
     "additionalProperties": false,

@@ -4,6 +4,7 @@ import com.amazonaws.util.CollectionUtils;;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -51,106 +52,7 @@ public class UpdateHandler extends BaseHandlerStd {
             })
 
             .then(progress -> {
-                if(issueModifyClusterRequest(model) && model.getRedshiftCommand().equals("modify-cluster")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToUpdateRequest)
-                            .makeServiceCall(this::updateCluster)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("reboot-cluster")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RebootCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToRebootClusterRequest)
-                            .makeServiceCall(this::rebootCluster)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("pause-cluster")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-PauseCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToPauseClusterRequest)
-                            .makeServiceCall(this::pauseCluster)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterPaused(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("resume-cluster")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ResumeCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToResumeClusterRequest)
-                            .makeServiceCall(this::resumeCluster)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("modify-cluster-db-revision")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterDbRevision", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToModifyClusterDbRevisionRequest)
-                            .makeServiceCall(this::modifyClusterDbRevision)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("modify-cluster-maintenance")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterMaintenance", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToModifyClusterMaintenanceRequest)
-                            .makeServiceCall(this::modifyClusterMaintenance)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("enable-snapshot-copy")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableSnapshotCopy", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToEnableSnapshotRequest)
-                            .makeServiceCall(this::enableSnapshotCopy)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("disable-snapshot-copy")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableSnapshotCopy", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToDisableSnapshotRequest)
-                            .makeServiceCall(this::disableSnapshotCopy)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("modify-snapshot-copy-retention-period")) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterSnapshotRetentionCopy", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToModifySnapshotCopyRetentionPeriodRequest)
-                            .makeServiceCall(this::modifySnapshotCopyRetentionPeriod)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-
-            .then(progress -> {
-                if(model.getRedshiftCommand().equals("enable-logging")) {
+                if(model.getBucketName() != null || (model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("enable-logging"))) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableLogging", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
                             .makeServiceCall(this::enableLogging)
@@ -159,9 +61,10 @@ public class UpdateHandler extends BaseHandlerStd {
                 }
                 return progress;
             })
+                //call .then() -> Read Handler and handle specific case for enable logging in Read Handler.
 
             .then(progress -> {
-                if(model.getRedshiftCommand().equals("disable-logging")) {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("disable-logging")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableLogging", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
                             .makeServiceCall(this::disableLogging)
@@ -172,7 +75,139 @@ public class UpdateHandler extends BaseHandlerStd {
             })
 
             .then(progress -> {
-                if(model.getRedshiftCommand().equals("rotate-encryption-key")) {
+                if(model.getResourceName() != null || (model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("create-tags"))) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-CreateTags", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToCreateTagsRequest)
+                            .makeServiceCall(this::createTags)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(issueModifyClusterRequest(model) && model.getRedshiftCommand().equals("modify-cluster")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifyrequest)
+                            .makeServiceCall(this::updateCluster)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("reboot-cluster")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RebootCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToRebootClusterRequest)
+                            .makeServiceCall(this::rebootCluster)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("pause-cluster")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-PauseCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToPauseClusterRequest)
+                            .makeServiceCall(this::pauseCluster)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterPaused(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("resume-cluster")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ResumeCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToResumeClusterRequest)
+                            .makeServiceCall(this::resumeCluster)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("modify-cluster-db-revision")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterDbRevision", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifyClusterDbRevisionRequest)
+                            .makeServiceCall(this::modifyClusterDbRevision)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("modify-cluster-maintenance")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterMaintenance", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifyClusterMaintenanceRequest)
+                            .makeServiceCall(this::modifyClusterMaintenance)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("enable-snapshot-copy")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableSnapshotCopy", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToEnableSnapshotRequest)
+                            .makeServiceCall(this::enableSnapshotCopy)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("disable-snapshot-copy")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableSnapshotCopy", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDisableSnapshotRequest)
+                            .makeServiceCall(this::disableSnapshotCopy)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("modify-snapshot-copy-retention-period")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterSnapshotRetentionCopy", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToModifySnapshotCopyRetentionPeriodRequest)
+                            .makeServiceCall(this::modifySnapshotCopyRetentionPeriod)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+
+//            .then(progress -> {
+//                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("enable-logging")) {
+//                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableLogging", proxyClient, model, callbackContext)
+//                            .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
+//                            .makeServiceCall(this::enableLogging)
+//                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+//                            .progress();
+//                }
+//                return progress;
+//            })
+
+//            .then(progress -> {
+//                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("disable-logging")) {
+//                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableLogging", proxyClient, model, callbackContext)
+//                            .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
+//                            .makeServiceCall(this::disableLogging)
+//                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+//                            .progress();
+//                }
+//                return progress;
+//            })
+
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("rotate-encryption-key")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RotateEncryptionKey", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToRotateEncryptionKeyRequest)
                             .makeServiceCall(this::rotateEncryptionKey)
@@ -183,7 +218,7 @@ public class UpdateHandler extends BaseHandlerStd {
             })
 
             .then(progress -> {
-                if(model.getRedshiftCommand().equals("resize-cluster")) {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("resize-cluster")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ResizeCluster", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToResizeClusterRequest)
                             .makeServiceCall(this::resizeCluster)
@@ -194,7 +229,7 @@ public class UpdateHandler extends BaseHandlerStd {
             })
 
             .then(progress -> {
-                if(model.getRedshiftCommand().equals("cancel-resize")) {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("cancel-resize")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-CancelResize", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToCancelResizeClusterRequest)
                             .makeServiceCall(this::cancelResize)
@@ -205,7 +240,7 @@ public class UpdateHandler extends BaseHandlerStd {
             })
 
             .then(progress -> {
-                if(model.getRedshiftCommand().equals("modify-usage-limit")) {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("modify-usage-limit")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyUsageLimit", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToModifyUsageLimitRequest)
                             .makeServiceCall(this::modifyUsageLimit)
@@ -227,7 +262,9 @@ public class UpdateHandler extends BaseHandlerStd {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyRequest, proxyClient.client()::modifyCluster);
         } catch (final InvalidClusterStateException | InvalidClusterSecurityGroupStateException | UnauthorizedOperationException
                 | UnsupportedOptionException | LimitExceededException | InvalidElasticIpException | InvalidClusterTrackException | InvalidRetentionPeriodException
-                | DependentServiceRequestThrottlingException | ClusterSubnetQuotaExceededException e ) {
+                | DependentServiceRequestThrottlingException | ClusterSubnetQuotaExceededException | NumberOfNodesQuotaExceededException
+                | NumberOfNodesPerClusterLimitExceededException | InsufficientClusterCapacityException | HsmClientCertificateNotFoundException
+                | HsmConfigurationNotFoundException | ClusterAlreadyExistsException | TableLimitExceededException e ) {
             throw new CfnInvalidRequestException(modifyRequest.toString(), e);
         } catch (final ClusterNotFoundException | ClusterSecurityGroupNotFoundException | ClusterParameterGroupNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier());
@@ -306,7 +343,10 @@ public class UpdateHandler extends BaseHandlerStd {
         EnableSnapshotCopyResponse awsResponse = null;
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(enableSnapshotCopyRequest, proxyClient.client()::enableSnapshotCopy);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | IncompatibleOrderableOptionsException | CopyToRegionDisabledException
+                |SnapshotCopyAlreadyEnabledException | UnknownSnapshotCopyRegionException | UnauthorizedOperationException |
+                SnapshotCopyGrantNotFoundException | LimitExceededException | DependentServiceRequestThrottlingException
+                | InvalidRetentionPeriodException e ) {
             throw new CfnInvalidRequestException(enableSnapshotCopyRequest.toString(), e);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableSnapshotCopyRequest.clusterIdentifier());
@@ -325,7 +365,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(enableSnapshotCopyRequest, proxyClient.client()::disableSnapshotCopy);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | SnapshotCopyAlreadyDisabledException | UnauthorizedOperationException e ) {
             throw new CfnInvalidRequestException(enableSnapshotCopyRequest.toString(), e);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableSnapshotCopyRequest.clusterIdentifier());
@@ -345,7 +385,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifySnapshotCopyRetentionPeriodRequest, proxyClient.client()::modifySnapshotCopyRetentionPeriod);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | SnapshotCopyDisabledException | UnauthorizedOperationException | InvalidRetentionPeriodException e ) {
             throw new CfnInvalidRequestException(modifySnapshotCopyRetentionPeriodRequest.toString(), e);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifySnapshotCopyRetentionPeriodRequest.clusterIdentifier());
@@ -365,9 +405,10 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | InsufficientS3BucketPolicyException
+                | InvalidS3KeyPrefixException | InvalidS3BucketNameException e ) {
             throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
-        } catch (final ClusterNotFoundException e) {
+        } catch (final ClusterNotFoundException | BucketNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
@@ -385,7 +426,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(disableLoggingRequest, proxyClient.client()::disableLogging);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException  e ) {
             throw new CfnInvalidRequestException(disableLoggingRequest.toString(), e);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, disableLoggingRequest.clusterIdentifier());
@@ -398,6 +439,26 @@ public class UpdateHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
+    private CreateTagsResponse createTags(
+            final CreateTagsRequest createTagsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        CreateTagsResponse awsResponse = null;
+
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(createTagsRequest, proxyClient.client()::createTags);
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException | InvalidTagException | TagLimitExceededException e ) {
+            throw new CfnInvalidRequestException(createTagsRequest.toString(), e);
+        } catch (final  ResourceNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, createTagsRequest.resourceName());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(createTagsRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s Create Tags.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
     private RotateEncryptionKeyResponse rotateEncryptionKey(
             final RotateEncryptionKeyRequest rotateEncryptionKeyRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
@@ -405,7 +466,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(rotateEncryptionKeyRequest, proxyClient.client()::rotateEncryptionKey);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException | DependentServiceRequestThrottlingException e ) {
             throw new CfnInvalidRequestException(rotateEncryptionKeyRequest.toString(), e);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rotateEncryptionKeyRequest.clusterIdentifier());
@@ -425,7 +486,9 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(resizeClusterRequest, proxyClient.client()::resizeCluster);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | NumberOfNodesQuotaExceededException| NumberOfNodesPerClusterLimitExceededException |
+                InsufficientClusterCapacityException | UnsupportedOptionException | UnsupportedOperationException |
+                UnauthorizedOperationException | LimitExceededException e ) {
             throw new CfnInvalidRequestException(resizeClusterRequest.toString(), e);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, resizeClusterRequest.clusterIdentifier());
@@ -445,7 +508,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(cancelResizeRequest, proxyClient.client()::cancelResize);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | UnsupportedOperationException e ) {
             throw new CfnInvalidRequestException(cancelResizeRequest.toString(), e);
         } catch (final ClusterNotFoundException | ResizeNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, cancelResizeRequest.clusterIdentifier());
@@ -465,7 +528,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyUsageLimitRequest, proxyClient.client()::modifyUsageLimit);
-        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException e ) {
+        } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException | UnsupportedOperationException e ) {
             throw new CfnInvalidRequestException(modifyUsageLimitRequest.toString(), e);
         } catch (final UsageLimitNotFoundException | UsageLimitAlreadyExistsException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyUsageLimitRequest.usageLimitId());

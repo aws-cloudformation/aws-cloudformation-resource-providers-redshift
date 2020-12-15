@@ -12,6 +12,7 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -133,7 +134,7 @@ public class Translator {
             .featureType(model.getFeatureType())
             .limitType(model.getLimitType())
             .period(model.getPeriod())
-            //.tags(model.getTags())
+            .tags(translateTagsToSdk(model.getTags()))
             .build();
   }
 
@@ -426,7 +427,7 @@ public class Translator {
             .amount(amount.doubleValue())
             .period(period)
             .breachAction(breachAction)
-            //.tags(tags)
+            .tags(translateTagsFromSdk(tags))
             .build();
   }
 
@@ -688,6 +689,12 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final List<Tag> tags = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::tags)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -752,6 +759,7 @@ public class Translator {
             .restoreElapsedTimeInSeconds(restoreStatus == null ? null : restoreStatus.elapsedTimeInSeconds().doubleValue())
             .restoreSnapshotSizeInMegaBytes(restoreStatus == null ? null : restoreStatus.snapshotSizeInMegaBytes().doubleValue())
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
+            .tags(translateTagsFromSdk(tags))
             .build();
 
   }
@@ -885,7 +893,7 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to modify a resource
    */
-  static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model) {
+  static ModifyClusterRequest translateToModifyrequest(final ResourceModel model) {
 
     return ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
@@ -896,7 +904,6 @@ public class Translator {
             .allowVersionUpgrade(model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
             .clusterParameterGroupName(model.getClusterParameterGroupName())
-            //.clusterSecurityGroups(model.getClusterSecurityGroups())
             .clusterType(model.getClusterType())
             .clusterVersion(model.getClusterVersion())
             .elasticIp(model.getElasticIp())
@@ -1049,6 +1056,37 @@ public class Translator {
     return DisableLoggingRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .build();
+  }
+
+  /**
+   * Request to Create Tags
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static CreateTagsRequest translateToCreateTagsRequest(final ResourceModel model) {
+
+    return CreateTagsRequest.builder()
+            .resourceName(model.getResourceName())
+            .tags(translateTagsToSdk(model.getTags()))
+            .build();
+  }
+
+  static List<software.amazon.redshift.cluster.Tag> translateTagsFromSdk(final List<Tag> tags) {
+    return Optional.ofNullable(tags).orElse(Collections.emptyList())
+            .stream()
+            .map(tag -> software.amazon.redshift.cluster.Tag.builder()
+                    .key(tag.key())
+                    .value(tag.value()).build())
+            .collect(Collectors.toList());
+  }
+
+  static List<software.amazon.awssdk.services.redshift.model.Tag> translateTagsToSdk(final List<software.amazon.redshift.cluster.Tag> tags) {
+    return Optional.ofNullable(tags).orElse(Collections.emptyList())
+            .stream()
+            .map(tag -> software.amazon.awssdk.services.redshift.model.Tag.builder()
+                    .key(tag.getKey())
+                    .value(tag.getValue()).build())
+            .collect(Collectors.toList());
   }
 
   /**

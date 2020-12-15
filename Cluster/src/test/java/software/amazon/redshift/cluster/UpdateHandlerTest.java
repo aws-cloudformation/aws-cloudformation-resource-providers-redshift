@@ -120,6 +120,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -142,6 +143,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(new LinkedList<ClusterIamRole>())
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -189,6 +191,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -211,6 +214,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(new LinkedList<ClusterIamRole>())
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -521,6 +525,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -581,6 +586,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -641,6 +647,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -701,6 +708,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .destinationRegion("us-west-1")
                 .manualSnapshotRetentionPeriod(5)
@@ -765,6 +773,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -824,6 +833,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .retentionPeriod(7)
                 .manual(true)
@@ -885,6 +895,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -939,6 +950,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
@@ -1001,6 +1013,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodeRole(new LinkedList<String>())
                 .clusterNodePrivateIPAddress(new LinkedList<String>())
                 .clusterNodePublicIPAddress(new LinkedList<String>())
+                .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .build();
 
