@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMember
 import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.Tag;
+import software.amazon.awssdk.services.redshift.model.UsageLimit;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 
 import java.time.Instant;
@@ -18,6 +19,9 @@ public class TestUtils {
     final static String AWS_ACCOUNT_ID ="1111";
     final static String CLUSTER_IDENTIFIER = "redshift-cluster-1";
     final static String SNAPSHOT_IDENTIFIER = "redshift-cluster-snapshot-1";
+    final static String BUCKET_NAME = "s3-bucket-name";
+    final static String FEATURE_TYPE = "spectrum";
+    final static String LIMIT_TYPE = "data-scanned";
     final static String SOURCE_DB = "dev";
     final static String SOURCE_TABLE = "source_table";
     final static String TARGET_DB = "dev";
@@ -107,6 +111,16 @@ public class TestUtils {
             .deferMaintenanceStartTime(Instant.now().minusSeconds(3600))
             .deferMaintenanceIdentifier("deferredMaintenanceIdentifier")
             .build();
+
+    final static UsageLimit USAGE_LIMIT = UsageLimit.builder()
+            .usageLimitId(USAGE_LIMIT_ID)
+            .limitType(LIMIT_TYPE)
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
+            .amount(1L)
+            .featureType(FEATURE_TYPE)
+            .build();
+
+
 
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)

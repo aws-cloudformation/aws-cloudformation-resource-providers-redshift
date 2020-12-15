@@ -1033,7 +1033,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
 
         when(proxyClient.client().cancelResize(any(CancelResizeRequest.class)))
-                .thenThrow(CfnNotFoundException.class);  //ResizeNotFoundException
+                .thenThrow(CfnNotFoundException.class);
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()

@@ -14,12 +14,16 @@ import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupResponse;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitRequest;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsResponse;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotResponse;
 import software.amazon.awssdk.services.redshift.model.RestoreTableFromClusterSnapshotRequest;
@@ -50,8 +54,11 @@ import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
+import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_AVAILABLE;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
+import static software.amazon.redshift.cluster.TestUtils.FEATURE_TYPE;
+import static software.amazon.redshift.cluster.TestUtils.LIMIT_TYPE;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
 import static software.amazon.redshift.cluster.TestUtils.NEW_TABLE;
@@ -60,6 +67,7 @@ import static software.amazon.redshift.cluster.TestUtils.SNAPSHOT_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.SOURCE_DB;
 import static software.amazon.redshift.cluster.TestUtils.SOURCE_TABLE;
 import static software.amazon.redshift.cluster.TestUtils.TARGET_DB;
+import static software.amazon.redshift.cluster.TestUtils.USAGE_LIMIT;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -233,4 +241,60 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).restoreTableFromClusterSnapshot(any(RestoreTableFromClusterSnapshotRequest.class));
     }
+
+    @Test
+    public void testCreateUsageLimit() {
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .redshiftCommand("create-usage-limit")
+                .featureType(FEATURE_TYPE)
+                .limitType(LIMIT_TYPE)
+                .amount(1.0)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().createUsageLimit(any(CreateUsageLimitRequest.class)))
+                .thenReturn(CreateUsageLimitResponse.builder()
+                        .clusterIdentifier(CLUSTER_IDENTIFIER)
+                        .featureType(FEATURE_TYPE)
+                        .limitType(LIMIT_TYPE)
+                        .amount(1L)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build());
+
+        when(proxyClient.client().describeUsageLimits(any(DescribeUsageLimitsRequest.class)))
+                .thenReturn(DescribeUsageLimitsResponse.builder()
+                        .usageLimits(USAGE_LIMIT)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+        response.getResourceModel().setRedshiftCommand("create-usage-limit");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getUsageLimitId()).isEqualTo(USAGE_LIMIT.usageLimitId());
+
+        verify(proxyClient.client()).createUsageLimit(any(CreateUsageLimitRequest.class));
+        verify(proxyClient.client(), times(3))
+                .describeClusters(any(DescribeClustersRequest.class));
+        verify(proxyClient.client(), times(1))
+                .describeUsageLimits(any(DescribeUsageLimitsRequest.class));
+
+    }
+
 }
