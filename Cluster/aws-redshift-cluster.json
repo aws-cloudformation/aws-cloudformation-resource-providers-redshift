@@ -204,10 +204,7 @@
     },
     "additionalProperties": false,
     "required": [
-        "ClusterIdentifier",
-        "MasterUsername",
-        "MasterUserPassword",
-        "NodeType"
+        "ClusterIdentifier"
     ],
     "primaryIdentifier": [
         "/properties/ClusterIdentifier"
@@ -215,11 +212,16 @@
     "readOnlyProperties": [
         "/properties/ClusterIdentifier"
     ],
+    "writeOnlyProperties": [
+        "/properties/MasterUserPassword",
+        "/properties/SkipFinalClusterSnapshot"
+    ],
     "handlers": {
         "create": {
             "permissions": [
                 "initech:CreateReport"
-            ]
+            ],
+            "timeoutInMinutes": 60
         },
         "read": {
             "permissions": [
@@ -229,12 +231,14 @@
         "update": {
             "permissions": [
                 "initech:UpdateReport"
-            ]
+            ],
+            "timeoutInMinutes": 60
         },
         "delete": {
             "permissions": [
                 "initech:DeleteReport"
-            ]
+            ],
+            "timeoutInMinutes": 60
         },
         "list": {
             "permissions": [

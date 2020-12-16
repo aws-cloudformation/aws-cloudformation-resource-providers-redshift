@@ -1,6 +1,7 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
@@ -9,6 +10,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFo
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
@@ -27,7 +29,9 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -46,24 +50,39 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles())
-                || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
-
-            return ProgressEvent.progress(model, callbackContext)
-                    .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
-                            .makeServiceCall(this::updateIAMRoles)
-                            .progress())
-                    .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model, model.getClusterIdentifier());
+        if(!clusterExists) {
+            return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                    .status(OperationStatus.FAILED)
+                    .errorCode(HandlerErrorCode.NotFound)
+                    .message(HandlerErrorCode.NotFound.getMessage())
+                    .build();
         }
 
         return ProgressEvent.progress(model, callbackContext)
-                .then(progress -> proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
-                        .translateToServiceRequest(Translator::translateToUpdateRequest)
-                        .makeServiceCall(this::updateResource)
-                        .progress())
-                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-        }
+            .then(progress -> {
+                if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles()) || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
+                    .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
+                    .makeServiceCall(this::updateIAMRoles)
+                    .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                    .progress();
+                }
+                return progress;
+            })
+
+            .then(progress -> {
+                if(issueModifyClusterRequest(model)) {
+                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToUpdateRequest)
+                            .makeServiceCall(this::updateResource)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                }
+                return progress;
+            })
+            .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    }
 
     private ModifyClusterResponse updateResource(
             final ModifyClusterRequest modifyRequest,

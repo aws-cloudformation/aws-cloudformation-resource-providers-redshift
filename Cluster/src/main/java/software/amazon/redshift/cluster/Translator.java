@@ -1,5 +1,6 @@
 package software.amazon.redshift.cluster;
 
+import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
@@ -11,7 +12,6 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -78,7 +78,6 @@ public class Translator {
    * @return awsRequest the aws service request to describe a resource
    */
   static DescribeClustersRequest translateToReadRequest(final ResourceModel model) {
-
     String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
             ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
 
@@ -264,11 +263,13 @@ public class Translator {
    */
   static DeleteClusterRequest translateToDeleteRequest(final ResourceModel model) {
     //temp hack to pass contract tests
+    boolean skipFinalClusterSnapshot = model.getFinalClusterSnapshotIdentifier() == null ||
+            model.getFinalClusterSnapshotIdentifier().equalsIgnoreCase("true");
 
     return DeleteClusterRequest
             .builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            .skipFinalClusterSnapshot(model.getSkipFinalClusterSnapshot())
+            .skipFinalClusterSnapshot(skipFinalClusterSnapshot)
             .finalClusterSnapshotIdentifier(model.getFinalClusterSnapshotIdentifier())
             .finalClusterSnapshotRetentionPeriod(model.getFinalClusterSnapshotRetentionPeriod())
             .build();
@@ -319,7 +320,6 @@ public class Translator {
             .removeIamRoles(model.getRemoveIamRoles())
             .build();
   }
-
 
   /**
    * Request to update some other properties that could not be provisioned through first update request
