@@ -64,18 +64,4 @@ public class DeleteHandler extends BaseHandlerStd {
 
         return awsResponse;
     }
-
-
-//    protected boolean isClusterActiveAfterDelete (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-//        DescribeClustersRequest awsRequest =
-//                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
-//        try {
-//            DescribeClustersResponse awsResponse =
-//                    proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-//        } catch (final ClusterNotFoundException e) {
-//            logger.log(String.format("%s successfully deleted.", model.getClusterIdentifier()));
-//            return true;
-//        }
-//        return false;
-//    }
 }
