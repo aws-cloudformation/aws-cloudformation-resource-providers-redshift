@@ -13,6 +13,7 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -207,6 +208,7 @@ public class Translator {
             .marker(model.getMarker())
             .build();
   }
+
   /**
    * Describe a Resize Request
    * @param model resource model
@@ -215,6 +217,22 @@ public class Translator {
   static DescribeResizeRequest translateToDescribeResizeRequest(final ResourceModel model) {
     return DescribeResizeRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Describe a Tags Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeTagsRequest translateToDescribeTagsRequest(final ResourceModel model) {
+    return DescribeTagsRequest.builder()
+            .marker(model.getMarker())
+            .maxRecords(model.getMaxRecords())
+            .resourceName(model.getResourceName())
+            .resourceType(model.getResourceType())
+            .tagKeys(model.getTagKeys())
+            .tagValues(model.getTagValues())
             .build();
   }
 
@@ -362,6 +380,40 @@ public class Translator {
             .targetNodeType(awsResponse.targetNodeType())
             .targetNumberOfNodes(awsResponse.targetNumberOfNodes())
             .totalResizeDataInMegaBytes(awsResponse.totalResizeDataInMegaBytes() == null ? null : awsResponse.totalResizeDataInMegaBytes().doubleValue())
+            .build();
+  }
+
+  /**
+   * Translates DescribeTagsResponse object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeTagsResponse(final DescribeTagsResponse awsResponse) {
+    final String resourceType = streamOfOrEmpty(awsResponse.taggedResources())
+            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::resourceType)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String resourceName = streamOfOrEmpty(awsResponse.taggedResources())
+            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::resourceName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Tag tag = streamOfOrEmpty(awsResponse.taggedResources())
+            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::tag)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    List<Tag> tags = new LinkedList<>();
+    tags.add(tag);
+
+    return ResourceModel.builder()
+            .resourceType(resourceName)
+            .resourceName(resourceType)
+            .tags(translateTagsFromSdk(tags))
             .build();
   }
 

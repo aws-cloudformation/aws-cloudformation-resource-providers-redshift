@@ -259,7 +259,7 @@
         },
         "MaxRecords": {
             "description": "The maximum number of response records to return in each call. If the number of remaining response records exceeds the specified MaxRecords value, a value is returned in a marker field of the response.",
-            "type": "string"
+            "type": "integer"
         },
         "NewClusterIdentifier": {
             "description": "The new identifier for the cluster.",
@@ -729,6 +729,10 @@
         },
         "TagValue": {
             "description": "The value for the resource tag.",
+            "type": "string"
+        },
+        "ResourceType": {
+            "description": "The type of resource with which you want to view tags. Valid resource types are Cluster\n\nCIDR/IP\n\nEC2 security group\n\nSnapshot\n\nCluster security group\n\nSubnet group\n\nHSM connection\n\nHSM certificate\n\nParameter group\n\nSnapshot copy grant.",
             "type": "string"
         }
     },

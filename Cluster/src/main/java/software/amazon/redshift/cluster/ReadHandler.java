@@ -16,16 +16,20 @@ import software.amazon.awssdk.services.redshift.model.DescribeResizeRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeResizeResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.ResizeNotFoundException;
 import software.amazon.awssdk.services.redshift.model.UsageLimitNotFoundException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
+import software.amazon.cloudformation.exceptions.ResourceNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -118,6 +122,16 @@ public class ReadHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(Translator::translateToDescribeResizeRequest)
                                 .makeServiceCall(this::describeResize)
                                 .done(this::constructResourceModelFromDescribeResizeResponse);
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("describe-tags")) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DescribeTags", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDescribeTagsRequest)
+                                .makeServiceCall(this::describeTags)
+                                .done(this::constructResourceModelFromDescribeTagsResponse);
                     }
                     return progress;
                 })
@@ -257,6 +271,26 @@ public class ReadHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
+    private DescribeTagsResponse describeTags(
+            final DescribeTagsRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeTagsResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeTags);
+        } catch (final ResourceNotFoundException  e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.resourceName());
+        } catch (final InvalidTagException e ) {
+            throw new CfnInvalidRequestException(awsRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s Describe Tags", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
+
     /**
      * Implement client invocation of the read request through the proxyClient, which is already initialised with
      * caller credentials, correct region and retry settings
@@ -293,5 +327,10 @@ public class ReadHandler extends BaseHandlerStd {
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeResizeResponse(
             final DescribeResizeResponse awsResponse) {
         return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeResizeResponse(awsResponse));
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeTagsResponse(
+            final DescribeTagsResponse awsResponse) {
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeTagsResponse(awsResponse));
     }
 }

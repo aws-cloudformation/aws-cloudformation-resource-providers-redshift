@@ -64,7 +64,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#finalclustersnapshotretentionperiod" title="FinalClusterSnapshotRetentionPeriod">FinalClusterSnapshotRetentionPeriod</a>" : <i>Integer</i>,
         "<a href="#skipfinalclustersnapshot" title="SkipFinalClusterSnapshot">SkipFinalClusterSnapshot</a>" : <i>Boolean</i>,
         "<a href="#marker" title="Marker">Marker</a>" : <i>String</i>,
-        "<a href="#maxrecords" title="MaxRecords">MaxRecords</a>" : <i>String</i>,
+        "<a href="#maxrecords" title="MaxRecords">MaxRecords</a>" : <i>Integer</i>,
         "<a href="#newclusteridentifier" title="NewClusterIdentifier">NewClusterIdentifier</a>" : <i>String</i>,
         "<a href="#addiamroles" title="AddIamRoles">AddIamRoles</a>" : <i>[ String, ... ]</i>,
         "<a href="#removeiamroles" title="RemoveIamRoles">RemoveIamRoles</a>" : <i>[ String, ... ]</i>,
@@ -169,7 +169,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#totalresizedatainmegabytes" title="TotalResizeDataInMegaBytes">TotalResizeDataInMegaBytes</a>" : <i>Double</i>,
         "<a href="#resourcename" title="ResourceName">ResourceName</a>" : <i>String</i>,
         "<a href="#tagkey" title="TagKey">TagKey</a>" : <i>String</i>,
-        "<a href="#tagvalue" title="TagValue">TagValue</a>" : <i>String</i>
+        "<a href="#tagvalue" title="TagValue">TagValue</a>" : <i>String</i>,
+        "<a href="#resourcetype" title="ResourceType">ResourceType</a>" : <i>String</i>
     }
 }
 </pre>
@@ -235,7 +236,7 @@ Properties:
     <a href="#finalclustersnapshotretentionperiod" title="FinalClusterSnapshotRetentionPeriod">FinalClusterSnapshotRetentionPeriod</a>: <i>Integer</i>
     <a href="#skipfinalclustersnapshot" title="SkipFinalClusterSnapshot">SkipFinalClusterSnapshot</a>: <i>Boolean</i>
     <a href="#marker" title="Marker">Marker</a>: <i>String</i>
-    <a href="#maxrecords" title="MaxRecords">MaxRecords</a>: <i>String</i>
+    <a href="#maxrecords" title="MaxRecords">MaxRecords</a>: <i>Integer</i>
     <a href="#newclusteridentifier" title="NewClusterIdentifier">NewClusterIdentifier</a>: <i>String</i>
     <a href="#addiamroles" title="AddIamRoles">AddIamRoles</a>: <i>
       - String</i>
@@ -357,6 +358,7 @@ Properties:
     <a href="#resourcename" title="ResourceName">ResourceName</a>: <i>String</i>
     <a href="#tagkey" title="TagKey">TagKey</a>: <i>String</i>
     <a href="#tagvalue" title="TagValue">TagValue</a>: <i>String</i>
+    <a href="#resourcetype" title="ResourceType">ResourceType</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -887,7 +889,7 @@ The maximum number of response records to return in each call. If the number of 
 
 _Required_: No
 
-_Type_: String
+_Type_: Integer
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -1934,6 +1936,34 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### TagValue
 
 The value for the resource tag.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ResourceType
+
+The type of resource with which you want to view tags. Valid resource types are Cluster
+
+CIDR/IP
+
+EC2 security group
+
+Snapshot
+
+Cluster security group
+
+Subnet group
+
+HSM connection
+
+HSM certificate
+
+Parameter group
+
+Snapshot copy grant.
 
 _Required_: No
 
