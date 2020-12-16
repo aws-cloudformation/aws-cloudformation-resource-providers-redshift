@@ -408,12 +408,14 @@ public class Translator {
             .orElse(null);
 
     List<Tag> tags = new LinkedList<>();
-    tags.add(tag);
+    if(tag != null){
+      tags.add(tag);
+    }
 
     return ResourceModel.builder()
-            .resourceType(resourceName)
-            .resourceName(resourceType)
-            .tags(translateTagsFromSdk(tags))
+            .resourceType(resourceType)
+            .resourceName(resourceName)
+            .tags(CollectionUtils.isNullOrEmpty(tags)? null : translateTagsFromSdk(tags))
             .build();
   }
 
