@@ -105,4 +105,16 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
     return false;
   }
+
+  protected boolean issueModifyClusterRequest(ResourceModel model) {
+    return model.getNodeType() != null || model.getNumberOfNodes() != null || model.getNewClusterIdentifier() != null ||
+            model.getAllowVersionUpgrade() != null || model.getAutomatedSnapshotRetentionPeriod() != null ||
+            model.getClusterParameterGroupName() != null || model.getClusterType() != null || model.getClusterVersion() != null ||
+            model.getElasticIp() != null || model.getEncrypted() != null || model.getEnhancedVpcRouting() != null ||
+            model.getHsmClientCertificateIdentifier() != null || model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
+            model.getKmsKeyId() != null || model.getMaintenanceTrackName() != null || model.getManualSnapshotRetentionPeriod() != null ||
+            model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null || model.getClusterSecurityGroups() != null ||
+            model.getVpcSecurityGroupIds() != null;
+  }
+
 }
