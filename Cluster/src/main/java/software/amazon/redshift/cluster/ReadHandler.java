@@ -88,7 +88,6 @@ public class ReadHandler extends BaseHandlerStd {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeLogging", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDescribeLoggingRequest)
                                 .makeServiceCall(this::describeLogging)
-                                //.done((_request, _response, _client, _model, _context) -> constructResourceModelFromDescribeLoggingResponse(_response, _client, _model, _context));
                                 .done(this::constructResourceModelFromDescribeLoggingResponse);
                     }
                     return progress;
@@ -109,7 +108,6 @@ public class ReadHandler extends BaseHandlerStd {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeResize", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDescribeResizeRequest)
                                 .makeServiceCall(this::describeResize)
-                                //.handleError(BaseHandlerStd::handleResizeNotFound)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .done(this::constructResourceModelFromDescribeResizeResponse);
                     }
@@ -315,10 +313,6 @@ public class ReadHandler extends BaseHandlerStd {
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeLoggingResponse(
             final DescribeLoggingStatusResponse awsResponse) {
         return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeLoggingResponse(awsResponse));
-        //model = Translator.translateFromDescribeLoggingResponse(awsResponse);
-        //        System.out.println("--------------------------------------------------\n"+ model +
-        //                "\n\n-----------------------------------------------------------");
-        //        return ProgressEvent.defaultInProgressHandler(cxt, 0, model);
     }
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeUsageLimitResponse(
             final DescribeUsageLimitsResponse awsResponse) {

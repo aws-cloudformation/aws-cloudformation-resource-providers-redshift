@@ -44,7 +44,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles()) || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
-                        .makeServiceCall(this::updateIAMRoles)
+                        .makeServiceCall(this::modifyIAMRoles)
                         .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                         .progress();
                 }
@@ -72,7 +72,6 @@ public class UpdateHandler extends BaseHandlerStd {
                 }
                 return progress;
             })
-                //.then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger))
 
             .then(progress -> {
                 if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("disable-logging")) {
@@ -184,28 +183,6 @@ public class UpdateHandler extends BaseHandlerStd {
                 return progress;
             })
 
-//            .then(progress -> {
-//                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("enable-logging")) {
-//                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-EnableLogging", proxyClient, model, callbackContext)
-//                            .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
-//                            .makeServiceCall(this::enableLogging)
-//                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-//                            .progress();
-//                }
-//                return progress;
-//            })
-
-//            .then(progress -> {
-//                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("disable-logging")) {
-//                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-DisableLogging", proxyClient, model, callbackContext)
-//                            .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
-//                            .makeServiceCall(this::disableLogging)
-//                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-//                            .progress();
-//                }
-//                return progress;
-//            })
-
             .then(progress -> {
                 if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("rotate-encryption-key")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-RotateEncryptionKey", proxyClient, model, callbackContext)
@@ -277,7 +254,7 @@ public class UpdateHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
-    private ModifyClusterIamRolesResponse updateIAMRoles(
+    private ModifyClusterIamRolesResponse modifyIAMRoles(
             final ModifyClusterIamRolesRequest modifyRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         ModifyClusterIamRolesResponse awsResponse = null;
