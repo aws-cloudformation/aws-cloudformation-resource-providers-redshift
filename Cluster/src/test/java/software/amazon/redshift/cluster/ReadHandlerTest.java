@@ -14,7 +14,11 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeResizeRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeResizeResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
+import software.amazon.awssdk.services.redshift.model.Tag;
+import software.amazon.awssdk.services.redshift.model.TaggedResource;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -40,7 +44,10 @@ import static software.amazon.redshift.cluster.TestUtils.CLUSTER_DB_REVISION;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.DESCRIBE_DB_REVISIONS_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.DESCRIBE_RESIZE_MODEL;
+import static software.amazon.redshift.cluster.TestUtils.DESCRIBE_TAGS_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
+import static software.amazon.redshift.cluster.TestUtils.RESOURCE_NAME;
+import static software.amazon.redshift.cluster.TestUtils.RESOURCE_TYPE;
 import static software.amazon.redshift.cluster.TestUtils.REVISION_TARGET;
 
 @ExtendWith(MockitoExtension.class)
@@ -155,6 +162,46 @@ public class ReadHandlerTest extends AbstractTestBase {
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         response.getResourceModel().setRedshiftCommand("describe-resize");
+        response.getResourceModel().setClusterIdentifier(CLUSTER_IDENTIFIER);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testDescribeTags() {
+        Tag tag = Tag.builder()
+                .key("KEY")
+                .value("VALUE")
+                .build();
+
+        TaggedResource taggedResource = TaggedResource.builder()
+                .resourceName(RESOURCE_NAME)
+                .resourceType(RESOURCE_TYPE)
+                .tag(tag)
+                .build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build());
+
+        when(proxyClient.client().describeTags(any(DescribeTagsRequest.class)))
+                .thenReturn(DescribeTagsResponse.builder()
+                        .taggedResources(taggedResource)
+                        .build());
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(DESCRIBE_TAGS_MODEL)
+                .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("describe-tags");
         response.getResourceModel().setClusterIdentifier(CLUSTER_IDENTIFIER);
 
         assertThat(response).isNotNull();

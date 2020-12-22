@@ -36,6 +36,7 @@ public class TestUtils {
     final static String CLUSTER_AVAILABLE = "available";
     final static String CLUSTER_PAUSED = "paused";
     final static String RESOURCE_NAME = "arn:aws:redshift:"+AWS_REGION+":"+AWS_ACCOUNT_ID+":"+CLUSTER_IDENTIFIER;
+    final static String RESOURCE_TYPE = "Cluster";
     final static String USAGE_LIMIT_ID = "usage-limit-id";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
@@ -155,6 +156,11 @@ public class TestUtils {
 
     final static ResourceModel DESCRIBE_RESIZE_MODEL = ResourceModel.builder()
             .redshiftCommand("describe-resize")
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
+            .build();
+
+    final static ResourceModel DESCRIBE_TAGS_MODEL = ResourceModel.builder()
+            .redshiftCommand("describe-tags")
             .clusterIdentifier(CLUSTER_IDENTIFIER)
             .build();
 
