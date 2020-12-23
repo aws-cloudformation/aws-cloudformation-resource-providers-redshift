@@ -38,6 +38,7 @@ public class TestUtils {
     final static String RESOURCE_NAME = "arn:aws:redshift:"+AWS_REGION+":"+AWS_ACCOUNT_ID+":"+CLUSTER_IDENTIFIER;
     final static String RESOURCE_TYPE = "Cluster";
     final static String USAGE_LIMIT_ID = "usage-limit-id";
+    final static String s3KEYPREFIX = "s3KeyPrefix";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)

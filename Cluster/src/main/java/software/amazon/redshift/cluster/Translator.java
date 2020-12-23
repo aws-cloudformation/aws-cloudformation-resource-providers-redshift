@@ -352,7 +352,7 @@ public class Translator {
             .bucketName(awsResponse.bucketName())
             .lastFailureMessage(awsResponse.lastFailureMessage())
             .lastFailureTime(awsResponse.lastFailureTime() == null ? null : awsResponse.lastFailureTime().toString())
-            .lastSuccessfulDeliveryTime(awsResponse.lastSuccessfulDeliveryTime() == null ? null : awsResponse.lastFailureTime().toString())
+            .lastSuccessfulDeliveryTime(awsResponse.lastSuccessfulDeliveryTime() == null ? null : awsResponse.lastSuccessfulDeliveryTime().toString())
             .loggingEnabled(awsResponse.loggingEnabled())
             .s3KeyPrefix(awsResponse.s3KeyPrefix())
             .build();
