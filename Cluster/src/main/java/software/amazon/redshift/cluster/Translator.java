@@ -65,6 +65,8 @@ public class Translator {
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .iamRoles(model.getIamRoles())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .tags(translateTagsToSdk(model.getTags()))
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .build();
   }
 
@@ -101,6 +103,7 @@ public class Translator {
             .maintenanceTrackName(model.getMaintenanceTrackName())
             .snapshotScheduleIdentifier(model.getSnapshotScheduleIdentifier())
             .numberOfNodes(model.getNumberOfNodes())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .build();
   }
 
@@ -749,6 +752,12 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final String availabilityZoneRelocationStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZoneRelocationStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -814,6 +823,7 @@ public class Translator {
             .restoreSnapshotSizeInMegaBytes(restoreStatus == null ? null : restoreStatus.snapshotSizeInMegaBytes().doubleValue())
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
             .tags(translateTagsFromSdk(tags))
+            .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
             .build();
 
   }
@@ -959,7 +969,7 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to modify a resource
    */
-  static ModifyClusterRequest translateToModifyrequest(final ResourceModel model) {
+  static ModifyClusterRequest translateToModifyRequest(final ResourceModel model) {
 
     return ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
@@ -984,6 +994,9 @@ public class Translator {
             .publiclyAccessible(model.getPubliclyAccessible())
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .availabilityZone(model.getAvailabilityZone())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .port(model.getPort())
             .build();
   }
 

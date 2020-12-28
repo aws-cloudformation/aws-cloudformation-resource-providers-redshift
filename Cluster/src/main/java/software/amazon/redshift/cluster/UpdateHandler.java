@@ -87,8 +87,8 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress -> {
                 if(issueModifyClusterRequest(model) && model.getRedshiftCommand().equals("modify-cluster")) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToModifyrequest)
-                            .makeServiceCall(this::updateCluster)
+                            .translateToServiceRequest(Translator::translateToModifyRequest)
+                            .makeServiceCall(this::modifyCluster)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
@@ -230,7 +230,7 @@ public class UpdateHandler extends BaseHandlerStd {
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
-    private ModifyClusterResponse updateCluster(
+    private ModifyClusterResponse modifyCluster(
             final ModifyClusterRequest modifyRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         ModifyClusterResponse awsResponse = null;

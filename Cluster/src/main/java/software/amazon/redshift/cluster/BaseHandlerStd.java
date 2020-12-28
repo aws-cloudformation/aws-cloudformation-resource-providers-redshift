@@ -114,7 +114,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             model.getHsmClientCertificateIdentifier() != null || model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
             model.getKmsKeyId() != null || model.getMaintenanceTrackName() != null || model.getManualSnapshotRetentionPeriod() != null ||
             model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null || model.getClusterSecurityGroups() != null ||
-            model.getVpcSecurityGroupIds() != null;
+            model.getVpcSecurityGroupIds() != null || model.getAvailabilityZone() != null || model.getPort() != null ||
+            model.getAvailabilityZoneRelocation() != null;
   }
 
 }

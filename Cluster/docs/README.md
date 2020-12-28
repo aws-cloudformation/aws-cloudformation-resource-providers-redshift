@@ -19,6 +19,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#allowversionupgrade" title="AllowVersionUpgrade">AllowVersionUpgrade</a>" : <i>Boolean</i>,
         "<a href="#automatedsnapshotretentionperiod" title="AutomatedSnapshotRetentionPeriod">AutomatedSnapshotRetentionPeriod</a>" : <i>Integer</i>,
         "<a href="#availabilityzone" title="AvailabilityZone">AvailabilityZone</a>" : <i>String</i>,
+        "<a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>" : <i>Boolean</i>,
+        "<a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>" : <i>String</i>,
         "<a href="#clusterparametergroupname" title="ClusterParameterGroupName">ClusterParameterGroupName</a>" : <i>String</i>,
         "<a href="#clustertype" title="ClusterType">ClusterType</a>" : <i>String</i>,
         "<a href="#clusterversion" title="ClusterVersion">ClusterVersion</a>" : <i>String</i>,
@@ -187,6 +189,8 @@ Properties:
     <a href="#allowversionupgrade" title="AllowVersionUpgrade">AllowVersionUpgrade</a>: <i>Boolean</i>
     <a href="#automatedsnapshotretentionperiod" title="AutomatedSnapshotRetentionPeriod">AutomatedSnapshotRetentionPeriod</a>: <i>Integer</i>
     <a href="#availabilityzone" title="AvailabilityZone">AvailabilityZone</a>: <i>String</i>
+    <a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>: <i>Boolean</i>
+    <a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>: <i>String</i>
     <a href="#clusterparametergroupname" title="ClusterParameterGroupName">ClusterParameterGroupName</a>: <i>String</i>
     <a href="#clustertype" title="ClusterType">ClusterType</a>: <i>String</i>
     <a href="#clusterversion" title="ClusterVersion">ClusterVersion</a>: <i>String</i>
@@ -426,6 +430,26 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### AvailabilityZone
 
 The EC2 Availability Zone (AZ) in which you want Amazon Redshift to provision the cluster. Default: A random, system-chosen Availability Zone in the region that is specified by the endpoint
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AvailabilityZoneRelocation
+
+The option to enable relocation for an Amazon Redshift cluster between Availability Zones after the cluster modification is complete.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AvailabilityZoneRelocationStatus
+
+The availability zone relocation status of the cluster
 
 _Required_: No
 
@@ -1305,7 +1329,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ClusterAvailabilityStatus
 
-The availability status of the cluster for queries. Possible values are Available, Unavailable, Modifying, Maintenance, Failed.
+The availability status of the cluster for queries. Possible values are Available, Unavailable, Modifying, Maintenance, Failed. 
 
 _Required_: No
 
@@ -1415,7 +1439,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ClusterStatus
 
-The current state of the cluster.
+The current state of the cluster. 
 
 _Required_: No
 
@@ -1425,7 +1449,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ClusterSubnetGroupName
 
-The name of the subnet group that is associated with the cluster. This parameter is valid only when the cluster is in a VPC.
+The name of the subnet group that is associated with the cluster. This parameter is valid only when the cluster is in a VPC. 
 
 _Required_: No
 
@@ -1986,3 +2010,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### ClusterIdentifier
 
 A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account
+

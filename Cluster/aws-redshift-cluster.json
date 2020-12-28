@@ -62,6 +62,14 @@
             "description": "The EC2 Availability Zone (AZ) in which you want Amazon Redshift to provision the cluster. Default: A random, system-chosen Availability Zone in the region that is specified by the endpoint",
             "type": "string"
         },
+        "AvailabilityZoneRelocation": {
+            "description": "The option to enable relocation for an Amazon Redshift cluster between Availability Zones after the cluster modification is complete.",
+            "type": "boolean"
+        },
+        "AvailabilityZoneRelocationStatus": {
+            "description": "The availability zone relocation status of the cluster",
+            "type": "string"
+        },
         "ClusterParameterGroupName": {
             "description": "The name of the parameter group to be associated with this cluster.",
             "type": "string",
