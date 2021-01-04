@@ -22,6 +22,7 @@ import static software.amazon.redshift.clusterparametergroup.TestUtils.AWS_REGIO
 import static software.amazon.redshift.clusterparametergroup.TestUtils.CLUSTER_PARAMETER_GROUP;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.COMPLETE_MODEL;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.DESIRED_RESOURCE_TAGS;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.PARAMETER_GROUP_NAME;
 
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest extends AbstractTestBase {
@@ -49,7 +50,7 @@ public class ReadHandlerTest extends AbstractTestBase {
     public void handleRequest_ResourceNotFound() {
         final ResourceModel model = COMPLETE_MODEL;
         // set group name to null, which is not part of DescribeParameterGroups response
-        model.setParameterGroupName(null);
+        model.setParameterGroupName("null");
 
         when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
                 .thenReturn(DescribeClusterParameterGroupsResponse.builder()
@@ -67,6 +68,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
         assertThat(response.getResourceModels()).isNull();
+        model.setParameterGroupName(PARAMETER_GROUP_NAME);
     }
 
     @Test

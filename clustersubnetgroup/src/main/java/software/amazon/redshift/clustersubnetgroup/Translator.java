@@ -1,5 +1,6 @@
 package software.amazon.redshift.clustersubnetgroup;
 
+import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
@@ -13,7 +14,11 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterSubnetGroupRe
 import software.amazon.awssdk.services.redshift.model.Subnet;
 import software.amazon.awssdk.services.redshift.model.Tag;
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
+import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
@@ -41,7 +46,12 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to create a resource
    */
-  static CreateClusterSubnetGroupRequest translateToCreateRequest(final ResourceModel model, final Map<String, String> tags) {
+  static CreateClusterSubnetGroupRequest translateToCreateRequest(final String generateSubnetGroupName,
+                                                                  final ResourceModel model,
+                                                                  final Map<String, String> tags) {
+    //Based on contract_read_without_create test
+
+    model.setSubnetGroupName(generateSubnetGroupName);
     return CreateClusterSubnetGroupRequest.builder()
             .clusterSubnetGroupName(model.getSubnetGroupName())
             .subnetIds(model.getSubnetIds())
@@ -63,6 +73,10 @@ public class Translator {
    * @return awsRequest the aws service request to describe a resource
    */
   static DescribeClusterSubnetGroupsRequest translateToReadRequest(final ResourceModel model) {
+    //Based on contract_read_without_create test
+    if (StringUtils.isNullOrEmpty(model.getSubnetGroupName())) {
+      throw new CfnNotFoundException(ResourceModel.TYPE_NAME, null);
+    }
     return DescribeClusterSubnetGroupsRequest.builder()
             .clusterSubnetGroupName(model.getSubnetGroupName())
             .build();
