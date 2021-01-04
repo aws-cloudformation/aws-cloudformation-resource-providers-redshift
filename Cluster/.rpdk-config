@@ -1,0 +1,17 @@
+{
+    "typeName": "AWS::Redshift::Cluster",
+    "language": "java",
+    "runtime": "java8",
+    "entrypoint": "software.amazon.redshift.cluster.HandlerWrapper::handleRequest",
+    "testEntrypoint": "software.amazon.redshift.cluster.HandlerWrapper::testEntrypoint",
+    "settings": {
+        "namespace": [
+            "software",
+            "amazon",
+            "redshift",
+            "cluster"
+        ],
+        "codegen_template_path": "guided_aws",
+        "protocolVersion": "2.0.0"
+    }
+}

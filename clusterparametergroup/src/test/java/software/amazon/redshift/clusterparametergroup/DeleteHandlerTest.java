@@ -1,12 +1,9 @@
 package software.amazon.redshift.clusterparametergroup;
 
 import java.time.Duration;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.*;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,10 +51,10 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .thenReturn(DeleteClusterParameterGroupResponse.builder().build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isNull();
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
@@ -75,13 +72,12 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().deleteClusterParameterGroup(any(DeleteClusterParameterGroupRequest.class))).thenThrow(
                 ClusterParameterGroupNotFoundException.class);
-
-        boolean flag = false;
-        try {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        } catch (CfnNotFoundException e) {
-            flag = true;
-        }
-        assertThat(flag).isTrue();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.NotFound);
     }
 }

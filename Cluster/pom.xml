@@ -5,9 +5,9 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>software.amazon.redshift.clusterparametergroup</groupId>
-    <artifactId>aws-redshift-clusterparametergroup-handler</artifactId>
-    <name>aws-redshift-clusterparametergroup-handler</name>
+    <groupId>software.amazon.redshift.cluster</groupId>
+    <artifactId>aws-redshift-cluster-handler</artifactId>
+    <name>aws-redshift-cluster-handler</name>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
@@ -25,6 +25,7 @@
             <artifactId>redshift</artifactId>
             <version>2.10.49</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/software.amazon.cloudformation/aws-cloudformation-rpdk-java-plugin -->
         <dependency>
             <groupId>software.amazon.cloudformation</groupId>
             <artifactId>aws-cloudformation-rpdk-java-plugin</artifactId>
@@ -201,7 +202,7 @@
             <resource>
                 <directory>${project.basedir}</directory>
                 <includes>
-                    <include>aws-redshift-clusterparametergroup.json</include>
+                    <include>aws-redshift-cluster.json</include>
                 </includes>
             </resource>
         </resources>
