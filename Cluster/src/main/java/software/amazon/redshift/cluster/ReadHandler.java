@@ -4,7 +4,6 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.CancelResizeResponse;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
@@ -108,7 +107,6 @@ public class ReadHandler extends BaseHandlerStd {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeResize", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDescribeResizeRequest)
                                 .makeServiceCall(this::describeResize)
-                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .done(this::constructResourceModelFromDescribeResizeResponse);
                     }
                     return progress;

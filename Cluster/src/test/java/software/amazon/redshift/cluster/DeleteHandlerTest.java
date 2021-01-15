@@ -83,6 +83,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
     public void handleRequest_SimpleSuccess() {
 
         final ResourceModel model = BASIC_MODEL;
+        model.setRedshiftCommand("delete-cluster");
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)

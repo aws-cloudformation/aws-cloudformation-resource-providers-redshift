@@ -66,11 +66,22 @@ public class DeleteHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
+                    if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("delete-cluster")) {
                         return proxy.initiate("AWS-Redshift-Cluster::DeleteCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDeleteRequest)
                                 .makeServiceCall(this::deleteResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterDelete(_client, _model, _context))
                                 .done((response) -> ProgressEvent.defaultSuccessHandler(null));
+                    }
+                    return progress;
+                })
+                //default case for incorrect redshift delete command/ no command
+                .then(progress -> {
+                    return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                            .status(OperationStatus.FAILED)
+                            .errorCode(HandlerErrorCode.InvalidRequest)
+                            .message(HandlerErrorCode.InvalidRequest.getMessage())
+                            .build();
                 });
 
     }

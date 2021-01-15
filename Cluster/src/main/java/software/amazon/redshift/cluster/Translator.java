@@ -514,30 +514,30 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final int numberOfNodes = streamOfOrEmpty(awsResponse.clusters())
+    final Integer numberOfNodes = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::numberOfNodes)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(0);
+            .orElse(null);
 
-    final boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(true);
+    final Boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
-    final int automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(0);
+    final Integer automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
 
     final String availabilityZone = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZone)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(null);
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZone)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
     final String clusterAvailabilityStatus = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterAvailabilityStatus)
@@ -612,11 +612,11 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final boolean encrypted = streamOfOrEmpty(awsResponse.clusters())
+    final Boolean encrypted = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::encrypted)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(false);
+            .orElse(null);
 
     final ElasticIpStatus elasticIpStatus = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::elasticIpStatus)
@@ -637,11 +637,11 @@ public class Translator {
             .orElse(null);
 
 
-    final boolean enhancedVpcRouting = streamOfOrEmpty(awsResponse.clusters())
+    final Boolean enhancedVpcRouting = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::enhancedVpcRouting)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(false);
+            .orElse(null);
 
     final Instant expectedNextSnapshotScheduleTime = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::expectedNextSnapshotScheduleTime)
@@ -674,11 +674,11 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final int manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+    final Integer manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::manualSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(1);
+            .orElse(null);
 
     final String modifyStatus = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::modifyStatus)
@@ -698,11 +698,11 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final boolean publiclyAccessible = streamOfOrEmpty(awsResponse.clusters())
+    final Boolean publiclyAccessible = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::publiclyAccessible)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(true);
+            .orElse(null);
 
     final ResizeInfo resizeInfo = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::resizeInfo)

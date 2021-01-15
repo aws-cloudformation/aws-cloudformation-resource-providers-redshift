@@ -1,23 +1,47 @@
 package software.amazon.redshift.cluster;
 
+import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AccessToSnapshotDeniedException;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
+import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterQuotaExceededException;
+import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
 import software.amazon.awssdk.services.redshift.model.CreateUsageLimitRequest;
 import software.amazon.awssdk.services.redshift.model.CreateUsageLimitResponse;
+import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
+import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
+import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
+import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterSnapshotStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
+import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
+import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
+import software.amazon.awssdk.services.redshift.model.InvalidSubnetException;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
+import software.amazon.awssdk.services.redshift.model.InvalidVpcNetworkStateException;
+import software.amazon.awssdk.services.redshift.model.LimitExceededException;
+import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
+import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotResponse;
 import software.amazon.awssdk.services.redshift.model.RestoreTableFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreTableFromClusterSnapshotResponse;
+import software.amazon.awssdk.services.redshift.model.SnapshotScheduleNotFoundException;
 import software.amazon.awssdk.services.redshift.model.TableRestoreNotFoundException;
+import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
+import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -57,6 +81,7 @@ public class CreateHandler extends BaseHandlerStd {
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress())
                     .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+
         } else if (resourceModel.getRedshiftCommand() != null && resourceModel.getRedshiftCommand().equals("restore-table-from-cluster-snapshot")) {
             return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-Cluster::RestoreTableFromClusterSnapshot", proxyClient, resourceModel, callbackContext)
@@ -64,7 +89,8 @@ public class CreateHandler extends BaseHandlerStd {
                         .makeServiceCall(this::restoreTableFromClusterSnapshot)
                         .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                         .progress())
-                        .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+
         } else if (resourceModel.getRedshiftCommand() != null && resourceModel.getRedshiftCommand().equals("create-usage-limit")) {
             boolean clusterExists = isClusterAvailableForNextOperation(proxyClient, resourceModel, resourceModel.getClusterIdentifier());
             if(!clusterExists) {
@@ -75,12 +101,12 @@ public class CreateHandler extends BaseHandlerStd {
                         .build();
             } else {
                 return ProgressEvent.progress(resourceModel, callbackContext)
-                        .then(progress -> proxy.initiate("AWS-Redshift-Cluster::CreateClusterUsageLimit", proxyClient, resourceModel, callbackContext)
+                    .then(progress -> proxy.initiate("AWS-Redshift-Cluster::CreateClusterUsageLimit", proxyClient, resourceModel, callbackContext)
                                 .translateToServiceRequest((m) -> Translator.translateToCreateUsageLimitRequest(resourceModel))
                                 .makeServiceCall(this::clusterUsageLimit)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress())
-                        .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+                    .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
             }
         }
 
@@ -128,9 +154,18 @@ public class CreateHandler extends BaseHandlerStd {
         try {
             restoreFromClusterSnapshotResponse = proxyClient.injectCredentialsAndInvokeV2(restoreFromClusterSnapshotRequest,
                     proxyClient.client()::restoreFromClusterSnapshot);
-        } catch (final ClusterAlreadyExistsException | ClusterSnapshotAlreadyExistsException e) {
+        } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, restoreFromClusterSnapshotRequest.clusterIdentifier());
-        }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException | ClusterSnapshotNotFoundException e) {
+        }  catch (final AccessToSnapshotDeniedException | InvalidClusterStateException | InvalidRetentionPeriodException
+                | ClusterSnapshotNotFoundException | ClusterQuotaExceededException | InsufficientClusterCapacityException
+                | InvalidClusterSnapshotStateException | InvalidRestoreException | NumberOfNodesQuotaExceededException
+                | NumberOfNodesPerClusterLimitExceededException | InvalidVpcNetworkStateException | InvalidClusterSubnetGroupStateException
+                | InvalidSubnetException | ClusterSubnetGroupNotFoundException | UnauthorizedOperationException
+                | HsmClientCertificateNotFoundException | HsmConfigurationNotFoundException
+                | InvalidElasticIpException | ClusterParameterGroupNotFoundException | ClusterSecurityGroupNotFoundException
+                | LimitExceededException | DependentServiceRequestThrottlingException
+                | InvalidClusterTrackException | SnapshotScheduleNotFoundException | TagLimitExceededException
+                | InvalidTagException e) {
             throw new CfnInvalidRequestException(restoreFromClusterSnapshotRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(restoreFromClusterSnapshotRequest.toString(), e);

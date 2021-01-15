@@ -14,6 +14,10 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
+
+  public static int PATCHING_DELAY_TIME = 500;
+  private static boolean IS_CLUSTER_PATCHING = false;
+
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
@@ -44,14 +48,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
             ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
 
-    // Patching WF starts with a slight delay, adding sleep to pass contract tests
-    if(model.getRedshiftCommand()!= null && model.getRedshiftCommand().equals("modify-cluster-db-revision")) {
-      try {
-        Thread.sleep(500);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    }
     DescribeClustersRequest awsRequest =
             DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
     DescribeClustersResponse awsResponse =
@@ -60,12 +56,28 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return awsResponse.clusters().get(0).clusterStatus().equals("available");
   }
 
-  protected boolean isClusterPaused (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
-            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
-
+  protected boolean isClusterPatching (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
     DescribeClustersRequest awsRequest =
-            DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    DescribeClustersResponse awsResponse = proxyClient.injectCredentialsAndInvokeV2(
+            awsRequest, proxyClient.client()::describeClusters);
+
+    if (awsResponse.clusters().get(0).clusterRevisionNumber().equals(model.getRevisionTarget())) {
+      //revision is done so return true for stabilize
+      return true;
+    }
+
+    IS_CLUSTER_PATCHING = awsResponse.clusters().get(0).clusterStatus().equals("modifying");
+    if (!IS_CLUSTER_PATCHING) {
+      return false;
+    } else {
+      return isClusterActive(proxyClient, model, cxt);
+    }
+  }
+
+  protected boolean isClusterPaused (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
     DescribeClustersResponse awsResponse =
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
@@ -91,7 +103,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   // check for required parameters to not have null values
   protected boolean invalidCreateClusterRequest(ResourceModel model) {
     return model.getClusterIdentifier() == null || model.getNodeType() == null
-            || model.getMasterUsername() == null || model.getMasterUserPassword() == null;
+            || model.getMasterUsername() == null || model.getMasterUserPassword() == null
+            || model.getRedshiftCommand() == null || !model.getRedshiftCommand().equals("create-cluster");
   }
 
   protected boolean isClusterActiveAfterDelete (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {

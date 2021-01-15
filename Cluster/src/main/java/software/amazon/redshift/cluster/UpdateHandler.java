@@ -85,7 +85,7 @@ public class UpdateHandler extends BaseHandlerStd {
             })
 
             .then(progress -> {
-                if(issueModifyClusterRequest(model) && model.getRedshiftCommand().equals("modify-cluster")) {
+                if(model.getRedshiftCommand().equals("modify-cluster") && issueModifyClusterRequest(model)) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToModifyRequest)
                             .makeServiceCall(this::modifyCluster)
@@ -133,7 +133,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterDbRevision", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToModifyClusterDbRevisionRequest)
                             .makeServiceCall(this::modifyClusterDbRevision)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterPatching(_client, _model, _context))
                             .progress();
                 }
                 return progress;
@@ -210,7 +210,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-CancelResize", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToCancelResizeClusterRequest)
                             .makeServiceCall(this::cancelResize)
-                            //.stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
                 return progress;

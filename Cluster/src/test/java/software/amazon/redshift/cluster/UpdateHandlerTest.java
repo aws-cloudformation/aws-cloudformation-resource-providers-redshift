@@ -424,6 +424,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .currentDatabaseRevision(CURRENT_DB_REVISION)
                 .revisionTarget(CURRENT_DB_REVISION + ".1")
                 .redshiftCommand("modify-cluster-db-revision")
+                .clusterStatus(CLUSTER_AVAILABLE)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -435,7 +436,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(null)
                 .nodeType(null)
                 .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
+                .clusterStatus("patching")
                 .encrypted(null)
                 .enhancedVpcRouting(null)
                 .manualSnapshotRetentionPeriod(null)
@@ -448,10 +449,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .cluster(modifiedClusterDBRevision)
                         .build());
 
-
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER) //for cluster to be in "available" status
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedClusterDBRevision)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER) //for cluster to be in "available" status
                         .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -537,9 +543,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
                 .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
-                .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
                 .clusterSecurityGroups(new LinkedList<String>())
@@ -562,6 +566,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterStatus("available")
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
+                .allowVersionUpgrade(true)
+                .encrypted(false)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -659,9 +665,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
                 .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
-                .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
                 .clusterSecurityGroups(new LinkedList<String>())
@@ -684,6 +688,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterStatus("available")
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
+                .allowVersionUpgrade(true)
+                .encrypted(false)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -720,9 +726,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
                 .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
-                .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
                 .clusterSecurityGroups(new LinkedList<String>())
@@ -747,6 +751,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterStatus(CLUSTER_AVAILABLE)
                 .manualSnapshotRetentionPeriod(5)
                 .publiclyAccessible(true)
+                .encrypted(false)
+                .allowVersionUpgrade(true)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -784,11 +790,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
                 .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(new LinkedList<String>())
@@ -809,6 +811,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .numberOfNodes(NUMBER_OF_NODES)
                 .clusterStatus(CLUSTER_AVAILABLE)
                 .publiclyAccessible(true)
+                .encrypted(false)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -844,10 +847,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(1)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
+                .encrypted(true)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
                 .clusterSecurityGroups(new LinkedList<String>())
@@ -871,6 +871,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .numberOfNodes(NUMBER_OF_NODES)
                 .clusterStatus(CLUSTER_AVAILABLE)
                 .publiclyAccessible(true)
+                .encrypted(true)
                 .manualSnapshotRetentionPeriod(7)
                 .automatedSnapshotRetentionPeriod(1)
                 .build();
@@ -964,7 +965,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .allowVersionUpgrade(true)
                 .automatedSnapshotRetentionPeriod(1)
                 .encrypted(false)
-                .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
                 .clusterSecurityGroups(new LinkedList<String>())
@@ -986,8 +986,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .numberOfNodes(NUMBER_OF_NODES * 2)
                 .clusterStatus(CLUSTER_AVAILABLE)
                 .publiclyAccessible(true)
+                .encrypted(false)
                 .manualSnapshotRetentionPeriod(1)
                 .automatedSnapshotRetentionPeriod(1)
+                .allowVersionUpgrade(true)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()

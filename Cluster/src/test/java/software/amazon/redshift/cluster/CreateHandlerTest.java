@@ -100,6 +100,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess() {
         ResourceModel model = BASIC_MODEL;
+        model.setRedshiftCommand("create-cluster");
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -120,6 +121,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+        response.getResourceModel().setRedshiftCommand("create-cluster");
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
