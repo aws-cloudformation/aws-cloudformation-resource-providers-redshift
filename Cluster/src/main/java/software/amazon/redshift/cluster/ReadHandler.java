@@ -8,9 +8,11 @@ import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsExcept
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
@@ -65,6 +67,8 @@ public class ReadHandler extends BaseHandlerStd {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+        } catch (final InvalidTagException e) {
+            throw new CfnInvalidRequestException(awsRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(awsRequest.toString(), e);
         } catch (final AwsServiceException e) { // ResourceNotFoundException
