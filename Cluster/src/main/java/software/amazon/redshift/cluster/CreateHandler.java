@@ -1,16 +1,37 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.StringUtils;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
+import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterQuotaExceededException;
+import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
+import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
+import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
+import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
+import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
+import software.amazon.awssdk.services.redshift.model.InvalidSubnetException;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
+import software.amazon.awssdk.services.redshift.model.InvalidVpcNetworkStateException;
+import software.amazon.awssdk.services.redshift.model.LimitExceededException;
+import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
+import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.SnapshotScheduleNotFoundException;
+import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
+import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -69,7 +90,14 @@ public class CreateHandler extends BaseHandlerStd {
             createResponse = proxyClient.injectCredentialsAndInvokeV2(createRequest, proxyClient.client()::createCluster);
         } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createRequest.clusterIdentifier());
-        }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException e) {
+        }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException | InsufficientClusterCapacityException |
+                ClusterParameterGroupNotFoundException | ClusterSecurityGroupNotFoundException | ClusterQuotaExceededException |
+                NumberOfNodesQuotaExceededException | NumberOfNodesPerClusterLimitExceededException |
+                ClusterSubnetGroupNotFoundException | InvalidVpcNetworkStateException | InvalidClusterSubnetGroupStateException |
+                InvalidSubnetException | UnauthorizedOperationException | HsmClientCertificateNotFoundException |
+                HsmConfigurationNotFoundException | InvalidElasticIpException | TagLimitExceededException | InvalidTagException |
+                LimitExceededException | DependentServiceRequestThrottlingException | InvalidClusterTrackException |
+                SnapshotScheduleNotFoundException  e) {
             throw new CfnInvalidRequestException(createRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(createRequest.toString(), e);

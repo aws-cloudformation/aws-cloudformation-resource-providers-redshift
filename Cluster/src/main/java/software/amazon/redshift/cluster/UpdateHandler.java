@@ -5,6 +5,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
@@ -12,6 +13,9 @@ import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceeded
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
+import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
+import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
@@ -22,7 +26,10 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesReque
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
+import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.TableLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
@@ -91,11 +98,14 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyRequest, proxyClient.client()::modifyCluster);
-        } catch (final InvalidClusterStateException | InvalidClusterSecurityGroupStateException | UnauthorizedOperationException
-                | UnsupportedOptionException | LimitExceededException | InvalidElasticIpException | InvalidClusterTrackException | InvalidRetentionPeriodException
-                | DependentServiceRequestThrottlingException | ClusterSubnetQuotaExceededException e ) {
+        } catch (final InvalidClusterStateException | InvalidClusterSecurityGroupStateException | UnauthorizedOperationException |
+                UnsupportedOptionException | LimitExceededException | InvalidElasticIpException | InvalidClusterTrackException |
+                DependentServiceRequestThrottlingException | ClusterSubnetQuotaExceededException | NumberOfNodesQuotaExceededException |
+                NumberOfNodesPerClusterLimitExceededException | InsufficientClusterCapacityException | HsmClientCertificateNotFoundException | HsmConfigurationNotFoundException |
+                ClusterAlreadyExistsException | TableLimitExceededException | InvalidRetentionPeriodException e ) {
             throw new CfnInvalidRequestException(modifyRequest.toString(), e);
-        } catch (final ClusterNotFoundException | ClusterSecurityGroupNotFoundException | ClusterParameterGroupNotFoundException e) {
+        } catch (final ClusterNotFoundException | ClusterSecurityGroupNotFoundException |
+                ClusterParameterGroupNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(modifyRequest.toString(), e);
