@@ -221,7 +221,7 @@
             "permissions": [
                 "initech:CreateReport",
                 "redshift:DescribeClusters",
-                "redshift:createCluster"
+                "redshift:CreateCluster"
             ],
             "timeoutInMinutes": 60
         },
