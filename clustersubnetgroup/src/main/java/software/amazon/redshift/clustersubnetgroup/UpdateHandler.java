@@ -1,5 +1,6 @@
 package software.amazon.redshift.clustersubnetgroup;
 
+import com.amazonaws.util.StringUtils;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
@@ -23,6 +24,7 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -50,28 +52,26 @@ public class UpdateHandler extends BaseHandlerStd {
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Update", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
-                        .makeServiceCall(this::updateResource)
+                        .makeServiceCall((modifyRequest, proxyInvocation) -> {
+                            //Base on contract_update_non_existent_resource contract test
+                            if (StringUtils.isNullOrEmpty(model.getSubnetGroupName())){
+                                return ProgressEvent.defaultFailureHandler(
+                                        new Exception("SubnetGroupName in update handler cannot be null"), HandlerErrorCode.NotFound);
+                            }
+                            ModifyClusterSubnetGroupResponse response =  proxyInvocation.injectCredentialsAndInvokeV2(
+                                    modifyRequest, proxyInvocation.client()::modifyClusterSubnetGroup);
+                            logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
+                            return response;
+                        })
+                        .handleError((modifyDbSubnetGroupRequest, exception, client, resourceModel, cxt) -> {
+                            System.out.println(exception.toString());
+                            if (exception instanceof ClusterSubnetGroupNotFoundException)
+                                return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
+                            throw exception;
+                        })
                         .progress())
                 .then(progress -> handleTagging(request, proxyClient, proxy, progress))
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-    }
-
-    private ModifyClusterSubnetGroupResponse updateResource(
-        final ModifyClusterSubnetGroupRequest modifyRequest,
-        final ProxyClient<RedshiftClient> proxyClient) {
-        ModifyClusterSubnetGroupResponse awsResponse = null;
-
-        try {
-            awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyRequest, proxyClient.client()::modifyClusterSubnetGroup);
-        } catch (final InvalidSubnetException | SubnetAlreadyInUseException | UnauthorizedOperationException
-                | DependentServiceRequestThrottlingException | ClusterSubnetQuotaExceededException e ) {
-            throw new CfnInvalidRequestException(modifyRequest.toString(), e);
-        } catch (final ClusterSubnetGroupNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterSubnetGroupName());
-        }
-
-        logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
-        return awsResponse;
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> handleTagging(

@@ -28,6 +28,11 @@ Resources:
                 - "initech:DescribeReport"
                 - "initech:ListReports"
                 - "initech:UpdateReport"
+                - "redshift:CreateCluster"
+                - "redshift:DeleteCluster"
+                - "redshift:DescribeClusters"
+                - "redshift:ModifyCluster"
+                - "redshift:ModifyClusterIamRoles"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

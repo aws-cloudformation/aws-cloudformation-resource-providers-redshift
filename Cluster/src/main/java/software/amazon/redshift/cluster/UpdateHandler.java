@@ -4,7 +4,6 @@ import com.amazonaws.util.CollectionUtils;;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
-import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -15,6 +14,8 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.lang.UnsupportedOperationException;
 
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -243,7 +244,8 @@ public class UpdateHandler extends BaseHandlerStd {
                 | NumberOfNodesPerClusterLimitExceededException | InsufficientClusterCapacityException | HsmClientCertificateNotFoundException
                 | HsmConfigurationNotFoundException | ClusterAlreadyExistsException | TableLimitExceededException e ) {
             throw new CfnInvalidRequestException(modifyRequest.toString(), e);
-        } catch (final ClusterNotFoundException | ClusterSecurityGroupNotFoundException | ClusterParameterGroupNotFoundException e) {
+        } catch (final ClusterNotFoundException | ClusterSecurityGroupNotFoundException |
+                ClusterParameterGroupNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier());
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(modifyRequest.toString(), e);
@@ -425,7 +427,7 @@ public class UpdateHandler extends BaseHandlerStd {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(createTagsRequest, proxyClient.client()::createTags);
         } catch (final InvalidClusterStateException | ClusterOnLatestRevisionException | InvalidTagException | TagLimitExceededException e ) {
             throw new CfnInvalidRequestException(createTagsRequest.toString(), e);
-        } catch (final  ResourceNotFoundException e) {
+        } catch (final ResourceNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, createTagsRequest.resourceName());
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(createTagsRequest.toString(), e);
@@ -463,7 +465,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(resizeClusterRequest, proxyClient.client()::resizeCluster);
-        } catch (final InvalidClusterStateException | NumberOfNodesQuotaExceededException| NumberOfNodesPerClusterLimitExceededException |
+        } catch (final InvalidClusterStateException | NumberOfNodesQuotaExceededException | NumberOfNodesPerClusterLimitExceededException |
                 InsufficientClusterCapacityException | UnsupportedOptionException | UnsupportedOperationException |
                 UnauthorizedOperationException | LimitExceededException e ) {
             throw new CfnInvalidRequestException(resizeClusterRequest.toString(), e);
@@ -499,7 +501,7 @@ public class UpdateHandler extends BaseHandlerStd {
     }
 
     private ModifyUsageLimitResponse modifyUsageLimit(
-            final  ModifyUsageLimitRequest modifyUsageLimitRequest,
+            final ModifyUsageLimitRequest modifyUsageLimitRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         ModifyUsageLimitResponse awsResponse = null;
 

@@ -9,6 +9,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisions
 import software.amazon.awssdk.services.redshift.model.DescribeClusterDbRevisionsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeResizeRequest;
@@ -21,7 +22,6 @@ import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsRequest
 import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
-import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.ResizeNotFoundException;
 import software.amazon.awssdk.services.redshift.model.UsageLimitNotFoundException;
@@ -157,6 +157,8 @@ public class ReadHandler extends BaseHandlerStd {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+        } catch (final InvalidTagException e) {
+            throw new CfnInvalidRequestException(awsRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(awsRequest.toString(), e);
         } catch (final AwsServiceException e) { // ResourceNotFoundException

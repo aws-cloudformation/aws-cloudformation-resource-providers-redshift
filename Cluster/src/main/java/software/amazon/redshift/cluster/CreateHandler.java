@@ -2,6 +2,7 @@ package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AccessToSnapshotDeniedException;
@@ -14,12 +15,15 @@ import software.amazon.awssdk.services.redshift.model.ClusterSnapshotNotFoundExc
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
-import software.amazon.awssdk.services.redshift.model.CreateUsageLimitRequest;
-import software.amazon.awssdk.services.redshift.model.CreateUsageLimitResponse;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
 import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
 import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitRequest;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitResponse;
+import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSnapshotStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
@@ -136,7 +140,14 @@ public class CreateHandler extends BaseHandlerStd {
             createResponse = proxyClient.injectCredentialsAndInvokeV2(createRequest, proxyClient.client()::createCluster);
         } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createRequest.clusterIdentifier());
-        }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException e) {
+        }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException | InsufficientClusterCapacityException |
+                ClusterParameterGroupNotFoundException | ClusterSecurityGroupNotFoundException | ClusterQuotaExceededException |
+                NumberOfNodesQuotaExceededException | NumberOfNodesPerClusterLimitExceededException |
+                ClusterSubnetGroupNotFoundException | InvalidVpcNetworkStateException | InvalidClusterSubnetGroupStateException |
+                InvalidSubnetException | UnauthorizedOperationException | HsmClientCertificateNotFoundException |
+                HsmConfigurationNotFoundException | InvalidElasticIpException | TagLimitExceededException | InvalidTagException |
+                LimitExceededException | DependentServiceRequestThrottlingException | InvalidClusterTrackException |
+                SnapshotScheduleNotFoundException  e) {
             throw new CfnInvalidRequestException(createRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(createRequest.toString(), e);

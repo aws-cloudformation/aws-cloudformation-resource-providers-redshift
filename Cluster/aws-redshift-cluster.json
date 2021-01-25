@@ -761,30 +761,39 @@
     "handlers": {
         "create": {
             "permissions": [
-                "initech:CreateReport"
+                "initech:CreateReport",
+                "redshift:DescribeClusters",
+                "redshift:CreateCluster"
             ],
             "timeoutInMinutes": 60
         },
         "read": {
             "permissions": [
-                "initech:DescribeReport"
+                "initech:DescribeReport",
+                "redshift:DescribeClusters"
             ]
         },
         "update": {
             "permissions": [
-                "initech:UpdateReport"
+                "initech:UpdateReport",
+                "redshift:DescribeClusters",
+                "redshift:ModifyCluster",
+                "redshift:ModifyClusterIamRoles"
             ],
             "timeoutInMinutes": 60
         },
         "delete": {
             "permissions": [
-                "initech:DeleteReport"
+                "initech:DeleteReport",
+                "redshift:DescribeClusters",
+                "redshift:DeleteCluster"
             ],
             "timeoutInMinutes": 60
         },
         "list": {
             "permissions": [
-                "initech:ListReports"
+                "initech:ListReports",
+                "redshift:DescribeClusters"
             ]
         }
     }
