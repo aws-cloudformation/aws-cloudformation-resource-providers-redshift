@@ -56,7 +56,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return awsResponse.clusters().get(0).clusterStatus().equals("available");
   }
 
-  protected boolean isClusterPatching (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+  protected boolean isClusterPatched (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
     DescribeClustersRequest awsRequest =
             DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
     DescribeClustersResponse awsResponse = proxyClient.injectCredentialsAndInvokeV2(

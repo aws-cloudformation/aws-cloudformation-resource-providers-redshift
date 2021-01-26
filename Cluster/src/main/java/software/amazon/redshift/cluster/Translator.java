@@ -264,7 +264,7 @@ public class Translator {
             .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::progressInMegaBytes)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(0L);
+            .orElse(null);
 
     final Instant tableRestoreStatusRequestTime= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
             .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::requestTime)
@@ -324,13 +324,13 @@ public class Translator {
             .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::totalDataInMegaBytes)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(0L);
+            .orElse(null);
 
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .tableRestoreStatusMessage(tableRestoreStatusMessage)
             .newTableName(newTableName)
-            .tableRestoreStatusProgressInMegaBytes(tableRestoreStatusProgressInMegaBytes.doubleValue())
+            .tableRestoreStatusProgressInMegaBytes(tableRestoreStatusProgressInMegaBytes == null ? null : tableRestoreStatusProgressInMegaBytes.doubleValue())
             .tableRestoreStatusRequestTime(tableRestoreStatusRequestTime == null ? null : tableRestoreStatusRequestTime.toString())
             .snapshotIdentifier(snapshotIdentifier)
             .sourceDatabaseName(sourceDatabaseName)
@@ -340,7 +340,7 @@ public class Translator {
             .tableRestoreRequestId(tableRestoreRequestId)
             .targetDatabaseName(targetDatabaseName)
             .targetSchemaName(targetSchemaName)
-            .tableRestoreStatusTotalDataInMegaBytes(tableRestoreStatusTotalDataInMegaBytes.doubleValue())
+            .tableRestoreStatusTotalDataInMegaBytes(tableRestoreStatusTotalDataInMegaBytes == null ? null : tableRestoreStatusTotalDataInMegaBytes.doubleValue())
             .build();
   }
 
@@ -456,7 +456,7 @@ public class Translator {
             .map(software.amazon.awssdk.services.redshift.model.UsageLimit::amount)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(0L);
+            .orElse(null);
 
     final String period = streamOfOrEmpty(awsResponse.usageLimits())
             .map(software.amazon.awssdk.services.redshift.model.UsageLimit::periodAsString)
@@ -481,7 +481,7 @@ public class Translator {
             .usageLimitId(usageLimitId)
             .featureType(featureType)
             .limitType(limitType)
-            .amount(amount.doubleValue())
+            .amount(amount == null ? null : amount.doubleValue())
             .period(period)
             .breachAction(breachAction)
             .tags(translateTagsFromSdk(tags))
