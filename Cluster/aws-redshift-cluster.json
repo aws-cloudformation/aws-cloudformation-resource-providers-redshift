@@ -763,14 +763,24 @@
             "permissions": [
                 "initech:CreateReport",
                 "redshift:DescribeClusters",
-                "redshift:CreateCluster"
+                "redshift:CreateCluster",
+                "redshift:RestoreFromClusterSnapshotRequest",
+                "redshift:RestoreTableFromClusterSnapshotRequest",
+                "redshift:CreateUsageLimit",
+                "redshift:"
             ],
             "timeoutInMinutes": 60
         },
         "read": {
             "permissions": [
                 "initech:DescribeReport",
-                "redshift:DescribeClusters"
+                "redshift:DescribeClusters",
+                "redshift:DescribeClusterDbRevisions",
+                "redshift:DescribeTableRestoreStatus",
+                "redshift:DescribeLoggingStatus",
+                "redshift:DescribeUsageLimits",
+                "redshift:DescribeResize",
+                "redshift:DescribeTags"
             ]
         },
         "update": {
@@ -778,7 +788,22 @@
                 "initech:UpdateReport",
                 "redshift:DescribeClusters",
                 "redshift:ModifyCluster",
-                "redshift:ModifyClusterIamRoles"
+                "redshift:ModifyClusterIamRoles",
+                "redshift:ModifyClusterDbRevision",
+                "redshift:ModifyClusterMaintenance",
+                "redshift:EnableSnapshotCopy",
+                "redshift:DisableSnapshotCopy",
+                "redshift:ModifySnapshotCopyRetentionPeriod",
+                "redshift:EnableLogging",
+                "redshift:DisableLogging",
+                "redshift:CreateTags",
+                "redshift:RotateEncryptionKey",
+                "redshift:ResizeCluster",
+                "redshift:CancelResize",
+                "redshift:ModifyUsageLimit",
+                "redshift:RebootCluster",
+                "redshift:PauseCluster",
+                "redshift:ResumeCluster"
             ],
             "timeoutInMinutes": 60
         },
@@ -786,7 +811,9 @@
             "permissions": [
                 "initech:DeleteReport",
                 "redshift:DescribeClusters",
-                "redshift:DeleteCluster"
+                "redshift:DeleteCluster",
+                "redshift:DeleteUsageLimit",
+                "redshift:DeleteTags"
             ],
             "timeoutInMinutes": 60
         },

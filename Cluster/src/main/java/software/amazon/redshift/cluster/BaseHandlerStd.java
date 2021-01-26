@@ -16,7 +16,7 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   public static int PATCHING_DELAY_TIME = 500;
-  private static boolean IS_CLUSTER_PATCHING = false;
+  private static boolean IS_CLUSTER_PATCHED = false;
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -67,8 +67,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       return true;
     }
 
-    IS_CLUSTER_PATCHING = awsResponse.clusters().get(0).clusterStatus().equals("modifying");
-    if (!IS_CLUSTER_PATCHING) {
+    IS_CLUSTER_PATCHED = awsResponse.clusters().get(0).clusterStatus().equals("modifying");
+    if (!IS_CLUSTER_PATCHED) {
       return false;
     } else {
       return isClusterActive(proxyClient, model, cxt);

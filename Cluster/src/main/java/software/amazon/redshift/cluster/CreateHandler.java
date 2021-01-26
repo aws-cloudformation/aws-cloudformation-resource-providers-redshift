@@ -7,6 +7,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AccessToSnapshotDeniedException;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
+import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
@@ -20,6 +21,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
 import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
+import software.amazon.awssdk.services.redshift.model.InProgressTableRestoreQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
 import software.amazon.awssdk.services.redshift.model.CreateUsageLimitRequest;
 import software.amazon.awssdk.services.redshift.model.CreateUsageLimitResponse;
@@ -32,7 +34,9 @@ import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
 import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
 import software.amazon.awssdk.services.redshift.model.InvalidSubnetException;
+import software.amazon.awssdk.services.redshift.model.InvalidTableRestoreArgumentException;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
+import software.amazon.awssdk.services.redshift.model.InvalidUsageLimitException;
 import software.amazon.awssdk.services.redshift.model.InvalidVpcNetworkStateException;
 import software.amazon.awssdk.services.redshift.model.LimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
@@ -46,6 +50,7 @@ import software.amazon.awssdk.services.redshift.model.SnapshotScheduleNotFoundEx
 import software.amazon.awssdk.services.redshift.model.TableRestoreNotFoundException;
 import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
+import software.amazon.awssdk.services.redshift.model.UsageLimitAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -197,7 +202,9 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, restoreTableFromClusterSnapshotRequest.clusterIdentifier());
         }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException
-                | ClusterSnapshotNotFoundException | TableRestoreNotFoundException e) {
+                | ClusterSnapshotNotFoundException | TableRestoreNotFoundException | InProgressTableRestoreQuotaExceededException
+                | InvalidClusterSnapshotStateException | InvalidTableRestoreArgumentException | ClusterNotFoundException
+                | UnsupportedOperationException e) {
             throw new CfnInvalidRequestException(restoreTableFromClusterSnapshotRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(restoreTableFromClusterSnapshotRequest.toString(), e);
@@ -218,7 +225,9 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createUsageLimitRequest.clusterIdentifier());
         }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException
-                | ClusterSnapshotNotFoundException | TableRestoreNotFoundException e) {
+                | ClusterSnapshotNotFoundException | TableRestoreNotFoundException | ClusterNotFoundException
+                | LimitExceededException | UsageLimitAlreadyExistsException | InvalidUsageLimitException
+                | TagLimitExceededException | UnsupportedOperationException e) {
             throw new CfnInvalidRequestException(createUsageLimitRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(createUsageLimitRequest.toString(), e);
