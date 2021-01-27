@@ -761,7 +761,6 @@
     "handlers": {
         "create": {
             "permissions": [
-                "initech:CreateReport",
                 "redshift:DescribeClusters",
                 "redshift:CreateCluster",
                 "redshift:RestoreFromClusterSnapshotRequest",
@@ -773,7 +772,6 @@
         },
         "read": {
             "permissions": [
-                "initech:DescribeReport",
                 "redshift:DescribeClusters",
                 "redshift:DescribeClusterDbRevisions",
                 "redshift:DescribeTableRestoreStatus",
@@ -785,7 +783,6 @@
         },
         "update": {
             "permissions": [
-                "initech:UpdateReport",
                 "redshift:DescribeClusters",
                 "redshift:ModifyCluster",
                 "redshift:ModifyClusterIamRoles",
@@ -809,7 +806,6 @@
         },
         "delete": {
             "permissions": [
-                "initech:DeleteReport",
                 "redshift:DescribeClusters",
                 "redshift:DeleteCluster",
                 "redshift:DeleteUsageLimit",
@@ -819,7 +815,6 @@
         },
         "list": {
             "permissions": [
-                "initech:ListReports",
                 "redshift:DescribeClusters"
             ]
         }

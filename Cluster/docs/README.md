@@ -1329,7 +1329,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ClusterAvailabilityStatus
 
-The availability status of the cluster for queries. Possible values are Available, Unavailable, Modifying, Maintenance, Failed.
+The availability status of the cluster for queries. Possible values are Available, Unavailable, Modifying, Maintenance, Failed. 
 
 _Required_: No
 
@@ -1439,7 +1439,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ClusterStatus
 
-The current state of the cluster.
+The current state of the cluster. 
 
 _Required_: No
 
@@ -1449,7 +1449,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ClusterSubnetGroupName
 
-The name of the subnet group that is associated with the cluster. This parameter is valid only when the cluster is in a VPC.
+The name of the subnet group that is associated with the cluster. This parameter is valid only when the cluster is in a VPC. 
 
 _Required_: No
 
@@ -2010,3 +2010,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### ClusterIdentifier
 
 A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account
+
