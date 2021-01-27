@@ -765,8 +765,7 @@
                 "redshift:CreateCluster",
                 "redshift:RestoreFromClusterSnapshotRequest",
                 "redshift:RestoreTableFromClusterSnapshotRequest",
-                "redshift:CreateUsageLimit",
-                "redshift:"
+                "redshift:CreateUsageLimit"
             ],
             "timeoutInMinutes": 60
         },

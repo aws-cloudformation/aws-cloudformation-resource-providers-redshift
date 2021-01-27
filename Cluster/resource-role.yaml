@@ -23,7 +23,6 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "redshift:"
                 - "redshift:CancelResize"
                 - "redshift:CreateCluster"
                 - "redshift:CreateTags"
