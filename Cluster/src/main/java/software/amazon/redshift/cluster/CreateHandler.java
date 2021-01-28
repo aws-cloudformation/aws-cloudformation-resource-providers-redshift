@@ -106,7 +106,8 @@ public class CreateHandler extends BaseHandlerStd {
                 return ProgressEvent.<ResourceModel, CallbackContext>builder()
                         .status(OperationStatus.FAILED)
                         .errorCode(HandlerErrorCode.NotFound)
-                        .message(HandlerErrorCode.NotFound.getMessage())
+                        .message(String.format(HandlerErrorCode.NotFound.getMessage(),
+                                "Cluster", resourceModel.getClusterIdentifier()))
                         .build();
             } else {
                 return ProgressEvent.progress(resourceModel, callbackContext)
@@ -119,11 +120,12 @@ public class CreateHandler extends BaseHandlerStd {
             }
         }
 
-        if(invalidCreateClusterRequest(resourceModel)) {
+        String invalidCreateClusterRequest = invalidCreateClusterRequest(resourceModel);
+        if(!invalidCreateClusterRequest.equals(VALID_CLUSTER_CREATE_REQUEST)) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
                     .errorCode(HandlerErrorCode.InvalidRequest)
-                    .message(HandlerErrorCode.InvalidRequest.getMessage())
+                    .message(String.format(HandlerErrorCode.InvalidRequest.getMessage(), invalidCreateClusterRequest))
                     .build();
         }
 

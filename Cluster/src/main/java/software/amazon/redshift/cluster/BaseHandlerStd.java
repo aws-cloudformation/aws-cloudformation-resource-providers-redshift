@@ -17,6 +17,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   public static int PATCHING_DELAY_TIME = 500;
   private static boolean IS_CLUSTER_PATCHED = false;
+  static String VALID_CLUSTER_CREATE_REQUEST = "validClusterCreateRequest";
+  static String INVALID_REDSHIFT_COMMAND = "RedshiftCommand entered is Invalid/Empty";
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -100,11 +102,23 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return true;
   }
 
-  // check for required parameters to not have null values
-  protected boolean invalidCreateClusterRequest(ResourceModel model) {
-    return model.getClusterIdentifier() == null || model.getNodeType() == null
-            || model.getMasterUsername() == null || model.getMasterUserPassword() == null
-            || model.getRedshiftCommand() == null || !model.getRedshiftCommand().equals("create-cluster");
+  // check for required parameters to not have null/empty values
+  protected String invalidCreateClusterRequest(ResourceModel model) {
+    if (StringUtils.isNullOrEmpty(model.getClusterIdentifier())) {
+      return "Required field 'ClusterIdentifier' cannot be NULL/empty.";
+    } else if (StringUtils.isNullOrEmpty(model.getNodeType())) {
+      return "Required field 'NodeType' cannot be NULL/empty.";
+    } else if (StringUtils.isNullOrEmpty(model.getMasterUsername())) {
+      return "Required field 'MasterUsername' cannot be NULL/empty.";
+    } else if (StringUtils.isNullOrEmpty(model.getMasterUserPassword())) {
+      return "Required field 'MasterUserPassword' cannot be NULL/empty.";
+    } else if (StringUtils.isNullOrEmpty(model.getRedshiftCommand())) {
+      return "Required field 'RedshiftCommand' cannot be NULL/empty.";
+    } else if (!model.getRedshiftCommand().equals("create-cluster")) {
+      return INVALID_REDSHIFT_COMMAND;
+    } else {
+      return VALID_CLUSTER_CREATE_REQUEST;
+    }
   }
 
   protected boolean isClusterActiveAfterDelete (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {

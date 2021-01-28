@@ -36,7 +36,8 @@ public class UpdateHandler extends BaseHandlerStd {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
                     .errorCode(HandlerErrorCode.NotFound)
-                    .message(HandlerErrorCode.NotFound.getMessage())
+                    .message(String.format(HandlerErrorCode.NotFound.getMessage(),
+                            "Cluster", model.getClusterIdentifier()))
                     .build();
         }
 

@@ -62,6 +62,7 @@ import static software.amazon.redshift.cluster.TestUtils.LIMIT_TYPE;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
 import static software.amazon.redshift.cluster.TestUtils.NEW_TABLE;
+import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 import static software.amazon.redshift.cluster.TestUtils.SNAPSHOT_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.SOURCE_DB;

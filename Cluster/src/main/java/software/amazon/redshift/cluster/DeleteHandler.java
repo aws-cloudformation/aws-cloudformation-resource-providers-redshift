@@ -80,7 +80,8 @@ public class DeleteHandler extends BaseHandlerStd {
                     return ProgressEvent.<ResourceModel, CallbackContext>builder()
                             .status(OperationStatus.FAILED)
                             .errorCode(HandlerErrorCode.InvalidRequest)
-                            .message(HandlerErrorCode.InvalidRequest.getMessage())
+                            .message(String.format(HandlerErrorCode.InvalidRequest.getMessage(),
+                                    INVALID_REDSHIFT_COMMAND))
                             .build();
                 });
 
