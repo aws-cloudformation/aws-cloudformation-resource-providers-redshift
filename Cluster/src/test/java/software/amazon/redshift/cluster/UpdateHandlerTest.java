@@ -95,6 +95,8 @@ import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 import static software.amazon.redshift.cluster.TestUtils.RESOURCE_NAME;
 import static software.amazon.redshift.cluster.TestUtils.RESOURCE_TYPE;
 import static software.amazon.redshift.cluster.TestUtils.USAGE_LIMIT_ID;
+import static software.amazon.redshift.cluster.TestUtils.clusterEndpoint;
+import static software.amazon.redshift.cluster.TestUtils.endpointAddress;
 import static software.amazon.redshift.cluster.TestUtils.s3KEYPREFIX;
 
 @ExtendWith(MockitoExtension.class)
@@ -147,6 +149,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodePublicIPAddress(new LinkedList<String>())
                 .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .endpointAddress(endpointAddress)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -169,6 +172,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<ClusterIamRole>())
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -218,6 +222,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodePublicIPAddress(new LinkedList<String>())
                 .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .endpointAddress(endpointAddress)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -240,6 +245,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<ClusterIamRole>())
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -288,6 +294,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .nodeType("dc2.large")
                 .numberOfNodes(NUMBER_OF_NODES)
                 .clusterStatus("available")
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -357,6 +364,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(iamRoles)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .endpoint(clusterEndpoint)
                 .build();
 
         Cluster modifiedClusterWithIamRoleResize = Cluster.builder()
@@ -374,6 +382,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(iamRoles)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().modifyClusterIamRoles(any(ModifyClusterIamRolesRequest.class)))
@@ -442,6 +451,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .manualSnapshotRetentionPeriod(null)
                 .publiclyAccessible(null)
                 .clusterRevisionNumber(CURRENT_DB_REVISION + ".1")
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().modifyClusterDbRevision(any(ModifyClusterDbRevisionRequest.class)))
@@ -511,6 +521,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .manualSnapshotRetentionPeriod(null)
                 .publiclyAccessible(null)
                 .deferredMaintenanceWindows(deferredMaintenanceWindows)
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().modifyClusterMaintenance(any(ModifyClusterMaintenanceRequest.class)))
@@ -556,6 +567,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodePublicIPAddress(new LinkedList<String>())
                 .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .endpointAddress(endpointAddress)
                 .build();
 
         Cluster rebootCluster = Cluster.builder()
@@ -568,6 +580,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .publiclyAccessible(true)
                 .allowVersionUpgrade(true)
                 .encrypted(false)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -629,6 +642,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterStatus("paused")
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(true)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -678,6 +692,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodePublicIPAddress(new LinkedList<String>())
                 .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .endpointAddress(endpointAddress)
                 .build();
 
         Cluster resumeCluster = Cluster.builder()
@@ -690,6 +705,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .publiclyAccessible(true)
                 .allowVersionUpgrade(true)
                 .encrypted(false)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -741,6 +757,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
                 .destinationRegion("us-west-1")
                 .manualSnapshotRetentionPeriod(5)
+                .endpointAddress(endpointAddress)
                 .build();
 
         Cluster snapshotCopyEnabledCLuster = Cluster.builder()
@@ -753,6 +770,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .publiclyAccessible(true)
                 .encrypted(false)
                 .allowVersionUpgrade(true)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -802,6 +820,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodePublicIPAddress(new LinkedList<String>())
                 .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .endpointAddress(endpointAddress)
                 .build();
 
         Cluster snapshotCopyEnabledCLuster = Cluster.builder()
@@ -812,6 +831,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterStatus(CLUSTER_AVAILABLE)
                 .publiclyAccessible(true)
                 .encrypted(false)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -874,6 +894,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .encrypted(true)
                 .manualSnapshotRetentionPeriod(7)
                 .automatedSnapshotRetentionPeriod(1)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -977,6 +998,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterNodePublicIPAddress(new LinkedList<String>())
                 .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
                 .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+                .endpointAddress(endpointAddress)
                 .build();
 
         Cluster resizeCluster = Cluster.builder()
@@ -990,6 +1012,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .manualSnapshotRetentionPeriod(1)
                 .automatedSnapshotRetentionPeriod(1)
                 .allowVersionUpgrade(true)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -1095,6 +1118,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .publiclyAccessible(true)
                 .manualSnapshotRetentionPeriod(7)
                 .automatedSnapshotRetentionPeriod(1)
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
@@ -1193,6 +1217,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .publiclyAccessible(true)
                 .manualSnapshotRetentionPeriod(7)
                 .automatedSnapshotRetentionPeriod(1)
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))

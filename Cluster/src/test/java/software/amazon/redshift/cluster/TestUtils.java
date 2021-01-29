@@ -5,6 +5,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterDbRevision;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
+import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.RevisionTarget;
 import software.amazon.awssdk.services.redshift.model.Tag;
 import software.amazon.awssdk.services.redshift.model.UsageLimit;
@@ -39,6 +40,8 @@ public class TestUtils {
     final static String RESOURCE_TYPE = "Cluster";
     final static String USAGE_LIMIT_ID = "usage-limit-id";
     final static String s3KEYPREFIX = "s3KeyPrefix";
+    final static String endpointAddress = "127.0.0.1";
+    final static Endpoint clusterEndpoint = Endpoint.builder().address(endpointAddress).build();
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -56,6 +59,7 @@ public class TestUtils {
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
             .tags(new LinkedList<Tag>())
             .clusterStatus(CLUSTER_AVAILABLE)
+            .endpoint(clusterEndpoint)
             .build();
 
     final static Cluster BASIC_CLUSTER_READ = Cluster.builder()
@@ -74,6 +78,7 @@ public class TestUtils {
             .iamRoles(new LinkedList<ClusterIamRole>())
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
             .tags(new LinkedList<Tag>())
+            .endpoint(clusterEndpoint)
             .build();
 
     final static Cluster BASIC_CLUSTER_READ_AFTER_DELETE = Cluster.builder()
@@ -145,6 +150,7 @@ public class TestUtils {
             .clusterNodePublicIPAddress(new LinkedList<String>())
             .tags(new LinkedList<software.amazon.redshift.cluster.Tag>())
             .clusterStatus(CLUSTER_AVAILABLE)       // any operation is possible on an "available" cluster
+            .endpointAddress(endpointAddress)
             .build();
 
     final static ResourceModel DESCRIBE_DB_REVISIONS_MODEL = ResourceModel.builder()

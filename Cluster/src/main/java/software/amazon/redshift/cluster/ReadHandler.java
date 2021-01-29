@@ -104,17 +104,7 @@ public class ReadHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("cancel-resize")) {
-                        return proxy.initiate("AWS-Redshift-Cluster::DescribeResize", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator::translateToDescribeResizeRequest)
-                                .makeServiceCall(this::describeResize)
-                                .done(this::constructResourceModelFromDescribeResizeResponse);
-                    }
-                    return progress;
-                })
-
-                .then(progress -> {
-                    if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("describe-resize")) {
+                    if(model.getRedshiftCommand() != null && (model.getRedshiftCommand().equals("cancel-resize") || model.getRedshiftCommand().equals("describe-resize") )) {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeResize", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDescribeResizeRequest)
                                 .makeServiceCall(this::describeResize)

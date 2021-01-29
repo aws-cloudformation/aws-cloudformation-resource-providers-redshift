@@ -19,6 +19,11 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   private static boolean IS_CLUSTER_PATCHED = false;
   static String VALID_CLUSTER_CREATE_REQUEST = "validClusterCreateRequest";
   static String INVALID_REDSHIFT_COMMAND = "RedshiftCommand entered is Invalid/Empty";
+  private static String CLUSTER_IDENTIFIER = "ClusterIdentifier";
+  private static String NODE_TYPE = "NodeType";
+  private static String MASTER_USERNAME = "MasterUsername";
+  private static String MASTER_USER_PASSWORD = "MasterUserPassword";
+  private static String REDSHIFT_COMMAND = "create-cluster";
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -104,16 +109,17 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   // check for required parameters to not have null/empty values
   protected String invalidCreateClusterRequest(ResourceModel model) {
+    String requiredFieldMessage = "Required field %s cannot be NULL/empty.";
     if (StringUtils.isNullOrEmpty(model.getClusterIdentifier())) {
-      return "Required field 'ClusterIdentifier' cannot be NULL/empty.";
+      return String.format(requiredFieldMessage, CLUSTER_IDENTIFIER);
     } else if (StringUtils.isNullOrEmpty(model.getNodeType())) {
-      return "Required field 'NodeType' cannot be NULL/empty.";
+      return String.format(requiredFieldMessage, NODE_TYPE);
     } else if (StringUtils.isNullOrEmpty(model.getMasterUsername())) {
-      return "Required field 'MasterUsername' cannot be NULL/empty.";
+      return String.format(requiredFieldMessage, MASTER_USERNAME);
     } else if (StringUtils.isNullOrEmpty(model.getMasterUserPassword())) {
-      return "Required field 'MasterUserPassword' cannot be NULL/empty.";
+      return String.format(requiredFieldMessage, MASTER_USER_PASSWORD);
     } else if (StringUtils.isNullOrEmpty(model.getRedshiftCommand())) {
-      return "Required field 'RedshiftCommand' cannot be NULL/empty.";
+      return String.format(requiredFieldMessage, REDSHIFT_COMMAND);
     } else if (!model.getRedshiftCommand().equals("create-cluster")) {
       return INVALID_REDSHIFT_COMMAND;
     } else {

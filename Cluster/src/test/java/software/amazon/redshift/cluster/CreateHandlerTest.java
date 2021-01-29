@@ -69,6 +69,8 @@ import static software.amazon.redshift.cluster.TestUtils.SOURCE_DB;
 import static software.amazon.redshift.cluster.TestUtils.SOURCE_TABLE;
 import static software.amazon.redshift.cluster.TestUtils.TARGET_DB;
 import static software.amazon.redshift.cluster.TestUtils.USAGE_LIMIT;
+import static software.amazon.redshift.cluster.TestUtils.clusterEndpoint;
+import static software.amazon.redshift.cluster.TestUtils.endpointAddress;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -154,6 +156,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .publiclyAccessible(true)
                 .manualSnapshotRetentionPeriod(7)
                 .automatedSnapshotRetentionPeriod(1)
+                .endpoint(clusterEndpoint)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()

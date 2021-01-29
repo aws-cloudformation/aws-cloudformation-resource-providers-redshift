@@ -50,6 +50,7 @@ import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 import static software.amazon.redshift.cluster.TestUtils.RESOURCE_NAME;
 import static software.amazon.redshift.cluster.TestUtils.USAGE_LIMIT_ID;
+import static software.amazon.redshift.cluster.TestUtils.clusterEndpoint;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest extends AbstractTestBase {
@@ -133,6 +134,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .numberOfNodes(NUMBER_OF_NODES)
                 .clusterStatus(CLUSTER_AVAILABLE)
                 .publiclyAccessible(true)
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class)))
@@ -175,6 +177,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .numberOfNodes(NUMBER_OF_NODES)
                 .clusterStatus(CLUSTER_AVAILABLE)
                 .publiclyAccessible(true)
+                .endpoint(clusterEndpoint)
                 .build();
 
         when(proxyClient.client().deleteUsageLimit(any(DeleteUsageLimitRequest.class)))
