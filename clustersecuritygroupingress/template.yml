@@ -21,4 +21,3 @@ Resources:
       Handler: software.amazon.redshift.clustersecuritygroupingress.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-redshift-clustersecuritygroupingress-handler-1.0-SNAPSHOT.jar
-
