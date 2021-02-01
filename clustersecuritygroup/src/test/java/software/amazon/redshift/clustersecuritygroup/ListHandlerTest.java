@@ -1,6 +1,5 @@
 package software.amazon.redshift.clustersecuritygroup;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,10 +18,7 @@ import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clustersecuritygroup.TestUtils.AWS_REGION;
 import static software.amazon.redshift.clustersecuritygroup.TestUtils.CLUSTER_SECURITY_GROUP;
@@ -51,12 +47,6 @@ public class ListHandlerTest extends AbstractTestBase {
         handler = new ListHandler();
     }
 
-    @AfterEach
-    public void tear_down() {
-        verify(sdkClient, atLeastOnce()).serviceName();
-        verifyNoMoreInteractions(sdkClient);
-    }
-
     @Test
     public void handleRequest_Success() {
         final ResourceModel model = COMPLETE_MODEL;
@@ -78,6 +68,9 @@ public class ListHandlerTest extends AbstractTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getResourceModel()).isNull();
+        assertThat(response.getResourceModels()).isNotNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
     }
 }

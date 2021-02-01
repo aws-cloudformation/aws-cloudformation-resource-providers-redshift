@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 class Configuration extends BaseConfiguration {
 
     public Configuration() {
-        super("aws-kms-key.json");
+        super("aws-redshift-clustersecuritygroup.json");
     }
 
     public JSONObject resourceSchemaJsonObject() {

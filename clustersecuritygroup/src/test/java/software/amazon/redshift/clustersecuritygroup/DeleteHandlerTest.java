@@ -10,8 +10,8 @@ import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSecurityGroupRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSecurityGroupResponse;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -93,12 +93,12 @@ public class DeleteHandlerTest extends AbstractTestBase {
         when(proxyClient.client().deleteClusterSecurityGroup(any(DeleteClusterSecurityGroupRequest.class))).thenThrow(
                 ClusterSecurityGroupNotFoundException.class);
 
-        boolean flag = false;
-        try {
-            handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        } catch (CfnNotFoundException e) {
-            flag = true;
-        }
-        assertThat(flag).isTrue();
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isEqualTo(HandlerErrorCode.NotFound);
     }
 }

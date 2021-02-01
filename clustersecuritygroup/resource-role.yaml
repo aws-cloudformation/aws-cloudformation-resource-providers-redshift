@@ -23,28 +23,11 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "ec2:AllocateAddress"
-                - "ec2:AssociateAddress"
-                - "ec2:AttachNetworkInterface"
-                - "ec2:DescribeAccountAttributes"
-                - "ec2:DescribeAddresses"
-                - "ec2:DescribeAvailabilityZones"
-                - "ec2:DescribeInternetGateways"
-                - "ec2:DescribeSecurityGroups"
-                - "ec2:DescribeSubnets"
-                - "ec2:DescribeVpcs"
-                - "initech:DeleteReport"
                 - "initech:DescribeReport"
-                - "initech:ListReports"
-                - "initech:UpdateReport"
-                - "redshift:CreateClusterParameterGroup"
                 - "redshift:CreateTags"
-                - "redshift:DeleteClusterParameterGroup"
-                - "redshift:DeleteTags"
-                - "redshift:DescribeClusterParameterGroups"
-                - "redshift:DescribeTags"
-                - "redshift:ModifyClusterParameterGroup"
-                - "redshift:ResetClusterParameterGroup"
+                - "redshift:DescribeClusterSecurityGroups"
+                - "redshift:createClusterSecurityGroup"
+                - "redshift:deleteClusterSecurityGroup"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
