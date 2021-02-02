@@ -214,7 +214,10 @@
     ],
     "writeOnlyProperties": [
         "/properties/MasterUserPassword",
-        "/properties/SkipFinalClusterSnapshot"
+        "/properties/SkipFinalClusterSnapshot",
+        "/properties/NewClusterIdentifier",
+        "/properties/AddIamRoles",
+        "/properties/RemoveIamRoles"
     ],
     "handlers": {
         "create": {
