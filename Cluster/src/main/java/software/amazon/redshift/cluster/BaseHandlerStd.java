@@ -81,12 +81,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean isClusterActiveAfterDelete (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-    //check for contract tests clean up
-    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
-            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
-
     DescribeClustersRequest awsRequest =
-            DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
     try {
       DescribeClustersResponse awsResponse =
               proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
