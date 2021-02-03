@@ -262,10 +262,7 @@ public class Translator {
    * @return awsRequest the aws service request to delete a resource
    */
   static DeleteClusterRequest translateToDeleteRequest(final ResourceModel model) {
-    //temp hack to pass contract tests
-    boolean skipFinalClusterSnapshot = model.getFinalClusterSnapshotIdentifier() == null ||
-            model.getFinalClusterSnapshotIdentifier().equalsIgnoreCase("true");
-
+    boolean skipFinalClusterSnapshot = model.getSkipFinalClusterSnapshot() != null && model.getSkipFinalClusterSnapshot();
     return DeleteClusterRequest
             .builder()
             .clusterIdentifier(model.getClusterIdentifier())

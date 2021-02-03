@@ -83,7 +83,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToUpdateRequest)
                             .makeServiceCall(this::updateResource)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterModify(_client, _model, _context))
                             .progress();
                 }
                 return progress;

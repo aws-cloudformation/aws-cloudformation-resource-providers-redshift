@@ -214,12 +214,14 @@
     ],
     "writeOnlyProperties": [
         "/properties/MasterUserPassword",
-        "/properties/SkipFinalClusterSnapshot"
+        "/properties/SkipFinalClusterSnapshot",
+        "/properties/NewClusterIdentifier",
+        "/properties/AddIamRoles",
+        "/properties/RemoveIamRoles"
     ],
     "handlers": {
         "create": {
             "permissions": [
-                "initech:CreateReport",
                 "redshift:DescribeClusters",
                 "redshift:CreateCluster"
             ],
@@ -227,13 +229,11 @@
         },
         "read": {
             "permissions": [
-                "initech:DescribeReport",
                 "redshift:DescribeClusters"
             ]
         },
         "update": {
             "permissions": [
-                "initech:UpdateReport",
                 "redshift:DescribeClusters",
                 "redshift:ModifyCluster",
                 "redshift:ModifyClusterIamRoles"
@@ -242,7 +242,6 @@
         },
         "delete": {
             "permissions": [
-                "initech:DeleteReport",
                 "redshift:DescribeClusters",
                 "redshift:DeleteCluster"
             ],
@@ -250,7 +249,6 @@
         },
         "list": {
             "permissions": [
-                "initech:ListReports",
                 "redshift:DescribeClusters"
             ]
         }
