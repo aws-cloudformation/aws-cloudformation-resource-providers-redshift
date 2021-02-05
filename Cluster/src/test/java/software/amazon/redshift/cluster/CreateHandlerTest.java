@@ -1,20 +1,35 @@
 package software.amazon.redshift.cluster;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 
 import junit.framework.Assert;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.CancelResizeRequest;
+import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupResponse;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitRequest;
+import software.amazon.awssdk.services.redshift.model.CreateUsageLimitResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTableRestoreStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsResponse;
+import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
+import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotResponse;
+import software.amazon.awssdk.services.redshift.model.RestoreTableFromClusterSnapshotRequest;
+import software.amazon.awssdk.services.redshift.model.RestoreTableFromClusterSnapshotResponse;
+import software.amazon.awssdk.services.redshift.model.TableRestoreStatus;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -39,7 +54,23 @@ import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
+import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
+import static software.amazon.redshift.cluster.TestUtils.CLUSTER_AVAILABLE;
+import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
+import static software.amazon.redshift.cluster.TestUtils.FEATURE_TYPE;
+import static software.amazon.redshift.cluster.TestUtils.LIMIT_TYPE;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
+import static software.amazon.redshift.cluster.TestUtils.NEW_TABLE;
+import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
+import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
+import static software.amazon.redshift.cluster.TestUtils.SNAPSHOT_IDENTIFIER;
+import static software.amazon.redshift.cluster.TestUtils.SOURCE_DB;
+import static software.amazon.redshift.cluster.TestUtils.SOURCE_TABLE;
+import static software.amazon.redshift.cluster.TestUtils.TARGET_DB;
+import static software.amazon.redshift.cluster.TestUtils.USAGE_LIMIT;
+import static software.amazon.redshift.cluster.TestUtils.clusterEndpoint;
+import static software.amazon.redshift.cluster.TestUtils.endpointAddress;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -72,6 +103,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     @Test
     public void handleRequest_SimpleSuccess() {
         ResourceModel model = BASIC_MODEL;
+        model.setRedshiftCommand("create-cluster");
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -91,8 +123,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+        response.getResourceModel().setRedshiftCommand("create-cluster");
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -109,4 +141,166 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .describeClusters(any(DescribeClustersRequest.class));
 
     }
+
+    @Test
+    public void testRestoreFromClusterSnapshot() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .snapshotIdentifier(SNAPSHOT_IDENTIFIER)
+                .redshiftCommand("restore-from-cluster-snapshot")
+                .build();
+
+        Cluster snapshotRestoreCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .clusterStatus(CLUSTER_AVAILABLE)
+                .publiclyAccessible(true)
+                .manualSnapshotRetentionPeriod(7)
+                .automatedSnapshotRetentionPeriod(1)
+                .endpoint(clusterEndpoint)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().restoreFromClusterSnapshot(any(RestoreFromClusterSnapshotRequest.class)))
+                .thenReturn(RestoreFromClusterSnapshotResponse.builder()
+                        .cluster(snapshotRestoreCluster)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(snapshotRestoreCluster)
+                        .build());
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setRedshiftCommand("restore-from-cluster-snapshot");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getClusterIdentifier()).isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
+
+        verify(proxyClient.client()).restoreFromClusterSnapshot(any(RestoreFromClusterSnapshotRequest.class));
+    }
+
+    @Test
+    public void testRestoreTableFromClusterSnapshot() {
+        final ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .snapshotIdentifier(SNAPSHOT_IDENTIFIER)
+                .sourceDatabaseName(SOURCE_DB)
+                .sourceTableName(SOURCE_TABLE)
+                .targetDatabaseName(TARGET_DB)
+                .newTableName(NEW_TABLE)
+                .redshiftCommand("restore-table-from-cluster-snapshot")
+                .build();
+
+        TableRestoreStatus tableRestoreStatus = TableRestoreStatus.builder()
+                .status("SUCCEEDED")
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .sourceTableName(SOURCE_TABLE)
+                .newTableName(NEW_TABLE)
+                .message("SUCCEEDED")
+                .sourceTableName(SOURCE_TABLE)
+                .sourceSchemaName("public")
+                .tableRestoreRequestId("table_restore_id")
+                .progressInMegaBytes(0L)
+                .totalDataInMegaBytes(0L)
+                .requestTime(Instant.now())
+                .snapshotIdentifier(SNAPSHOT_IDENTIFIER)
+                .sourceDatabaseName(SOURCE_DB)
+                .targetDatabaseName(TARGET_DB)
+                .targetSchemaName("public")
+                .build();
+
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .build();
+
+        when(proxyClient.client().restoreTableFromClusterSnapshot(any(RestoreTableFromClusterSnapshotRequest.class)))
+                .thenReturn(RestoreTableFromClusterSnapshotResponse.builder()
+                        .tableRestoreStatus(tableRestoreStatus)
+                        .build());
+
+        when(proxyClient.client().describeTableRestoreStatus(any(DescribeTableRestoreStatusRequest.class)))
+                .thenReturn(DescribeTableRestoreStatusResponse.builder()
+                        .tableRestoreStatusDetails(tableRestoreStatus)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+        verify(proxyClient.client()).restoreTableFromClusterSnapshot(any(RestoreTableFromClusterSnapshotRequest.class));
+    }
+
+    @Test
+    public void testCreateUsageLimit() {
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .redshiftCommand("create-usage-limit")
+                .featureType(FEATURE_TYPE)
+                .limitType(LIMIT_TYPE)
+                .amount(1.0)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().createUsageLimit(any(CreateUsageLimitRequest.class)))
+                .thenReturn(CreateUsageLimitResponse.builder()
+                        .clusterIdentifier(CLUSTER_IDENTIFIER)
+                        .featureType(FEATURE_TYPE)
+                        .limitType(LIMIT_TYPE)
+                        .amount(1L)
+                        .build());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build());
+
+        when(proxyClient.client().describeUsageLimits(any(DescribeUsageLimitsRequest.class)))
+                .thenReturn(DescribeUsageLimitsResponse.builder()
+                        .usageLimits(USAGE_LIMIT)
+                        .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+        response.getResourceModel().setRedshiftCommand("create-usage-limit");
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getUsageLimitId()).isEqualTo(USAGE_LIMIT.usageLimitId());
+
+        verify(proxyClient.client()).createUsageLimit(any(CreateUsageLimitRequest.class));
+        verify(proxyClient.client(), times(3))
+                .describeClusters(any(DescribeClustersRequest.class));
+        verify(proxyClient.client(), times(1))
+                .describeUsageLimits(any(DescribeUsageLimitsRequest.class));
+
+    }
+
 }

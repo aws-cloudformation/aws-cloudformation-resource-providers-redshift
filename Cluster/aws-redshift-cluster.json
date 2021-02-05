@@ -62,6 +62,14 @@
             "description": "The EC2 Availability Zone (AZ) in which you want Amazon Redshift to provision the cluster. Default: A random, system-chosen Availability Zone in the region that is specified by the endpoint",
             "type": "string"
         },
+        "AvailabilityZoneRelocation": {
+            "description": "The option to enable relocation for an Amazon Redshift cluster between Availability Zones after the cluster modification is complete.",
+            "type": "boolean"
+        },
+        "AvailabilityZoneRelocationStatus": {
+            "description": "The availability zone relocation status of the cluster",
+            "type": "string"
+        },
         "ClusterParameterGroupName": {
             "description": "The name of the parameter group to be associated with this cluster.",
             "type": "string",
@@ -83,6 +91,22 @@
             "description": "The Elastic IP (EIP) address for the cluster.",
             "type": "string"
         },
+        "ElasticIpStatus": {
+            "description": "The status of the elastic IP (EIP) address.",
+            "type": "string"
+        },
+        "ElasticResizeNumberOfNodeOptions": {
+            "description": "The number of nodes that you can resize the cluster to with the elastic resize method.",
+            "type": "string"
+        },
+        "EndpointAddress": {
+            "description": "The DNS address of the Cluster.",
+            "type": "string"
+        },
+        "EndpointPort": {
+            "description": "The DNS address of the Port.",
+            "type": "integer"
+        },
         "Encrypted": {
             "description": "If true, the data in the cluster is encrypted at rest.",
             "type": "boolean"
@@ -90,6 +114,18 @@
         "EnhancedVpcRouting": {
             "description": "An option that specifies whether to create the cluster with enhanced VPC routing enabled. To create a cluster that uses enhanced VPC routing, the cluster must be in a VPC.",
             "type": "boolean"
+        },
+        "ExpectedNextSnapshotScheduleTime": {
+            "description": "The date and time when the next snapshot is expected to be taken for clusters with a valid snapshot schedule and backups enabled.",
+            "type": "string"
+        },
+        "ExpectedNextSnapshotScheduleTimeStatus": {
+            "description": "The status of next expected snapshot for clusters having a valid snapshot schedule and backups enabled. Possible values are the following OnTrack, Pending",
+            "type": "string"
+        },
+        "HsmStatus": {
+            "description": "A value that reports whether the Amazon Redshift cluster has finished applying any hardware security module (HSM) settings changes specified in a modify cluster command. Values active, applying",
+            "type": "string"
         },
         "HsmClientCertificateIdentifier": {
             "description": "Specifies the name of the HSM client certificate the Amazon Redshift cluster uses to retrieve the data encryption keys stored in an HSM",
@@ -127,8 +163,44 @@
             "description": "If true, the cluster can be accessed from a public network.",
             "type": "boolean"
         },
+        "AllowCancelResize": {
+            "description": "A boolean value indicating if the resize operation can be cancelled.",
+            "type": "boolean"
+        },
+        "ResizeType": {
+            "description": "Returns the value ClassicResize.",
+            "type": "string"
+        },
+        "CurrentRestoreRateInMegaBytesPerSecond": {
+            "description": "The number of megabytes per second being transferred from the backup storage. Returns the average rate for a completed backup. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreProgressInMegaBytes": {
+            "description": "The number of megabytes that have been transferred from snapshot storage. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreElapsedTimeInSeconds": {
+            "description": "The amount of time an in-progress restore has been running, or the amount of time it took a completed restore to finish. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreEstimatedTimeToCompletionInSeconds": {
+            "description": "The estimate of the time remaining before the restore will complete. Returns 0 for a completed restore. This field is only updated when you restore to DC2 and DS2 node types.",
+            "type": "number"
+        },
+        "RestoreSnapshotSizeInMegaBytes": {
+            "description": "The size of the set of snapshot data used to restore the cluster. This field is only updated when you restore to DC2 and DS2 node types..",
+            "type": "number"
+        },
+        "RestoreStatus": {
+            "description": " The status of the restore action. Returns starting, restoring, completed, or failed.",
+            "type": "string"
+        },
         "SnapshotScheduleIdentifier": {
             "description": "A unique identifier for the snapshot schedule.",
+            "type": "string"
+        },
+        "SnapshotScheduleState": {
+            "description": "The current state of the cluster snapshot schedule.",
             "type": "string"
         },
         "ClusterSecurityGroups": {
@@ -146,8 +218,24 @@
                 "type": "string"
             }
         },
+        "IamRoleArn": {
+            "description": "The Amazon Resource Name (ARN) of the IAM role.",
+            "type": "string"
+        },
+        "IamRoleApplyStatus": {
+            "description": "A value that describes the status of the IAM role's association with an Amazon Redshift cluster. Adding, Removing, In-sync",
+            "type": "string"
+        },
+        "ModifyStatus": {
+            "description": "The status of a modify operation, if any, initiated for the cluster.",
+            "type": "string"
+        },
+        "NextMaintenanceWindowStartTime": {
+            "description": "The date and time in UTC when system maintenance can begin.",
+            "type": "string"
+        },
         "Tags": {
-            "description": "The list of tags for the cluster parameter group.",
+            "description": "The list of tags for the cluster.",
             "type": "array",
             "maxItems": 50,
             "items": {
@@ -179,7 +267,7 @@
         },
         "MaxRecords": {
             "description": "The maximum number of response records to return in each call. If the number of remaining response records exceeds the specified MaxRecords value, a value is returned in a marker field of the response.",
-            "type": "string"
+            "type": "integer"
         },
         "NewClusterIdentifier": {
             "description": "The new identifier for the cluster.",
@@ -200,6 +288,460 @@
             "items": {
                 "type": "string"
             }
+        },
+        "RedshiftCommand": {
+            "description": "The redshift API command",
+            "type": "string"
+        },
+        "CurrentDatabaseRevision": {
+            "description": "A string representing the current cluster version.",
+            "type": "string"
+        },
+        "DatabaseRevisionReleaseDate": {
+            "description": "The date on which the database revision was released.",
+            "type": "string"
+        },
+        "RevisionTarget": {
+            "description": "The identifier of the database revision. You can retrieve this value from the response to the DescribeClusterDbRevisions request.",
+            "type": "string"
+        },
+        "RevisionTargets": {
+            "description": "A list of RevisionTarget objects, where each object describes the database revision that a cluster can be updated to.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "DeferMaintenance": {
+            "description": "A boolean indicating whether to enable the deferred maintenance window.",
+            "type": "boolean"
+        },
+        "DeferMaintenanceDuration": {
+            "description": "An integer indicating the duration of the maintenance window in days. If you specify a duration, you can't specify an end time. The duration must be 45 days or less.",
+            "type": "integer"
+        },
+        "DeferMaintenanceEndTime": {
+            "description": "A timestamp indicating end time for the deferred maintenance window. If you specify an end time, you can't specify a duration.",
+            "type": "string"
+        },
+        "DeferMaintenanceStartTime": {
+            "description": "A timestamp indicating start time for the deferred maintenance window.",
+            "type": "string"
+        },
+        "DeferMaintenanceIdentifier": {
+            "description": "A unique identifier for the deferred maintenance window.",
+            "type": "string"
+        },
+        "DeferMaintenanceWindows": {
+            "description": "A list of Deferred maintenance windows.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "SnapshotIdentifier": {
+            "description": "The identifier of the snapshot whose setting you want to modify.",
+            "type": "string"
+        },
+        "Force": {
+            "description": "A Boolean option to override an exception if the retention period has already passed.",
+            "type": "boolean"
+        },
+        "AccountsWithRestoreAccess": {
+            "description": "A list of the AWS customer accounts authorized to restore the snapshot. Returns null if no accounts are authorized. Visible only to the snapshot owner.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ActualIncrementalBackupSizeInMegaBytes": {
+            "description": "The size of the incremental backup.",
+            "type": "number"
+        },
+        "BackupProgressInMegaBytes": {
+            "description": "The number of megabytes that have been transferred to the snapshot backup.",
+            "type": "number"
+        },
+        "ClusterCreateTime": {
+            "description": "The time (UTC) when the cluster was originally created.",
+            "type": "string"
+        },
+        "CurrentBackupRateInMegaBytesPerSecond": {
+            "description": "The number of megabytes per second being transferred to the snapshot backup. Returns 0 for a completed backup.",
+            "type": "number"
+        },
+        "ElapsedTimeInSeconds": {
+            "description": "The amount of time an in-progress snapshot backup has been running, or the amount of time it took a completed backup to finish.",
+            "type": "number"
+        },
+        "EncryptedWithHSM": {
+            "description": "A boolean that indicates whether the snapshot data is encrypted using the HSM keys of the source cluster. true indicates that the data is encrypted using HSM keys.",
+            "type": "boolean"
+        },
+        "EstimatedSecondsToCompletion": {
+            "description": "The estimate of the time remaining before the snapshot backup will complete. Returns 0 for a completed backup.",
+            "type": "number"
+        },
+        "ManualSnapshotRemainingDays": {
+            "description": "The number of days until a manual snapshot will pass its retention period.",
+            "type": "integer"
+        },
+        "OwnerAccount": {
+            "description": "For manual snapshots, the AWS customer account used to create or copy the snapshot. For automatic snapshots, the owner of the cluster. The owner can perform all snapshot actions, such as sharing a manual snapshot.",
+            "type": "string"
+        },
+        "RestorableNodeTypes": {
+            "description": "The list of node types that this cluster snapshot is able to restore into.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "SnapshotCreateTime": {
+            "description": "The time (in UTC format) when Amazon Redshift began the snapshot. A snapshot contains a copy of the cluster data as of this exact time.",
+            "type": "string"
+        },
+        "SnapshotRetentionStartTime": {
+            "description": "A timestamp representing the start of the retention period for the snapshot.",
+            "type": "string"
+        },
+        "SnapshotType": {
+            "description": "The snapshot type. Snapshots created using CreateClusterSnapshot and CopyClusterSnapshot are of type \"manual\".",
+            "type": "string"
+        },
+        "SourceRegion": {
+            "description": "The source region from which the snapshot was copied.",
+            "type": "string"
+        },
+        "Status": {
+            "description": "The snapshot status. The value of the status depends on the API operation used.",
+            "type": "string"
+        },
+        "TotalBackupSizeInMegaBytes": {
+            "description": "The size of the complete set of backup data that would be used to restore the cluster.",
+            "type": "number"
+        },
+        "VpcId": {
+            "description": "The VPC identifier of the cluster if the snapshot is from a cluster in a VPC. Otherwise, this field is not in the output.",
+            "type": "string"
+        },
+        "StartTime": {
+            "description": "A value that requests only snapshots created at or after the specified time. The time value is specified in ISO 8601 format",
+            "type": "string"
+        },
+        "EndTime": {
+            "description": "A value that requests only snapshots created at or before the specified time. The time value is specified in ISO 8601 format",
+            "type": "string"
+        },
+        "TagKeys": {
+            "description": "A tag key or keys for which you want to return all matching cluster snapshots that are associated with the specified key or keys.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "TagValues": {
+            "description": "A tag value or values for which you want to return all matching cluster snapshots that are associated with the specified tag value or values.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterExists": {
+            "description": "A value that indicates whether to return snapshots only for an existing cluster.",
+            "type": "boolean"
+        },
+        "RetentionPeriod": {
+            "description": "The number of days to retain automated snapshots in the destination AWS Region after they are copied from the source AWS Region.By default, this only changes the retention period of copied automated snapshots.",
+            "type": "integer"
+        },
+        "Manual": {
+            "description": "Indicates whether to apply the snapshot retention period to newly copied manual snapshots instead of automated snapshots.",
+            "type": "boolean"
+        },
+        "ClusterAvailabilityStatus": {
+            "description": "The availability status of the cluster for queries. Possible values are Available, Unavailable, Modifying, Maintenance, Failed. ",
+            "type": "string"
+        },
+        "ClusterNamespaceArn": {
+            "description": "The namespace Amazon Resource Name (ARN) of the cluster.",
+            "type": "string"
+        },
+        "ClusterNodes": {
+            "description": "The nodes in the cluster.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterParameterGroups": {
+            "description": "The list of cluster parameter groups that are associated with this cluster. Each parameter group in the list is returned with its status.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterPublicKey": {
+            "description": "The public key for the cluster.",
+            "type": "string"
+        },
+        "ClusterRevisionNumber": {
+            "description": "The specific revision number of the database in the cluster.",
+            "type": "string"
+        },
+        "ClusterNodeRole": {
+            "description": "Whether the node is a leader node or a compute node.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterNodePrivateIPAddress": {
+            "description": "The private IP address of a node within a cluster.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ClusterNodePublicIPAddress": {
+            "description": "The public IP address of a node within a cluster.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "DestinationRegion": {
+            "description": "The destination region that snapshots are automatically copied to when cross-region snapshot copy is enabled.",
+            "type": "string"
+        },
+        "SnapshotCopyGrantName": {
+            "description": "The name of the snapshot copy grant.",
+            "type": "string"
+        },
+        "ClusterStatus": {
+            "description": "The current state of the cluster. ",
+            "type": "string"
+        },
+        "ClusterSubnetGroupName": {
+            "description": "The name of the subnet group that is associated with the cluster. This parameter is valid only when the cluster is in a VPC. ",
+            "type": "string"
+        },
+        "CurrentRateInMegaBytesPerSecond": {
+            "description": "Describes the data transfer rate in MB's per second.",
+            "type": "number"
+        },
+        "DataTransferredInMegaBytes": {
+            "description": "Describes the total amount of data that has been transfered in MB's.",
+            "type": "number"
+        },
+        "DataTransferProgressElapsedTimeInSeconds": {
+            "description": "Describes the number of seconds that have elapsed during the data transfer.",
+            "type": "number"
+        },
+        "EstimatedTimeToCompletionInSeconds": {
+            "description": "Describes the estimated number of seconds remaining to complete the transfer.",
+            "type": "number"
+        },
+        "DataTransferProgressStatus": {
+            "description": "Describes the status of the cluster. While the transfer is in progress the status is transferring data.",
+            "type": "string"
+        },
+        "TotalDataInMegaBytes": {
+            "description": "Describes the total amount of data to be transferred in megabytes.",
+            "type": "number"
+        },
+        "BucketName": {
+            "description": "The name of an existing S3 bucket where the log files are to be stored.",
+            "type": "string"
+        },
+        "S3Prefix": {
+            "description": "The prefix applied to the log file names.",
+            "type": "string"
+        },
+        "Classic": {
+            "description": "A boolean value indicating whether the resize operation is using the classic resize process. If you don't provide this parameter or set the value to false, the resize type is elastic.",
+            "type": "boolean"
+        },
+        "SnapshotClusterIdentifier": {
+            "description": "The name of the cluster the source snapshot was created from. This parameter is required if your IAM user has a policy containing a snapshot resource element that specifies anything other than * for the cluster name.",
+            "type": "string"
+        },
+        "NewTableName": {
+            "description": "The name of the table to create as a result of the current request.",
+            "type": "string"
+        },
+        "SourceDatabaseName": {
+            "description": "The name of the source database that contains the table to restore from.",
+            "type": "string"
+        },
+        "SourceTableName": {
+            "description": "The name of the source table to restore from.",
+            "type": "string"
+        },
+        "SourceSchemaName": {
+            "description": "The name of the source schema that contains the table to restore from. If you do not specify a SourceSchemaName value, the default is public.",
+            "type": "string"
+        },
+        "TargetDatabaseName": {
+            "description": "The name of the database to restore the table to.",
+            "type": "string"
+        },
+        "TargetSchemaName": {
+            "description": "The name of the schema to restore the table to.",
+            "type": "string"
+        },
+        "TableRestoreStatusMessage": {
+            "description": "A description of the status of the table restore request. Status values include SUCCEEDED, FAILED, CANCELED, PENDING, IN_PROGRESS.",
+            "type": "string"
+        },
+        "TableRestoreStatusProgressInMegaBytes": {
+            "description": "The amount of data restored to the new table so far, in megabytes (MB).",
+            "type": "number"
+        },
+        "TableRestoreStatusRequestTime": {
+            "description": "The time that the table restore request was made, in Universal Coordinated Time (UTC).",
+            "type": "string"
+        },
+        "TableRestoreStatusStatus": {
+            "description": "The time that the table restore request was made, in Universal Coordinated Time (UTC).",
+            "type": "string"
+        },
+        "TableRestoreRequestId": {
+            "description": "The unique identifier for the table restore request.",
+            "type": "string"
+        },
+        "TableRestoreStatusTotalDataInMegaBytes": {
+            "description": "The total amount of data to restore to the new table, in megabytes (MB).",
+            "type": "number"
+        },
+        "LastFailureMessage": {
+            "description": "The message indicating that logs failed to be delivered.",
+            "type": "string"
+        },
+        "LastFailureTime": {
+            "description": "The last time when logs failed to be delivered.",
+            "type": "string"
+        },
+        "LastSuccessfulDeliveryTime": {
+            "description": "The last time that logs were delivered.",
+            "type": "string"
+        },
+        "LoggingEnabled": {
+            "description": "true if logging is on, false if logging is off.",
+            "type": "boolean"
+        },
+        "S3KeyPrefix": {
+            "description": "The prefix applied to the log file names.",
+            "type": "string"
+        },
+        "Amount": {
+            "description": "The limit amount. If time-based, this amount is in minutes. If data-based, this amount is in terabytes (TB). The value must be a positive number.",
+            "type": "number"
+        },
+        "FeatureType": {
+            "description": "The Amazon Redshift feature that you want to limit. spectrum , concurrency-scaling valid values.",
+            "type": "string"
+        },
+        "LimitType": {
+            "description": "The type of limit. Depending on the feature type, this can be based on a time duration or data size. If FeatureType is spectrum, then LimitType must be data-scanned. If FeatureType is concurrency-scaling, then LimitType must be time. time, data-scanned are two values.",
+            "type": "string"
+        },
+        "BreachAction": {
+            "description": "The action that Amazon Redshift takes when the limit is reached. The default is log. log | emit-metric | disable",
+            "type": "string"
+        },
+        "Period": {
+            "description": "The time period that the amount applies to. A weekly period begins on Sunday. The default is monthly.",
+            "type": "string"
+        },
+        "UsageLimitId": {
+            "description": "The identifier of the usage limit.",
+            "type": "string"
+        },
+        "AvgResizeRateInMegaBytesPerSecond": {
+            "description": "The average rate of the resize operation over the last few minutes, measured in megabytes per second. After the resize operation completes, this value shows the average rate of the entire resize operation.",
+            "type": "number"
+        },
+        "DataTransferProgressPercent": {
+            "description": "The percent of data transferred from source cluster to target cluster.",
+            "type": "number"
+        },
+        "CancelResizeElapsedTimeInSeconds": {
+            "description": "The amount of seconds that have elapsed since the resize operation began. After the resize operation completes, this value shows the total actual time, in seconds, for the resize operation.",
+            "type": "number"
+        },
+        "CancelResizeEstimatedTimeToCompletionInSeconds": {
+            "description": "The estimated time remaining, in seconds, until the resize operation is complete. This value is calculated based on the average resize rate and the estimated amount of data remaining to be processed. Once the resize operation is complete, this value will be 0.",
+            "type": "number"
+        },
+        "ImportTablesCompleted": {
+            "description": "The names of tables that have been completely imported.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ImportTablesInProgress": {
+            "description": "The names of tables that are being currently imported.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "ImportTablesNotStarted": {
+            "description": "The names of tables that have not been yet imported.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "CancelResizeMessage": {
+            "description": "An optional string to provide additional details about the resize action.",
+            "type": "string"
+        },
+        "ProgressInMegaBytes": {
+            "description": "While the resize operation is in progress, this value shows the current amount of data, in megabytes, that has been processed so far. When the resize operation is complete, this value shows the total amount of data, in megabytes, on the cluster, which may be more or less than TotalResizeDataInMegaBytes (the estimated total amount of data before resize).",
+            "type": "number"
+        },
+        "CancelResizeStatus": {
+            "description": "The status of the resize operation. Valid Values: NONE | IN_PROGRESS | FAILED | SUCCEEDED | CANCELLING",
+            "type": "string"
+        },
+        "TargetClusterType": {
+            "description": "The cluster type after the resize operation is complete.",
+            "type": "string"
+        },
+        "TargetEncryptionType": {
+            "description": "The type of encryption for the cluster after the resize is complete.",
+            "type": "string"
+        },
+        "TargetNodeType": {
+            "description": "The node type of cluster  after the resize operation is complete.",
+            "type": "string"
+        },
+        "TargetNumberOfNodes": {
+            "description": "The number of nodes in cluster type after the resize operation is complete.",
+            "type": "integer"
+        },
+        "TotalResizeDataInMegaBytes": {
+            "description": "The estimated total amount of data, in megabytes, on the cluster before the resize operation began.",
+            "type": "number"
+        },
+        "ResourceName": {
+            "description": "The Amazon Resource Name (ARN) to which you want to add the tag or tags. For example, arn:aws:redshift:us-east-2:123456789:cluster:t1.",
+            "type": "string"
+        },
+        "TagKey": {
+            "description": "The key, or name, for the resource tag.",
+            "type": "string"
+        },
+        "TagValue": {
+            "description": "The value for the resource tag.",
+            "type": "string"
+        },
+        "ResourceType": {
+            "description": "The type of resource with which you want to view tags. Valid resource types are Cluster\n\nCIDR/IP\n\nEC2 security group\n\nSnapshot\n\nCluster security group\n\nSubnet group\n\nHSM connection\n\nHSM certificate\n\nParameter group\n\nSnapshot copy grant.",
+            "type": "string"
         }
     },
     "additionalProperties": false,
@@ -223,27 +765,53 @@
         "create": {
             "permissions": [
                 "redshift:DescribeClusters",
-                "redshift:CreateCluster"
+                "redshift:CreateCluster",
+                "redshift:RestoreFromClusterSnapshotRequest",
+                "redshift:RestoreTableFromClusterSnapshotRequest",
+                "redshift:CreateUsageLimit"
             ],
             "timeoutInMinutes": 60
         },
         "read": {
             "permissions": [
-                "redshift:DescribeClusters"
+                "redshift:DescribeClusters",
+                "redshift:DescribeClusterDbRevisions",
+                "redshift:DescribeTableRestoreStatus",
+                "redshift:DescribeLoggingStatus",
+                "redshift:DescribeUsageLimits",
+                "redshift:DescribeResize",
+                "redshift:DescribeTags"
             ]
         },
         "update": {
             "permissions": [
                 "redshift:DescribeClusters",
                 "redshift:ModifyCluster",
-                "redshift:ModifyClusterIamRoles"
+                "redshift:ModifyClusterIamRoles",
+                "redshift:ModifyClusterDbRevision",
+                "redshift:ModifyClusterMaintenance",
+                "redshift:EnableSnapshotCopy",
+                "redshift:DisableSnapshotCopy",
+                "redshift:ModifySnapshotCopyRetentionPeriod",
+                "redshift:EnableLogging",
+                "redshift:DisableLogging",
+                "redshift:CreateTags",
+                "redshift:RotateEncryptionKey",
+                "redshift:ResizeCluster",
+                "redshift:CancelResize",
+                "redshift:ModifyUsageLimit",
+                "redshift:RebootCluster",
+                "redshift:PauseCluster",
+                "redshift:ResumeCluster"
             ],
             "timeoutInMinutes": 60
         },
         "delete": {
             "permissions": [
                 "redshift:DescribeClusters",
-                "redshift:DeleteCluster"
+                "redshift:DeleteCluster",
+                "redshift:DeleteUsageLimit",
+                "redshift:DeleteTags"
             ],
             "timeoutInMinutes": 60
         },

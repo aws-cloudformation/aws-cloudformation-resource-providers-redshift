@@ -4,20 +4,16 @@ import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
-import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.Tag;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
 
+import java.time.Instant;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -69,6 +65,80 @@ public class Translator {
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .iamRoles(model.getIamRoles())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .tags(translateTagsToSdk(model.getTags()))
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .build();
+  }
+
+  /**
+   * RestoreFromClusterSnapshot Request
+   * @param model resource model
+   * @return awsRequest the aws service request to create a resource
+   */
+  static RestoreFromClusterSnapshotRequest translateToRestoreFromClusterSnapshotRequest(final ResourceModel model) {
+    return RestoreFromClusterSnapshotRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .snapshotIdentifier(model.getSnapshotIdentifier())
+            .snapshotClusterIdentifier(model.getSnapshotClusterIdentifier())
+            .port(model.getPort())
+            .availabilityZone(model.getAvailabilityZone())
+            .allowVersionUpgrade(model.getAllowVersionUpgrade())
+            .clusterSubnetGroupName(model.getClusterSubnetGroupName())
+            .publiclyAccessible(model.getPubliclyAccessible())
+            .ownerAccount(model.getOwnerAccount())
+            .hsmClientCertificateIdentifier(model.getHsmClientCertificateIdentifier())
+            .hsmConfigurationIdentifier(model.getHsmConfigurationIdentifier())
+            .elasticIp(model.getElasticIp())
+            .clusterParameterGroupName(model.getClusterParameterGroupName())
+            .clusterSecurityGroups(model.getClusterSecurityGroups())
+            .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow())
+            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .kmsKeyId(model.getKmsKeyId())
+            .nodeType(model.getNodeType())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting())
+            .additionalInfo(model.getAdditionalInfo())
+            .iamRoles(model.getIamRoles())
+            .maintenanceTrackName(model.getMaintenanceTrackName())
+            .snapshotScheduleIdentifier(model.getSnapshotScheduleIdentifier())
+            .numberOfNodes(model.getNumberOfNodes())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .build();
+  }
+
+  /**
+   * RestoreFromClusterSnapshot Request
+   * @param model resource model
+   * @return awsRequest the aws service request to create a resource
+   */
+  static RestoreTableFromClusterSnapshotRequest translateToRestoreTableFromClusterSnapshotRequest(final ResourceModel model) {
+    return RestoreTableFromClusterSnapshotRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .snapshotIdentifier(model.getSnapshotIdentifier())
+            .sourceDatabaseName(model.getSourceDatabaseName())
+            .sourceSchemaName(model.getSourceSchemaName())
+            .sourceTableName(model.getSourceTableName())
+            .newTableName(model.getNewTableName())
+            .targetDatabaseName(model.getTargetDatabaseName())
+            .targetSchemaName(model.getTargetSchemaName())
+            .build();
+  }
+
+  /**
+   * Create Cluster Usage Limit Request
+   * @param model resource model
+   * @return awsRequest the aws service request to create a resource
+   */
+  static CreateUsageLimitRequest translateToCreateUsageLimitRequest(final ResourceModel model) {
+    return CreateUsageLimitRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .amount(model.getAmount() ==  null ? null : model.getAmount().longValue())
+            .breachAction(model.getBreachAction())
+            .featureType(model.getFeatureType())
+            .limitType(model.getLimitType())
+            .period(model.getPeriod())
+            .tags(translateTagsToSdk(model.getTags()))
             .build();
   }
 
@@ -85,6 +155,340 @@ public class Translator {
             .clusterIdentifier(clusterIdentifier)
             .build();
   }
+
+  /**
+   * Describe a Cluster DB Revisions Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeClusterDbRevisionsRequest translateToDescribeClusterDBRevisionsRequest(final ResourceModel model) {
+    return DescribeClusterDbRevisionsRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .marker(model.getMarker())
+            .build();
+  }
+
+  /**
+   * Describe a TableRestoreStatus Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+
+  static DescribeTableRestoreStatusRequest translateToTableRestoreStatusRequest(final ResourceModel model) {
+    return DescribeTableRestoreStatusRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .marker(model.getMarker())
+            .tableRestoreRequestId(model.getTableRestoreRequestId())
+            .build();
+
+  }
+
+  /**
+   * Describe a Logging Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+
+  static DescribeLoggingStatusRequest translateToDescribeLoggingRequest(final ResourceModel model) {
+    return DescribeLoggingStatusRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+
+  }
+
+  /**
+   * Describe a Usage Limit Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeUsageLimitsRequest translateToDescribeUsageLimitRequest(final ResourceModel model) {
+    return DescribeUsageLimitsRequest.builder()
+            .usageLimitId(model.getUsageLimitId())
+            .clusterIdentifier(model.getClusterIdentifier())
+            .featureType(model.getFeatureType())
+            .tagKeys(model.getTagKeys())
+            .tagValues(model.getTagValues())
+            .marker(model.getMarker())
+            .build();
+  }
+
+  /**
+   * Describe a Resize Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeResizeRequest translateToDescribeResizeRequest(final ResourceModel model) {
+    return DescribeResizeRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Describe a Tags Request
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeTagsRequest translateToDescribeTagsRequest(final ResourceModel model) {
+    return DescribeTagsRequest.builder()
+            .marker(model.getMarker())
+            .maxRecords(model.getMaxRecords())
+            .resourceName(model.getResourceName())
+            .resourceType(model.getResourceType())
+            .tagKeys(model.getTagKeys())
+            .tagValues(model.getTagValues())
+            .build();
+  }
+
+
+
+  static ResourceModel translateFromTableRestoreStatus(final DescribeTableRestoreStatusResponse awsResponse) {
+    final String clusterIdentifier = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String tableRestoreStatusMessage= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::message)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String newTableName= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::newTableName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Long tableRestoreStatusProgressInMegaBytes= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::progressInMegaBytes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Instant tableRestoreStatusRequestTime= streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::requestTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String snapshotIdentifier = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::snapshotIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String sourceDatabaseName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::sourceDatabaseName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String sourceSchemaName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::sourceSchemaName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String sourceTableName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::sourceTableName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final TableRestoreStatusType tableRestoreStatusStatus = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::status)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String tableRestoreRequestId = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::tableRestoreRequestId)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String targetDatabaseName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::targetDatabaseName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String targetSchemaName = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::targetSchemaName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Long tableRestoreStatusTotalDataInMegaBytes = streamOfOrEmpty(awsResponse.tableRestoreStatusDetails())
+            .map(software.amazon.awssdk.services.redshift.model.TableRestoreStatus::totalDataInMegaBytes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    return ResourceModel.builder()
+            .clusterIdentifier(clusterIdentifier)
+            .tableRestoreStatusMessage(tableRestoreStatusMessage)
+            .newTableName(newTableName)
+            .tableRestoreStatusProgressInMegaBytes(tableRestoreStatusProgressInMegaBytes == null ? null : tableRestoreStatusProgressInMegaBytes.doubleValue())
+            .tableRestoreStatusRequestTime(tableRestoreStatusRequestTime == null ? null : tableRestoreStatusRequestTime.toString())
+            .snapshotIdentifier(snapshotIdentifier)
+            .sourceDatabaseName(sourceDatabaseName)
+            .sourceSchemaName(sourceSchemaName)
+            .sourceTableName(sourceTableName)
+            .tableRestoreStatusStatus(tableRestoreStatusStatus == null ? null : tableRestoreStatusStatus.toString())
+            .tableRestoreRequestId(tableRestoreRequestId)
+            .targetDatabaseName(targetDatabaseName)
+            .targetSchemaName(targetSchemaName)
+            .tableRestoreStatusTotalDataInMegaBytes(tableRestoreStatusTotalDataInMegaBytes == null ? null : tableRestoreStatusTotalDataInMegaBytes.doubleValue())
+            .build();
+  }
+
+
+  /**
+   * Translates DescribeLoggingStatusResponse object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeLoggingResponse(final DescribeLoggingStatusResponse awsResponse) {
+    return ResourceModel.builder()
+            .bucketName(awsResponse.bucketName())
+            .lastFailureMessage(awsResponse.lastFailureMessage())
+            .lastFailureTime(awsResponse.lastFailureTime() == null ? null : awsResponse.lastFailureTime().toString())
+            .lastSuccessfulDeliveryTime(awsResponse.lastSuccessfulDeliveryTime() == null ? null : awsResponse.lastSuccessfulDeliveryTime().toString())
+            .loggingEnabled(awsResponse.loggingEnabled())
+            .s3KeyPrefix(awsResponse.s3KeyPrefix())
+            .build();
+  }
+
+  /**
+   * Translates DescribeResizeResponse object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeResizeResponse(final DescribeResizeResponse awsResponse) {
+    return ResourceModel.builder()
+            .avgResizeRateInMegaBytesPerSecond(awsResponse.avgResizeRateInMegaBytesPerSecond())
+            .dataTransferProgressPercent(awsResponse.dataTransferProgressPercent())
+            .cancelResizeElapsedTimeInSeconds(awsResponse.elapsedTimeInSeconds() == null ? null : awsResponse.elapsedTimeInSeconds().doubleValue())
+            .cancelResizeEstimatedTimeToCompletionInSeconds(awsResponse.estimatedTimeToCompletionInSeconds() == null ? null : awsResponse.estimatedTimeToCompletionInSeconds().doubleValue())
+            .importTablesCompleted(awsResponse.importTablesCompleted())
+            .importTablesInProgress(awsResponse.importTablesInProgress())
+            .importTablesNotStarted(awsResponse.importTablesNotStarted())
+            .cancelResizeMessage(awsResponse.message())
+            .progressInMegaBytes(awsResponse.progressInMegaBytes() == null ? null : awsResponse.progressInMegaBytes().doubleValue() )
+            .cancelResizeStatus(awsResponse.status())
+            .targetClusterType(awsResponse.targetClusterType())
+            .targetEncryptionType(awsResponse.targetEncryptionType())
+            .targetNodeType(awsResponse.targetNodeType())
+            .targetNumberOfNodes(awsResponse.targetNumberOfNodes())
+            .totalResizeDataInMegaBytes(awsResponse.totalResizeDataInMegaBytes() == null ? null : awsResponse.totalResizeDataInMegaBytes().doubleValue())
+            .build();
+  }
+
+  /**
+   * Translates DescribeTagsResponse object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeTagsResponse(final DescribeTagsResponse awsResponse) {
+    final String resourceType = streamOfOrEmpty(awsResponse.taggedResources())
+            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::resourceType)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String resourceName = streamOfOrEmpty(awsResponse.taggedResources())
+            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::resourceName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Tag tag = streamOfOrEmpty(awsResponse.taggedResources())
+            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::tag)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    List<Tag> tags = new LinkedList<>();
+    if(tag != null){
+      tags.add(tag);
+    }
+
+    return ResourceModel.builder()
+            .resourceType(resourceType)
+            .resourceName(resourceName)
+            .tags(CollectionUtils.isNullOrEmpty(tags)? null : translateTagsFromSdk(tags))
+            .build();
+  }
+
+  /**
+   * Translates DescribeLoggingStatusResponse object from sdk into a resource model
+   * @param awsResponse the aws service describe resource response
+   * @return model resource model
+   */
+  static ResourceModel translateFromDescribeUsageLimitResponse(final DescribeUsageLimitsResponse awsResponse) {
+    final String clusterIdentifier = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String usageLimitId = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::usageLimitId)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String featureType = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::featureTypeAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String limitType = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::limitTypeAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Long amount = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::amount)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String period = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::periodAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String breachAction = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::breachActionAsString)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<Tag> tags = streamOfOrEmpty(awsResponse.usageLimits())
+            .map(software.amazon.awssdk.services.redshift.model.UsageLimit::tags)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    return ResourceModel.builder()
+            .clusterIdentifier(clusterIdentifier)
+            .usageLimitId(usageLimitId)
+            .featureType(featureType)
+            .limitType(limitType)
+            .amount(amount == null ? null : amount.doubleValue())
+            .period(period)
+            .breachAction(breachAction)
+            .tags(translateTagsFromSdk(tags))
+            .build();
+  }
+
+
 
   /**
    * Translates resource object from sdk into a resource model
@@ -110,36 +514,97 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final int numberOfNodes = streamOfOrEmpty(awsResponse.clusters())
+    final Integer numberOfNodes = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::numberOfNodes)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(0);
+            .orElse(null);
 
-    final boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(true);
+    final Boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
-    final int automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(0);
+    final Integer automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
 
     final String availabilityZone = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZone)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(null);
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZone)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String clusterAvailabilityStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterAvailabilityStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Instant clusterCreateTime = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterCreateTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<ClusterNode> clusterNodes = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterNodes)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<ClusterParameterGroupStatus> clusterParameterGroups = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterParameterGroups)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String clusterPublicKey = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterPublicKey)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String clusterRevisionNumber = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterRevisionNumber)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSnapshotCopyStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String clusterStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String clusterSubnetGroupName = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSubnetGroupName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final DataTransferProgress dataTransferProgress = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::dataTransferProgress)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
 
     final String clusterVersion = streamOfOrEmpty(awsResponse.clusters())
-        .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterVersion)
-        .filter(Objects::nonNull)
-        .findAny()
-        .orElse(null);
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterVersion)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
     final String dbName = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::dbName)
@@ -147,18 +612,54 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final boolean encrypted = streamOfOrEmpty(awsResponse.clusters())
+    final Boolean encrypted = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::encrypted)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(false);
+            .orElse(null);
+
+    final ElasticIpStatus elasticIpStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::elasticIpStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String elasticResizeNumberOfNodeOptions = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::elasticResizeNumberOfNodeOptions)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Endpoint endpoint = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::endpoint)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
 
-    final boolean enhancedVpcRouting = streamOfOrEmpty(awsResponse.clusters())
+    final Boolean enhancedVpcRouting = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::enhancedVpcRouting)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(false);
+            .orElse(null);
+
+    final Instant expectedNextSnapshotScheduleTime = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::expectedNextSnapshotScheduleTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String expectedNextSnapshotScheduleTimeStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::expectedNextSnapshotScheduleTimeStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final HsmStatus hsmStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::hsmStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
 
     final String kmsKeyId = streamOfOrEmpty(awsResponse.clusters())
@@ -173,12 +674,23 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final int manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+    final Integer manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::manualSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(-1);
+            .orElse(null);
 
+    final String modifyStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::modifyStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Instant nextMaintenanceWindowStartTime = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::nextMaintenanceWindowStartTime)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
     final String preferredMaintenanceWindow = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::preferredMaintenanceWindow)
@@ -186,12 +698,23 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final boolean publiclyAccessible = streamOfOrEmpty(awsResponse.clusters())
+    final Boolean publiclyAccessible = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::publiclyAccessible)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(true);
+            .orElse(null);
 
+    final ResizeInfo resizeInfo = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::resizeInfo)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final RestoreStatus restoreStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::restoreStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
     final String snapshotScheduleIdentifier = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::snapshotScheduleIdentifier)
@@ -217,6 +740,24 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final List<DeferredMaintenanceWindow> deferMaintenanceWindows = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::deferredMaintenanceWindows)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<Tag> tags = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::tags)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String availabilityZoneRelocationStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZoneRelocationStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -225,9 +766,43 @@ public class Translator {
             .allowVersionUpgrade(allowVersionUpgrade)
             .automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
             .availabilityZone(availabilityZone)
+            .clusterAvailabilityStatus(clusterAvailabilityStatus)
+            .clusterCreateTime(clusterCreateTime == null ? null : clusterCreateTime.toString())
+            .clusterNodeRole(translateClusterNodesNodeRoleFromSdk(clusterNodes))
+            .clusterNodePrivateIPAddress(translateClusterNodesPrivateIPAdressFromSdk(clusterNodes))
+            .clusterNodePublicIPAddress(translateClusterNodesPublicIPAdressFromSdk(clusterNodes))
+            .clusterParameterGroups(translateClusterParameterGroupFromSdk(clusterParameterGroups))
+            .clusterPublicKey(clusterPublicKey)
+            .clusterRevisionNumber(clusterRevisionNumber)
+            .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion())
+            .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
+            .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod().intValue())
+            .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName())
             .clusterVersion(clusterVersion)
+            .clusterStatus(clusterStatus)
+            .clusterSubnetGroupName(clusterSubnetGroupName)
+            .currentRateInMegaBytesPerSecond(dataTransferProgress == null ? null : dataTransferProgress.currentRateInMegaBytesPerSecond())
+            .dataTransferredInMegaBytes(dataTransferProgress == null ? null : dataTransferProgress.dataTransferredInMegaBytes().doubleValue())
+            .dataTransferProgressElapsedTimeInSeconds(dataTransferProgress == null ? null : dataTransferProgress.elapsedTimeInSeconds().doubleValue())
+            .estimatedTimeToCompletionInSeconds(dataTransferProgress == null ? null : dataTransferProgress.estimatedTimeToCompletionInSeconds().doubleValue())
+            .dataTransferProgressStatus(dataTransferProgress == null ? null : dataTransferProgress.status())
+            .totalDataInMegaBytes(dataTransferProgress == null ? null : dataTransferProgress.totalDataInMegaBytes().doubleValue())
+            .dBName(dbName)
+            .deferMaintenanceIdentifier(translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows))
+            .deferMaintenanceStartTime(translateDeferMaintenanceStartTimeFromSdk(deferMaintenanceWindows))
+            .deferMaintenanceEndTime(translateDeferMaintenanceEndTimeFromSdk(deferMaintenanceWindows))
+            .elasticIp(elasticIpStatus == null ? null : elasticIpStatus.elasticIp())
+            .elasticIpStatus(elasticIpStatus == null ? null : elasticIpStatus.status())
             .encrypted(encrypted)
+            .endpointAddress(endpoint == null ? null : endpoint.address())
+            .endpointPort(endpoint == null ? null : endpoint.port())
+            .elasticResizeNumberOfNodeOptions(elasticResizeNumberOfNodeOptions)
             .enhancedVpcRouting(enhancedVpcRouting)
+            .expectedNextSnapshotScheduleTime(expectedNextSnapshotScheduleTime == null ? null : expectedNextSnapshotScheduleTime.toString())
+            .expectedNextSnapshotScheduleTimeStatus(expectedNextSnapshotScheduleTimeStatus)
+            .hsmClientCertificateIdentifier(hsmStatus == null ? null : hsmStatus.hsmClientCertificateIdentifier())
+            .hsmConfigurationIdentifier(hsmStatus == null ? null : hsmStatus.hsmConfigurationIdentifier())
+            .hsmStatus(hsmStatus == null ? null : hsmStatus.status())
             .kmsKeyId(kmsKeyId)
             .maintenanceTrackName(maintenanceTrackName)
             .manualSnapshotRetentionPeriod(manualSnapshotRetentionPeriod)
@@ -236,14 +811,82 @@ public class Translator {
             .snapshotScheduleIdentifier(snapshotScheduleIdentifier)
             .clusterSecurityGroups(translateClusterSecurityGroupsFromSdk(clusterSecurityGroups))
             .iamRoles(translateIamRolesFromSdk(iamRoles))
+            .modifyStatus(modifyStatus)
+            .nextMaintenanceWindowStartTime(nextMaintenanceWindowStartTime == null ? null : nextMaintenanceWindowStartTime.toString())
+            .allowCancelResize(resizeInfo == null ? null : resizeInfo.allowCancelResize())
+            .resizeType(resizeInfo == null ? null : resizeInfo.resizeType())
+            .currentRestoreRateInMegaBytesPerSecond(restoreStatus == null ? null : restoreStatus.currentRestoreRateInMegaBytesPerSecond())
+            .restoreProgressInMegaBytes(restoreStatus == null ? null : restoreStatus.progressInMegaBytes().doubleValue())
+            .restoreStatus(restoreStatus == null ? null : restoreStatus.status())
+            .restoreEstimatedTimeToCompletionInSeconds(restoreStatus == null ? null : restoreStatus.estimatedTimeToCompletionInSeconds().doubleValue())
+            .restoreElapsedTimeInSeconds(restoreStatus == null ? null : restoreStatus.elapsedTimeInSeconds().doubleValue())
+            .restoreSnapshotSizeInMegaBytes(restoreStatus == null ? null : restoreStatus.snapshotSizeInMegaBytes().doubleValue())
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
+            .tags(translateTagsFromSdk(tags))
+            .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
             .build();
 
+  }
+
+  static ResourceModel translateFromDescribeClusterDbRevisionsResponse(final DescribeClusterDbRevisionsResponse awsResponse) {
+    final String clusterIdentifier = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String currentDatabaseRevision = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision::currentDatabaseRevision)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Instant databaseRevisionReleaseDate = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision::databaseRevisionReleaseDate)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<RevisionTarget> revisionTargets  = streamOfOrEmpty(awsResponse.clusterDbRevisions())
+            .map(software.amazon.awssdk.services.redshift.model.ClusterDbRevision:: revisionTargets)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    return ResourceModel.builder()
+            .clusterIdentifier(clusterIdentifier)
+            .currentDatabaseRevision(currentDatabaseRevision)
+            .databaseRevisionReleaseDate(databaseRevisionReleaseDate == null ? null : databaseRevisionReleaseDate.toString())
+            .revisionTargets(translateRevisionTargetsFromSdk(revisionTargets))
+            .build();
+  }
+
+  static List<String> translateAccountWithRestoreAccessesFromSdk (final List<AccountWithRestoreAccess> accountWithRestoreAccesses) {
+    return accountWithRestoreAccesses.stream().map((accountWithRestoreAccess ->
+            accountWithRestoreAccess.accountId())).collect(Collectors.toList());
   }
 
   static List<String> translateClusterSecurityGroupsFromSdk (final List<ClusterSecurityGroupMembership> clusterSecurityGroups) {
     return clusterSecurityGroups.stream().map((clusterSecurityGroup ->
             clusterSecurityGroup.clusterSecurityGroupName())).collect(Collectors.toList());
+  }
+  static List<String> translateClusterNodesPrivateIPAdressFromSdk (final List<ClusterNode> clusterNodes) {
+    return clusterNodes.stream().map((clusterNode ->
+            clusterNode.privateIPAddress())).collect(Collectors.toList());
+  }
+  static List<String> translateClusterNodesPublicIPAdressFromSdk (final List<ClusterNode> clusterNodes) {
+    return clusterNodes.stream().map((clusterNode ->
+            clusterNode.publicIPAddress())).collect(Collectors.toList());
+  }
+
+  static List<String> translateClusterNodesNodeRoleFromSdk (final List<ClusterNode> clusterNodes) {
+    return clusterNodes.stream().map((clusterNode ->
+            clusterNode.nodeRole())).collect(Collectors.toList());
+  }
+
+  static List<String> translateClusterParameterGroupFromSdk (final List<ClusterParameterGroupStatus> clusterParameterGroups) {
+    return clusterParameterGroups.stream().map((clusterParameterGroup ->
+            clusterParameterGroup.parameterGroupName())).collect(Collectors.toList());
   }
 
   static List<String> translateVpcSecurityGroupIdsFromSdk (final List<VpcSecurityGroupMembership> vpcSecurityGroupIds) {
@@ -254,6 +897,30 @@ public class Translator {
   static List<String> translateIamRolesFromSdk (final List<ClusterIamRole> iamRoles) {
     return iamRoles.stream().map((iamRole ->
             iamRole.iamRoleArn())).collect(Collectors.toList());
+  }
+
+  static List<String> translateRevisionTargetsFromSdk (final List<RevisionTarget> revisionTargets) {
+    return revisionTargets.stream().map(revisionTarget ->
+            revisionTarget.databaseRevision()).collect(Collectors.toList());
+  }
+
+  static String translateDeferMaintenanceIdentifierFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    String deferMaintenanceIdentifier= deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceIdentifier).collect(Collectors.joining());
+
+    return StringUtils.isNullOrEmpty(deferMaintenanceIdentifier) ? null : deferMaintenanceIdentifier;
+  }
+
+  static String translateDeferMaintenanceStartTimeFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    final Instant deferMaintenanceStartTime = deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceStartTime).filter(Objects::nonNull).findAny().orElse(null);
+    return deferMaintenanceStartTime == null ? null : deferMaintenanceStartTime.toString();
+  }
+
+  static String translateDeferMaintenanceEndTimeFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    final Instant deferMaintenanceEndTime = deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceEndTime).filter(Objects::nonNull).findAny().orElse(null);
+    return deferMaintenanceEndTime == null ? null : deferMaintenanceEndTime.toString();
   }
 
   /**
@@ -273,11 +940,34 @@ public class Translator {
   }
 
   /**
+   * Request to delete a usage limit
+   * @param model resource model
+   * @return awsRequest the aws service request to delete a resource
+   */
+  static DeleteUsageLimitRequest translateToDeleteUsageLimitRequest (final ResourceModel model) {
+    return DeleteUsageLimitRequest.builder()
+            .usageLimitId(model.getUsageLimitId())
+            .build();
+  }
+
+  /**
+   * Request to delete tag
+   * @param model resource model
+   * @return awsRequest the aws service request to delete a resource
+   */
+  static DeleteTagsRequest translateToDeleteTagsRequest (final ResourceModel model) {
+    return DeleteTagsRequest.builder()
+            .resourceName(model.getResourceName())
+            .tagKeys(model.getTagKeys())
+            .build();
+  }
+
+  /**
    * Request to update properties of a previously created resource
    * @param model resource model
    * @return awsRequest the aws service request to modify a resource
    */
-  static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model) {
+  static ModifyClusterRequest translateToModifyRequest(final ResourceModel model) {
 
     return ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
@@ -302,6 +992,9 @@ public class Translator {
             .publiclyAccessible(model.getPubliclyAccessible())
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .availabilityZone(model.getAvailabilityZone())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .port(model.getPort())
             .build();
   }
 
@@ -317,6 +1010,212 @@ public class Translator {
             .removeIamRoles(model.getRemoveIamRoles())
             .build();
   }
+
+  /**
+   * Request to reboot cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static RebootClusterRequest translateToRebootClusterRequest(final ResourceModel model) {
+     return RebootClusterRequest.builder()
+             .clusterIdentifier(model.getClusterIdentifier())
+             .build();
+  }
+
+  /**
+   * Request to pause cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static PauseClusterRequest translateToPauseClusterRequest(final ResourceModel model) {
+    return PauseClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to resume cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ResumeClusterRequest translateToResumeClusterRequest(final ResourceModel model) {
+    return ResumeClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to DbRevision of a cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterDbRevisionRequest translateToModifyClusterDbRevisionRequest(final ResourceModel model) {
+    return ModifyClusterDbRevisionRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .revisionTarget(model.getRevisionTarget())
+            .build();
+  }
+
+  /**
+   * Request to Modify Cluster Maintence
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterMaintenanceRequest translateToModifyClusterMaintenanceRequest(final ResourceModel model) {
+    return ModifyClusterMaintenanceRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .deferMaintenance(model.getDeferMaintenance())
+            .deferMaintenanceDuration(model.getDeferMaintenanceDuration())
+            .deferMaintenanceIdentifier(model.getDeferMaintenanceIdentifier())
+            .deferMaintenanceStartTime(model.getDeferMaintenanceStartTime() == null ? null : Instant.parse(model.getDeferMaintenanceStartTime()))
+            .deferMaintenanceEndTime(model.getDeferMaintenanceEndTime() == null ? null : Instant.parse(model.getDeferMaintenanceEndTime()))
+            .build();
+  }
+
+  /**
+   * Request to Enable Cluster Snapshot
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static EnableSnapshotCopyRequest translateToEnableSnapshotRequest(final ResourceModel model) {
+    return EnableSnapshotCopyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .destinationRegion(model.getDestinationRegion())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
+            .retentionPeriod(model.getRetentionPeriod())
+            .build();
+  }
+
+  /**
+   * Request to Disable Cluster Snapshot
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static DisableSnapshotCopyRequest translateToDisableSnapshotRequest(final ResourceModel model) {
+    return DisableSnapshotCopyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Modify Snapshot Copy Retention Period
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifySnapshotCopyRetentionPeriodRequest translateToModifySnapshotCopyRetentionPeriodRequest(final ResourceModel model) {
+    return ModifySnapshotCopyRetentionPeriodRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .retentionPeriod(model.getRetentionPeriod())
+            .manual(model.getManual())
+            .build();
+  }
+
+  /**
+   * Request to Enable Logging
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static EnableLoggingRequest translateToEnableLoggingRequest(final ResourceModel model) {
+    return EnableLoggingRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .bucketName(model.getBucketName())
+            .s3KeyPrefix(model.getS3Prefix())
+            .build();
+  }
+
+  /**
+   * Request to Disable Logging
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static DisableLoggingRequest translateToDisableLoggingRequest(final ResourceModel model) {
+    return DisableLoggingRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Create Tags
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static CreateTagsRequest translateToCreateTagsRequest(final ResourceModel model) {
+
+    return CreateTagsRequest.builder()
+            .resourceName(model.getResourceName())
+            .tags(translateTagsToSdk(model.getTags()))
+            .build();
+  }
+
+  static List<software.amazon.redshift.cluster.Tag> translateTagsFromSdk(final List<Tag> tags) {
+    return Optional.ofNullable(tags).orElse(Collections.emptyList())
+            .stream()
+            .map(tag -> software.amazon.redshift.cluster.Tag.builder()
+                    .key(tag.key())
+                    .value(tag.value()).build())
+            .collect(Collectors.toList());
+  }
+
+  static List<software.amazon.awssdk.services.redshift.model.Tag> translateTagsToSdk(final List<software.amazon.redshift.cluster.Tag> tags) {
+    return Optional.ofNullable(tags).orElse(Collections.emptyList())
+            .stream()
+            .map(tag -> software.amazon.awssdk.services.redshift.model.Tag.builder()
+                    .key(tag.getKey())
+                    .value(tag.getValue()).build())
+            .collect(Collectors.toList());
+  }
+
+  /**
+   * Request to Rotate Encryption key
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static RotateEncryptionKeyRequest translateToRotateEncryptionKeyRequest(final ResourceModel model) {
+    return RotateEncryptionKeyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Resize CLuster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ResizeClusterRequest translateToResizeClusterRequest(final ResourceModel model) {
+    return ResizeClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .clusterType(model.getClusterType())
+            .nodeType(model.getNodeType())
+            .numberOfNodes(model.getNumberOfNodes())
+            .classic(model.getClassic())
+            .build();
+  }
+
+  /**
+   * Request to Cancel Resize CLuster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static CancelResizeRequest translateToCancelResizeClusterRequest(final ResourceModel model) {
+    return CancelResizeRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Modify Usage Limit of Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyUsageLimitRequest translateToModifyUsageLimitRequest(final ResourceModel model) {
+    return ModifyUsageLimitRequest.builder()
+            .usageLimitId(model.getUsageLimitId())
+            .amount(model.getAmount() == null ? null : model.getAmount().longValue())
+            .breachAction(model.getBreachAction())
+            .build();
+  }
+
 
   /**
    * Request to update some other properties that could not be provisioned through first update request
