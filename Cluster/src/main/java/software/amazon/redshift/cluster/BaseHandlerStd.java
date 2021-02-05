@@ -48,7 +48,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final Logger logger);
 
 
-  protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+  protected boolean isClusterActiveAfterModify (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
     // For case when we update cluster identifier, since Modify request is issued, new cluster Identifier
     // need to be used for polling the cluster to check if it is in "available" status.
 
@@ -57,6 +57,15 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     DescribeClustersRequest awsRequest =
             DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    return awsResponse.clusters().get(0).clusterStatus().equals("available");
+  }
+
+  protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
     DescribeClustersResponse awsResponse =
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 

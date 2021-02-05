@@ -125,6 +125,9 @@ public class UpdateHandler extends BaseHandlerStd {
                             .translateToServiceRequest(Translator::translateToResumeClusterRequest)
                             .makeServiceCall(this::resumeCluster)
                             .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .translateToServiceRequest(Translator::translateToUpdateRequest)
+                            .makeServiceCall(this::updateResource)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterModify(_client, _model, _context))
                             .progress();
                 }
                 return progress;
