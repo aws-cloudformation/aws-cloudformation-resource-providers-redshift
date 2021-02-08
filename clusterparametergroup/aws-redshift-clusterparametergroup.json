@@ -84,22 +84,12 @@
                 "redshift:ModifyClusterParameterGroup",
                 "redshift:DescribeClusterParameterGroups",
                 "redshift:CreateTags",
-                "ec2:AllocateAddress",
-                "ec2:AssociateAddress",
-                "ec2:AttachNetworkInterface",
-                "ec2:DescribeAccountAttributes",
-                "ec2:DescribeAddresses",
-                "ec2:DescribeAvailabilityZones",
-                "ec2:DescribeInternetGateways",
-                "ec2:DescribeSecurityGroups",
-                "ec2:DescribeSubnets",
-                "ec2:DescribeVpcs"
+                "redshift:DescribeTags"
             ]
         },
         "read": {
             "permissions": [
-                "redshift:DescribeClusterParameterGroups",
-                "initech:DescribeReport"
+                "redshift:DescribeClusterParameterGroups"
             ]
         },
         "update": {
@@ -108,20 +98,17 @@
                 "redshift:ModifyClusterParameterGroup",
                 "redshift:DescribeTags",
                 "redshift:CreateTags",
-                "redshift:DeleteTags",
-                "initech:UpdateReport"
+                "redshift:DeleteTags"
             ]
         },
         "delete": {
             "permissions": [
-                "redshift:DeleteClusterParameterGroup",
-                "initech:DeleteReport"
+                "redshift:DeleteClusterParameterGroup"
             ]
         },
         "list": {
             "permissions": [
-                "redshift:DescribeClusterParameterGroups",
-                "initech:ListReports"
+                "redshift:DescribeClusterParameterGroups"
             ]
         }
     }
