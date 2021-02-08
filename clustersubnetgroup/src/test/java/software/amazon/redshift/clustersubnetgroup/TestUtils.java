@@ -57,6 +57,12 @@ public class TestUtils {
 
     final static List<String>  SDK_TAG_KEYS_TO_DELETE = ImmutableList.of("key3");
 
+    final static ResourceModel BASIC_MODEL_CREATE = ResourceModel.builder()
+            .description(DESCRIPTION)
+            .subnetIds(SUBNET_IDS)
+            .tags(TAGS)
+            .build();
+
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
             .description(DESCRIPTION)
             .subnetGroupName(SUBNET_GROUP_NAME)

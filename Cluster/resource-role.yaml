@@ -1,0 +1,61 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  This CloudFormation template creates a role assumed by CloudFormation
+  during CRUDL operations to mutate resources on behalf of the customer.
+
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      MaxSessionDuration: 8400
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: resources.cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                - "redshift:CancelResize"
+                - "redshift:CreateCluster"
+                - "redshift:CreateTags"
+                - "redshift:CreateUsageLimit"
+                - "redshift:DeleteCluster"
+                - "redshift:DeleteTags"
+                - "redshift:DeleteUsageLimit"
+                - "redshift:DescribeClusterDbRevisions"
+                - "redshift:DescribeClusters"
+                - "redshift:DescribeLoggingStatus"
+                - "redshift:DescribeResize"
+                - "redshift:DescribeTableRestoreStatus"
+                - "redshift:DescribeTags"
+                - "redshift:DescribeUsageLimits"
+                - "redshift:DisableLogging"
+                - "redshift:DisableSnapshotCopy"
+                - "redshift:EnableLogging"
+                - "redshift:EnableSnapshotCopy"
+                - "redshift:ModifyCluster"
+                - "redshift:ModifyClusterDbRevision"
+                - "redshift:ModifyClusterIamRoles"
+                - "redshift:ModifyClusterMaintenance"
+                - "redshift:ModifySnapshotCopyRetentionPeriod"
+                - "redshift:ModifyUsageLimit"
+                - "redshift:PauseCluster"
+                - "redshift:RebootCluster"
+                - "redshift:ResizeCluster"
+                - "redshift:RestoreFromClusterSnapshotRequest"
+                - "redshift:RestoreTableFromClusterSnapshotRequest"
+                - "redshift:ResumeCluster"
+                - "redshift:RotateEncryptionKey"
+                Resource: "*"
+Outputs:
+  ExecutionRoleArn:
+    Value:
+      Fn::GetAtt: ExecutionRole.Arn

@@ -2,10 +2,12 @@ package software.amazon.redshift.clustersubnetgroup;
 
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -28,6 +30,12 @@ public class ReadHandler extends BaseHandlerStd {
         return proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Read", proxyClient, model, callbackContext)
             .translateToServiceRequest(Translator::translateToReadRequest)
             .makeServiceCall((awsRequest, sdkProxyClient) -> readResource(awsRequest, sdkProxyClient))
+            .handleError((awsRequest, exception, client, resourceModel, cxt) -> {
+                if (exception instanceof ClusterSubnetGroupNotFoundException) {
+                    return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
+                }
+                throw exception;
+            })
             .done(this::constructResourceModelFromResponse);
     }
 
@@ -41,12 +49,8 @@ public class ReadHandler extends BaseHandlerStd {
     private DescribeClusterSubnetGroupsResponse readResource(
         final DescribeClusterSubnetGroupsRequest awsRequest,
         final ProxyClient<RedshiftClient> proxyClient) {
-        DescribeClusterSubnetGroupsResponse awsResponse = null;
-        try {
-            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterSubnetGroups);
-        } catch (final AwsServiceException e) { // ResourceNotFoundException
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e); // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/commit/2077c92299aeb9a68ae8f4418b5e932b12a8b186#diff-5761e3a9f732dc1ef84103dc4bc93399R56-R63
-        }
+        DescribeClusterSubnetGroupsResponse awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest,
+                proxyClient.client()::describeClusterSubnetGroups);
 
         logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
         return awsResponse;
