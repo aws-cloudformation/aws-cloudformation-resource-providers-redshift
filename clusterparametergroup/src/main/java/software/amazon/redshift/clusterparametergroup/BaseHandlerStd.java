@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
-    protected static int CALLBACK_DELAY_SECONDS = 5 * 60; // 5 min for propagation
+    protected static int CALLBACK_DELAY_SECONDS = 10;
     protected static int NO_CALLBACK_DELAY = 0;
 
     @Override

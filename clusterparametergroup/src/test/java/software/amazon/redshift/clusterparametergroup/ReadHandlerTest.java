@@ -88,7 +88,6 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .build();
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        System.out.println("Read response is:: " + response);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
