@@ -229,6 +229,29 @@ public class UpdateHandler extends BaseHandlerStd {
                 return progress;
             })
 
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("delete-usage-limit")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::DeleteUsageLimit", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDeleteUsageLimitRequest)
+                            .makeServiceCall(this::deleteUsageLimit)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            //.done((response) -> ProgressEvent.defaultSuccessHandler(null));
+                            .progress();
+                }
+                return progress;
+            })
+            .then(progress -> {
+                if(model.getRedshiftCommand() != null && model.getRedshiftCommand().equals("delete-tags")) {
+                    return proxy.initiate("AWS-Redshift-Cluster::DeleteTags", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDeleteTagsRequest)
+                            .makeServiceCall(this::deleteTags)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            //.done((response) -> ProgressEvent.defaultSuccessHandler(null));
+                            .progress();
+                }
+                return progress;
+            })
+
             .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
@@ -578,6 +601,46 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         logger.log(String.format("%s Cluster Resume.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private DeleteUsageLimitResponse deleteUsageLimit(
+            final DeleteUsageLimitRequest deleteRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DeleteUsageLimitResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteRequest, proxyClient.client()::deleteUsageLimit);
+            logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, deleteRequest.usageLimitId()));
+        } catch (final ClusterNotFoundException | UsageLimitNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteRequest.usageLimitId());
+        } catch (final InvalidClusterStateException | InvalidRetentionPeriodException e) {
+            throw new CfnInvalidRequestException(deleteRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(deleteRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s deleted usage limit.", ResourceModel.TYPE_NAME));
+
+        return awsResponse;
+    }
+
+    private DeleteTagsResponse deleteTags(
+            final DeleteTagsRequest deleteRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DeleteTagsResponse awsResponse = null;
+        try {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteRequest, proxyClient.client()::deleteTags);
+            logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, deleteRequest.resourceName()));
+        } catch (final ResourceNotFoundException  e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteRequest.resourceName());
+        } catch (final InvalidTagException e) {
+            throw new CfnInvalidRequestException(deleteRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(deleteRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s deleted tag.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
     }

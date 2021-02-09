@@ -7,55 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.CancelResizeRequest;
-import software.amazon.awssdk.services.redshift.model.CancelResizeResponse;
-import software.amazon.awssdk.services.redshift.model.Cluster;
-import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
-import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
-import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
-import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeUsageLimitsResponse;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingResponse;
-import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
-import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyResponse;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
-import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
-import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
-import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
-import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyUsageLimitRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyUsageLimitResponse;
-import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
-import software.amazon.awssdk.services.redshift.model.PauseClusterResponse;
-import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
-import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
-import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ResumeClusterResponse;
-import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
-import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyResponse;
-import software.amazon.awssdk.services.redshift.model.TaggedResource;
-import software.amazon.awssdk.services.redshift.model.UsageLimit;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -77,6 +29,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
@@ -1259,4 +1212,86 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
     }
+
+//    @Test
+//    public void testDeleteTags() {
+//        Tag clusterTag = Tag.builder()
+//                .key("KEY")
+//                .value("VALUE")
+//                .build();
+//        List<Tag> tags = new LinkedList<>();
+//        tags.add(clusterTag);
+//
+//        final ResourceModel model = ResourceModel.builder()
+//                .clusterIdentifier(CLUSTER_IDENTIFIER)
+//                .resourceName(RESOURCE_NAME)
+//                .tags(tags)
+//                .redshiftCommand("delete-tags")
+//                .build();
+//
+//        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(BASIC_CLUSTER)
+//                        .build());
+//
+//        when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class)))
+//                .thenReturn(DeleteTagsResponse.builder()
+//                        .build());
+//
+//        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+//                .desiredResourceState(model)
+//                .build();
+//
+//        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+//
+//        assertThat(response).isNotNull();
+//        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+//        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+//        assertThat(response.getResourceModels()).isNull();
+//        assertThat(response.getMessage()).isNull();
+//        assertThat(response.getErrorCode()).isNull();
+//    }
+//
+//    @Test
+//    public void testDeleteUsageLimit() {
+//        final ResourceModel model = ResourceModel.builder()
+//                .usageLimitId(USAGE_LIMIT_ID)
+//                .redshiftCommand("delete-usage-limit")
+//                .build();
+//
+//        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+//                .desiredResourceState(model)
+//                .region(AWS_REGION)
+//                .logicalResourceIdentifier("logicalId")
+//                .clientRequestToken("token")
+//                .build();
+//
+//        Cluster deleteUsageLimitCLuster = Cluster.builder()
+//                .clusterIdentifier(CLUSTER_IDENTIFIER)
+//                .masterUsername(MASTER_USERNAME)
+//                .nodeType("dc2.large")
+//                .numberOfNodes(NUMBER_OF_NODES)
+//                .clusterStatus(CLUSTER_AVAILABLE)
+//                .publiclyAccessible(true)
+//                .endpoint(clusterEndpoint)
+//                .build();
+//
+//        when(proxyClient.client().deleteUsageLimit(any(DeleteUsageLimitRequest.class)))
+//                .thenReturn(DeleteUsageLimitResponse.builder().build());
+//
+//        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(deleteUsageLimitCLuster)
+//                        .build());
+//
+//        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+//
+//        assertThat(response).isNotNull();
+//        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+//        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+//        assertThat(response.getResourceModel()).isEqualTo(null);
+//        assertThat(response.getResourceModels()).isNull();
+//        assertThat(response.getMessage()).isNull();
+//        assertThat(response.getErrorCode()).isNull();
+//    }
 }

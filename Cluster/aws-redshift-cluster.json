@@ -742,6 +742,10 @@
         "ResourceType": {
             "description": "The type of resource with which you want to view tags. Valid resource types are Cluster\n\nCIDR/IP\n\nEC2 security group\n\nSnapshot\n\nCluster security group\n\nSubnet group\n\nHSM connection\n\nHSM certificate\n\nParameter group\n\nSnapshot copy grant.",
             "type": "string"
+        },
+        "DeletionPolicy": {
+            "description": "The type of resource with which you want to view tags. Valid resource types are Cluster\n\nCIDR/IP\n\nEC2 security group\n\nSnapshot\n\nCluster security group\n\nSubnet group\n\nHSM connection\n\nHSM certificate\n\nParameter group\n\nSnapshot copy grant.",
+            "type": "string"
         }
     },
     "additionalProperties": false,

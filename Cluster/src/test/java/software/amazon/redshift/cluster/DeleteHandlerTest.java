@@ -84,7 +84,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
     public void handleRequest_SimpleSuccess() {
 
         final ResourceModel model = BASIC_MODEL;
-        model.setRedshiftCommand("delete-cluster");
+        //model.setRedshiftCommand("delete-cluster");
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -110,92 +110,92 @@ public class DeleteHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
     }
 
-    @Test
-    public void testDeleteTags() {
-        List<String> tagKeys = new LinkedList<>();
-        tagKeys.add("K-sy");
-        final ResourceModel model = ResourceModel.builder()
-                .tagKeys(tagKeys)
-                .resourceName(RESOURCE_NAME)
-                .redshiftCommand("delete-tags")
-                .build();
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .region(AWS_REGION)
-                .logicalResourceIdentifier("logicalId")
-                .clientRequestToken("token")
-                .build();
-
-        Cluster deleteTagsCLuster = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus(CLUSTER_AVAILABLE)
-                .publiclyAccessible(true)
-                .endpoint(clusterEndpoint)
-                .build();
-
-        when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class)))
-                .thenReturn(DeleteTagsResponse.builder().build());
-
-        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(deleteTagsCLuster)
-                        .build());
-
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isEqualTo(null);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-    }
-
-    @Test
-    public void testDeleteUsageLimit() {
-        final ResourceModel model = ResourceModel.builder()
-                .usageLimitId(USAGE_LIMIT_ID)
-                .redshiftCommand("delete-usage-limit")
-                .build();
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
-                .region(AWS_REGION)
-                .logicalResourceIdentifier("logicalId")
-                .clientRequestToken("token")
-                .build();
-
-        Cluster deleteUsageLimitCLuster = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus(CLUSTER_AVAILABLE)
-                .publiclyAccessible(true)
-                .endpoint(clusterEndpoint)
-                .build();
-
-        when(proxyClient.client().deleteUsageLimit(any(DeleteUsageLimitRequest.class)))
-                .thenReturn(DeleteUsageLimitResponse.builder().build());
-
-        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(deleteUsageLimitCLuster)
-                        .build());
-
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isEqualTo(null);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-    }
+//    @Test
+//    public void testDeleteTags() {
+//        List<String> tagKeys = new LinkedList<>();
+//        tagKeys.add("K-sy");
+//        final ResourceModel model = ResourceModel.builder()
+//                .tagKeys(tagKeys)
+//                .resourceName(RESOURCE_NAME)
+//                .redshiftCommand("delete-tags")
+//                .build();
+//
+//        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+//                .desiredResourceState(model)
+//                .region(AWS_REGION)
+//                .logicalResourceIdentifier("logicalId")
+//                .clientRequestToken("token")
+//                .build();
+//
+//        Cluster deleteTagsCLuster = Cluster.builder()
+//                .clusterIdentifier(CLUSTER_IDENTIFIER)
+//                .masterUsername(MASTER_USERNAME)
+//                .nodeType("dc2.large")
+//                .numberOfNodes(NUMBER_OF_NODES)
+//                .clusterStatus(CLUSTER_AVAILABLE)
+//                .publiclyAccessible(true)
+//                .endpoint(clusterEndpoint)
+//                .build();
+//
+//        when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class)))
+//                .thenReturn(DeleteTagsResponse.builder().build());
+//
+//        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(deleteTagsCLuster)
+//                        .build());
+//
+//        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+//
+//        assertThat(response).isNotNull();
+//        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+//        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+//        assertThat(response.getResourceModel()).isEqualTo(null);
+//        assertThat(response.getResourceModels()).isNull();
+//        assertThat(response.getMessage()).isNull();
+//        assertThat(response.getErrorCode()).isNull();
+//    }
+//
+//    @Test
+//    public void testDeleteUsageLimit() {
+//        final ResourceModel model = ResourceModel.builder()
+//                .usageLimitId(USAGE_LIMIT_ID)
+//                .redshiftCommand("delete-usage-limit")
+//                .build();
+//
+//        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+//                .desiredResourceState(model)
+//                .region(AWS_REGION)
+//                .logicalResourceIdentifier("logicalId")
+//                .clientRequestToken("token")
+//                .build();
+//
+//        Cluster deleteUsageLimitCLuster = Cluster.builder()
+//                .clusterIdentifier(CLUSTER_IDENTIFIER)
+//                .masterUsername(MASTER_USERNAME)
+//                .nodeType("dc2.large")
+//                .numberOfNodes(NUMBER_OF_NODES)
+//                .clusterStatus(CLUSTER_AVAILABLE)
+//                .publiclyAccessible(true)
+//                .endpoint(clusterEndpoint)
+//                .build();
+//
+//        when(proxyClient.client().deleteUsageLimit(any(DeleteUsageLimitRequest.class)))
+//                .thenReturn(DeleteUsageLimitResponse.builder().build());
+//
+//        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(deleteUsageLimitCLuster)
+//                        .build());
+//
+//        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+//
+//        assertThat(response).isNotNull();
+//        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+//        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+//        assertThat(response.getResourceModel()).isEqualTo(null);
+//        assertThat(response.getResourceModels()).isNull();
+//        assertThat(response.getMessage()).isNull();
+//        assertThat(response.getErrorCode()).isNull();
+//    }
 }

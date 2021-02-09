@@ -115,7 +115,8 @@ public class ReadHandler extends BaseHandlerStd {
 
                 .then(progress -> {
                     if(model.getRedshiftCommand() != null && (model.getRedshiftCommand().equals("describe-tags") ||
-                            model.getRedshiftCommand().equals("create-tags") || model.getResourceName() != null)) {
+                            model.getRedshiftCommand().equals("create-tags") || model.getRedshiftCommand().equals("delete-tags")
+                            || model.getResourceName() != null)) {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeTags", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDescribeTagsRequest)
                                 .makeServiceCall(this::describeTags)
