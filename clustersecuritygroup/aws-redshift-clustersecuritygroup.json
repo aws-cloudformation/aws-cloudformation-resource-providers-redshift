@@ -56,7 +56,8 @@
         },
         "read": {
             "permissions": [
-                "redshift:DescribeClusterSecurityGroups"
+                "redshift:DescribeClusterSecurityGroups",
+                "redshift:DescribeTags"
             ]
         },
         "delete": {

@@ -23,9 +23,9 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "initech:DescribeReport"
                 - "redshift:CreateTags"
                 - "redshift:DescribeClusterSecurityGroups"
+                - "redshift:DescribeTags"
                 - "redshift:createClusterSecurityGroup"
                 - "redshift:deleteClusterSecurityGroup"
                 Resource: "*"
