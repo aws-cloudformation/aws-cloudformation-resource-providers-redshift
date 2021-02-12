@@ -16,11 +16,9 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-// Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
-
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
-    protected static int CALLBACK_DELAY_SECONDS = 5 * 60; // 5 min for propagation
+    protected static int CALLBACK_DELAY_SECONDS = 30;
     protected static int NO_CALLBACK_DELAY = 0;
 
     @Override
@@ -73,7 +71,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
             final Set<software.amazon.awssdk.services.redshift.model.Parameter> params =
                     Translator.getParametersToModify(model, describeClusterParametersResponse.parameters());
-            logger.log("applyParameters parameter needs to be applied: " + params.toString());
+            logger.log("parameter needs to be applied: " + params.toString());
 
             // if no params need to be modified then skip the api invocation
             if (params.isEmpty()) continue;
@@ -93,7 +91,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                         return response;
                     })
                     .progress(CALLBACK_DELAY_SECONDS);
-            logger.log("applyParameters result: " + progress);
         } while (!StringUtils.isNullOrEmpty(marker));
         // if there are parameters left that couldn't be found then they are invalid
         if (!paramNames.isEmpty()) {
