@@ -82,21 +82,19 @@
             "permissions": [
                 "redshift:CreateClusterParameterGroup",
                 "redshift:ModifyClusterParameterGroup",
-                "redshift:DescribeClusterParameterGroups",
-                "redshift:CreateTags"
+                "redshift:DescribeClusterParameterGroups"
             ]
         },
         "read": {
             "permissions": [
-                "redshift:DescribeClusterParameterGroups",
-                "redshift:DescribeClusterParameters",
-                "redshift:DescribeTags"
+                "redshift:DescribeClusterParameterGroups"
             ]
         },
         "update": {
             "permissions": [
                 "redshift:ResetClusterParameterGroup",
                 "redshift:ModifyClusterParameterGroup",
+                "redshift:DescribeClusterParameters",
                 "redshift:DescribeTags",
                 "redshift:DeleteTags",
                 "redshift:CreateTags"
