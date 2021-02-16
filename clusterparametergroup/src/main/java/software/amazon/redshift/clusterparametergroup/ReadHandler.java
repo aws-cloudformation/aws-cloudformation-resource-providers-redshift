@@ -31,7 +31,6 @@ public class ReadHandler extends BaseHandlerStd {
                 DescribeClusterParameterGroupsResponse awsResponse;
                 try {
                     awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterParameterGroups);
-                    logger.log("ReadHandler:: ReadHandler:: awsResponse " + awsResponse);
                 } catch (final ClusterParameterGroupNotFoundException e) { // ResourceNotFoundException
                     throw new CfnNotFoundException(ResourceModel.TYPE_NAME, model.getParameterGroupName());
                 } catch (final AwsServiceException e) {

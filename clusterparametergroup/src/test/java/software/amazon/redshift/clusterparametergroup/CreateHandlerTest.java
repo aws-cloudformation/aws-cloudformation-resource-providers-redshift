@@ -33,6 +33,8 @@ public class CreateHandlerTest extends AbstractTestBase {
     @Mock
     RedshiftClient sdkClient;
 
+    protected static int CALLBACK_DELAY_SECONDS = 30;
+
     private CreateHandler handler;
 
     @BeforeEach
@@ -75,13 +77,12 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(300);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(CALLBACK_DELAY_SECONDS);
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
         verify(proxyClient.client()).createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class));
         verify(proxyClient.client()).describeClusterParameters(any(DescribeClusterParametersRequest.class));
-
     }
 
     @Test
@@ -119,7 +120,6 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         verify(proxyClient.client()).createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class));
         verify(proxyClient.client()).describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class));
-
     }
 
     @Test

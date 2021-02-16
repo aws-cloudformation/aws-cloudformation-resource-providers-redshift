@@ -1,7 +1,5 @@
 package software.amazon.redshift.clusterparametergroup;
 
-import com.google.common.collect.Lists;
-import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.awssdk.services.redshift.model.Tag;
@@ -138,35 +136,6 @@ public class Translator {
         return DescribeClusterParameterGroupsRequest.builder().marker(nextToken).build();
     }
 
-    /**
-     * Translates resource objects from sdk into a resource model (primary identifier only)
-     *
-     * @param awsResponse the aws service describe resource response
-     * @return list of resource models
-     */
-    static List<ResourceModel> translateFromListRequest(final AwsResponse awsResponse) {
-        // e.g. https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-logs/blob/2077c92299aeb9a68ae8f4418b5e932b12a8b186/aws-logs-loggroup/src/main/java/com/aws/logs/loggroup/Translator.java#L75-L82
-        return streamOfOrEmpty(Lists.newArrayList())
-                .map(resource -> ResourceModel.builder()
-                        // include only primary identifier
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Translates resource objects from sdk into a resource model (primary identifier only)
-     *
-     * @param awsResponse the aws service describe resource response
-     * @return list of resource models
-     */
-    static List<ResourceModel> translateFromListResponse(final DescribeClusterParameterGroupsResponse awsResponse) {
-        return streamOfOrEmpty(awsResponse.parameterGroups())
-                .map(clusterParameterGroup -> ResourceModel.builder()
-                        .parameterGroupName(clusterParameterGroup.parameterGroupName())
-                        .build())
-                .collect(Collectors.toList());
-    }
-
     private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
         return Optional.ofNullable(collection)
                 .map(Collection::stream)
@@ -178,7 +147,6 @@ public class Translator {
         String partition = "aws";
         if (request.getRegion().indexOf("us-gov-") == 0) partition = partition.concat("-us-gov");
         if (request.getRegion().indexOf("cn-") == 0) partition = partition.concat("-cn");
-        // arn:aws:redshift:region:account-id:parametergroup:parameter-group-name
         return String.format("arn:%s:redshift:%s:%s:parametergroup:%s", partition, request.getRegion(), request.getAwsAccountId(), parameterGroupName);
     }
 
