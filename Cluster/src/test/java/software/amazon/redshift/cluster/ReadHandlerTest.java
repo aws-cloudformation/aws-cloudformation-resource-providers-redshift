@@ -171,44 +171,4 @@ public class ReadHandlerTest extends AbstractTestBase {
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
     }
-
-    @Test
-    public void testDescribeTags() {
-        Tag tag = Tag.builder()
-                .key("KEY")
-                .value("VALUE")
-                .build();
-
-        TaggedResource taggedResource = TaggedResource.builder()
-                .resourceName(RESOURCE_NAME)
-                .resourceType(RESOURCE_TYPE)
-                .tag(tag)
-                .build();
-
-        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER)
-                        .build());
-
-        when(proxyClient.client().describeTags(any(DescribeTagsRequest.class)))
-                .thenReturn(DescribeTagsResponse.builder()
-                        .taggedResources(taggedResource)
-                        .build());
-
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(DESCRIBE_TAGS_MODEL)
-                .build();
-
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-        response.getResourceModel().setRedshiftCommand("describe-tags");
-        response.getResourceModel().setClusterIdentifier(CLUSTER_IDENTIFIER);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
-    }
 }

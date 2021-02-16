@@ -114,18 +114,6 @@ public class ReadHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if(model.getRedshiftCommand() != null && (model.getRedshiftCommand().equals("describe-tags") ||
-                            model.getRedshiftCommand().equals("create-tags") || model.getRedshiftCommand().equals("delete-tags")
-                            || model.getResourceName() != null)) {
-                        return proxy.initiate("AWS-Redshift-Cluster::DescribeTags", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator::translateToDescribeTagsRequest)
-                                .makeServiceCall(this::describeTags)
-                                .done(this::constructResourceModelFromDescribeTagsResponse);
-                    }
-                    return progress;
-                })
-
-                .then(progress -> {
                         return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToReadRequest)
                                 .makeServiceCall(this::readCluster)
@@ -314,10 +302,5 @@ public class ReadHandler extends BaseHandlerStd {
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeResizeResponse(
             final DescribeResizeResponse awsResponse) {
         return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeResizeResponse(awsResponse));
-    }
-
-    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeTagsResponse(
-            final DescribeTagsResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeTagsResponse(awsResponse));
     }
 }

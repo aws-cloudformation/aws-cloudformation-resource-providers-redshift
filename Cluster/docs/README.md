@@ -172,7 +172,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#resourcename" title="ResourceName">ResourceName</a>" : <i>String</i>,
         "<a href="#tagkey" title="TagKey">TagKey</a>" : <i>String</i>,
         "<a href="#tagvalue" title="TagValue">TagValue</a>" : <i>String</i>,
-        "<a href="#resourcetype" title="ResourceType">ResourceType</a>" : <i>String</i>
+        "<a href="#resourcetype" title="ResourceType">ResourceType</a>" : <i>String</i>,
+        "<a href="#deletionpolicy" title="DeletionPolicy">DeletionPolicy</a>" : <i>String</i>
     }
 }
 </pre>
@@ -363,6 +364,7 @@ Properties:
     <a href="#tagkey" title="TagKey">TagKey</a>: <i>String</i>
     <a href="#tagvalue" title="TagValue">TagValue</a>: <i>String</i>
     <a href="#resourcetype" title="ResourceType">ResourceType</a>: <i>String</i>
+    <a href="#deletionpolicy" title="DeletionPolicy">DeletionPolicy</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -1968,6 +1970,34 @@ _Type_: String
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### ResourceType
+
+The type of resource with which you want to view tags. Valid resource types are Cluster
+
+CIDR/IP
+
+EC2 security group
+
+Snapshot
+
+Cluster security group
+
+Subnet group
+
+HSM connection
+
+HSM certificate
+
+Parameter group
+
+Snapshot copy grant.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeletionPolicy
 
 The type of resource with which you want to view tags. Valid resource types are Cluster
 

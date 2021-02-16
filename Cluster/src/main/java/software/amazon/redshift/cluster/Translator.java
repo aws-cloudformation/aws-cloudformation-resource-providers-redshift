@@ -387,42 +387,6 @@ public class Translator {
   }
 
   /**
-   * Translates DescribeTagsResponse object from sdk into a resource model
-   * @param awsResponse the aws service describe resource response
-   * @return model resource model
-   */
-  static ResourceModel translateFromDescribeTagsResponse(final DescribeTagsResponse awsResponse) {
-    final String resourceType = streamOfOrEmpty(awsResponse.taggedResources())
-            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::resourceType)
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElse(null);
-
-    final String resourceName = streamOfOrEmpty(awsResponse.taggedResources())
-            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::resourceName)
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElse(null);
-
-    final Tag tag = streamOfOrEmpty(awsResponse.taggedResources())
-            .map(software.amazon.awssdk.services.redshift.model.TaggedResource::tag)
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElse(null);
-
-    List<Tag> tags = new LinkedList<>();
-    if(tag != null){
-      tags.add(tag);
-    }
-
-    return ResourceModel.builder()
-            .resourceType(resourceType)
-            .resourceName(resourceName)
-            .tags(CollectionUtils.isNullOrEmpty(tags)? null : translateTagsFromSdk(tags))
-            .build();
-  }
-
-  /**
    * Translates DescribeLoggingStatusResponse object from sdk into a resource model
    * @param awsResponse the aws service describe resource response
    * @return model resource model
