@@ -1,6 +1,5 @@
 package software.amazon.redshift.cluster;
 
-import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
@@ -32,6 +31,7 @@ import java.util.stream.Stream;
  */
 
 public class Translator {
+  private static String FINAL_SNAPSHOT_SUFFIX = "-final-snapshot";
 
   /**
    * Request to create a resource
@@ -261,15 +261,22 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to delete a resource
    */
-  static DeleteClusterRequest translateToDeleteRequest(final ResourceModel model) {
-    boolean skipFinalClusterSnapshot = model.getSkipFinalClusterSnapshot() != null && model.getSkipFinalClusterSnapshot();
+  static DeleteClusterRequest translateToDeleteRequest(final ResourceModel model, Boolean snapshotRequested) {
+    snapshotRequested = snapshotRequested != null && snapshotRequested;
     return DeleteClusterRequest
             .builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            .skipFinalClusterSnapshot(skipFinalClusterSnapshot)
-            .finalClusterSnapshotIdentifier(model.getFinalClusterSnapshotIdentifier())
-            .finalClusterSnapshotRetentionPeriod(model.getFinalClusterSnapshotRetentionPeriod())
+            .skipFinalClusterSnapshot(!snapshotRequested)
+            .finalClusterSnapshotIdentifier(finalClusterSnapshotIdentifierBuilder(model.getClusterIdentifier(),
+                    snapshotRequested))
             .build();
+  }
+
+  static String finalClusterSnapshotIdentifierBuilder(String clusterIdentifier, boolean snapshotRequested) {
+    if (snapshotRequested) {
+      return clusterIdentifier + FINAL_SNAPSHOT_SUFFIX;
+    }
+    return null;
   }
 
   /**

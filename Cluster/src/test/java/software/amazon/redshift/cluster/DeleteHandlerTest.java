@@ -71,6 +71,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .region(AWS_REGION)
                 .logicalResourceIdentifier("logicalId")
                 .clientRequestToken("token")
+                .snapshotRequested(false)
                 .build();
 
         when(proxyClient.client().deleteCluster(any(DeleteClusterRequest.class)))
