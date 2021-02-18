@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
@@ -92,17 +93,6 @@ public class Translator {
             .clusterIdentifier(model.getClusterIdentifier())
             .bucketName(model.getLoggingProperties().getBucketName())
             .s3KeyPrefix(model.getLoggingProperties().getS3KeyPrefix())
-            .build();
-  }
-
-  /**
-   * Request to create Tags Request
-   * @param model resource model
-   * @return awsRequest the aws service request to create a resource
-   */
-  static CreateTagsRequest translateToCreateTagsRequest(final ResourceModel model) {
-    return CreateTagsRequest.builder()
-            .tags(translateTagsToSdk(model.getTags()))
             .build();
   }
 

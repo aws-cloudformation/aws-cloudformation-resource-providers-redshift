@@ -112,16 +112,16 @@ public class CreateHandler extends BaseHandlerStd {
                     }
                         return progress;
                 })
-                .then(progress -> {
-                    if (!CollectionUtils.isNullOrEmpty(resourceModel.getTags())) {
-                        return proxy.initiate("AWS-Redshift-Cluster::createTags", proxyClient, resourceModel, callbackContext)
-                                .translateToServiceRequest(Translator::translateToCreateTagsRequest)
-                                .makeServiceCall(this::createTags)
-                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                .progress();
-                    }
-                    return progress;
-                })
+//                .then(progress -> {
+//                    if (!CollectionUtils.isNullOrEmpty(resourceModel.getTags())) {
+//                        return proxy.initiate("AWS-Redshift-Cluster::createTags", proxyClient, resourceModel, callbackContext)
+//                                .translateToServiceRequest(Translator::translateToCreateTagsRequest)
+//                                .makeServiceCall(this::createTags)
+//                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+//                                .progress();
+//                    }
+//                    return progress;
+//                })
 
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
 
@@ -215,23 +215,6 @@ public class CreateHandler extends BaseHandlerStd {
         logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
 
         return enableLoggingResponse;
-    }
-
-    private CreateTagsResponse createTags(
-            final CreateTagsRequest createTagsRequest,
-            final ProxyClient<RedshiftClient> proxyClient) {
-        CreateTagsResponse createTagsResponse = null;
-
-        try {
-            createTagsResponse = proxyClient.injectCredentialsAndInvokeV2(createTagsRequest, proxyClient.client()::createTags);
-        } catch (final TagLimitExceededException | ResourceNotFoundException | InvalidTagException
-                | InvalidClusterStateException e) {
-            throw new CfnInvalidRequestException(createTagsRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
-            throw new CfnGeneralServiceException(createTagsRequest.toString(), e);
-        }
-        logger.log(String.format("%s create tags.", ResourceModel.TYPE_NAME));
-        return createTagsResponse;
     }
 
     private void prepareResourceModel(ResourceHandlerRequest<ResourceModel> request) {

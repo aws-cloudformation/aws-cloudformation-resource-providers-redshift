@@ -8,6 +8,9 @@ import java.util.List;
 import junit.framework.Assert;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
+import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
 import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupRequest;
@@ -25,6 +28,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
+import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -50,7 +54,11 @@ import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
+import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
+import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
+import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -82,7 +90,29 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Test
     public void handleRequest_SimpleSuccess() {
-        ResourceModel model = BASIC_MODEL;
+        Tag tag = Tag.builder()
+                .key("foo")
+                .value("bar")
+                .build();
+
+        List<Tag> tags = new LinkedList<>();
+        tags.add(tag);
+
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .masterUserPassword(MASTER_USERPASSWORD)
+                .nodeType(NODETYPE)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .tags(tags)
+                .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -96,9 +126,35 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .cluster(BASIC_CLUSTER)
                         .build());
 
+        software.amazon.awssdk.services.redshift.model.Tag clusterTag = software.amazon.awssdk.services.redshift.model.Tag.builder()
+                .key("foo")
+                .value("bar")
+                .build();
+
+        List<software.amazon.awssdk.services.redshift.model.Tag> clusterTags = new LinkedList<>();
+        clusterTags.add(clusterTag);
+
+        Cluster clusterWithTags = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType(NODETYPE)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+                .iamRoles(new LinkedList<ClusterIamRole>())
+                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .tags(clusterTags)
+                .build();
+
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER_READ)
+                        .clusters(clusterWithTags)
                         .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -122,22 +178,26 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void testCreateClusterLoggingAndTags() {
-        ResourceModel model = BASIC_MODEL;
+    public void testCreateClusterAndEnableLogging() {
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
                 .build();
-
-        Tag tag = Tag.builder()
-                .key("foo")
-                .value("bar")
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .masterUserPassword(MASTER_USERPASSWORD)
+                .nodeType(NODETYPE)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .tags(new LinkedList<Tag>())
+                .loggingProperties(loggingProperties)
                 .build();
-
-        List<Tag> tags = new LinkedList<>();
-        tags.add(tag);
-
-        model.setLoggingProperties(loggingProperties);
-        model.setTags(tags);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -158,12 +218,27 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .lastSuccessfulDeliveryTime(Instant.now())
                         .build());
 
-        when(proxyClient.client().createTags(any(CreateTagsRequest.class)))
-                .thenReturn(CreateTagsResponse.builder().build());
+        Cluster clusterWithLogging = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType(NODETYPE)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+                .iamRoles(new LinkedList<ClusterIamRole>())
+                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
+                .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER_READ)
+                        .clusters(clusterWithLogging)
                         .build());
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
@@ -172,21 +247,6 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .loggingEnabled(true)
                         .lastSuccessfulDeliveryTime(Instant.now())
                         .build());
-
-//        software.amazon.awssdk.services.redshift.model.Tag clusterTag =
-//                software.amazon.awssdk.services.redshift.model.Tag.builder()
-//                        .key("foo")
-//                        .value("bar")
-//                        .build();
-//
-//        TaggedResource taggedResource = TaggedResource.builder()
-//                .tag(clusterTag)
-//                .build();
-//
-//        when(proxyClient.client().describeTags(any(DescribeTagsRequest.class)))
-//                .thenReturn(DescribeTagsResponse.builder()
-//                        .taggedResources(taggedResource)
-//                        .build());
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
