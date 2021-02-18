@@ -112,34 +112,7 @@ public class CreateHandler extends BaseHandlerStd {
                     }
                         return progress;
                 })
-//                .then(progress -> {
-//                    if (!CollectionUtils.isNullOrEmpty(resourceModel.getTags())) {
-//                        return proxy.initiate("AWS-Redshift-Cluster::createTags", proxyClient, resourceModel, callbackContext)
-//                                .translateToServiceRequest(Translator::translateToCreateTagsRequest)
-//                                .makeServiceCall(this::createTags)
-//                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-//                                .progress();
-//                    }
-//                    return progress;
-//                })
-
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
-
-//        if(invalidCreateClusterRequest(resourceModel)) {
-//            return ProgressEvent.<ResourceModel, CallbackContext>builder()
-//                    .status(OperationStatus.FAILED)
-//                    .errorCode(HandlerErrorCode.InvalidRequest)
-//                    .message(HandlerErrorCode.InvalidRequest.getMessage())
-//                    .build();
-//        }
-//
-//        return ProgressEvent.progress(resourceModel, callbackContext)
-//                .then(progress -> proxy.initiate("AWS-Redshift-Cluster::Create", proxyClient, resourceModel, callbackContext)
-//                        .translateToServiceRequest((m) -> Translator.translateToCreateRequest(resourceModel))
-//                        .makeServiceCall(this::createClusterResource)
-//                        .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-//                        .progress())
-//                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
     private RestoreFromClusterSnapshotResponse restoreFromClusterSnapshot(

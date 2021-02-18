@@ -65,7 +65,6 @@ public class ReadHandler extends BaseHandlerStd {
                                 model.setLoggingProperties(loggingProperties);
                                 return ProgressEvent.progress(model, callbackContext);
                             });
-                        //.done(this::constructResourceModelFromDescribeLoggingResponse);
                     }
                     return progress;
                 })
@@ -78,12 +77,6 @@ public class ReadHandler extends BaseHandlerStd {
                      progress.getResourceModel().setLoggingProperties(callbackContext.getLoggingProperties());
                      return  progress;
                 });
-
-//        return proxy.initiate("AWS-Redshift-Cluster::Read", proxyClient, model, callbackContext)
-//                .translateToServiceRequest(Translator::translateToReadRequest)
-//                .makeServiceCall(this::readResource)
-//                .done(this::constructResourceModelFromResponse);
-
     }
 
     /**
