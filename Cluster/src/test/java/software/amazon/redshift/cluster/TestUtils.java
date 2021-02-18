@@ -19,6 +19,8 @@ public class TestUtils {
     final static String NODETYPE = "ds2.xlarge";
     final static int  NUMBER_OF_NODES = 2;
     final static String IAM_ROLE_ARN = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role";
+    final static String BUCKET_NAME = "bucket-enable-logging";
+    final static String S3_KEY_PREFIX = "create";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -53,23 +55,6 @@ public class TestUtils {
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
             .build();
 
-    final static Cluster BASIC_CLUSTER_READ_AFTER_DELETE = Cluster.builder()
-            .clusterIdentifier(CLUSTER_IDENTIFIER)
-            .masterUsername(MASTER_USERNAME)
-            .nodeType(NODETYPE)
-            .numberOfNodes(NUMBER_OF_NODES)
-            .clusterStatus("unavailable")
-            .allowVersionUpgrade(true)
-            .automatedSnapshotRetentionPeriod(0)
-            .encrypted(false)
-            .enhancedVpcRouting(false)
-            .manualSnapshotRetentionPeriod(1)
-            .publiclyAccessible(false)
-            .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-            .iamRoles(new LinkedList<ClusterIamRole>())
-            .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-            .build();
-
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
             .masterUsername(MASTER_USERNAME)
@@ -79,12 +64,13 @@ public class TestUtils {
             .allowVersionUpgrade(true)
             .automatedSnapshotRetentionPeriod(0)
             .encrypted(false)
-            .enhancedVpcRouting(false)
-            .manualSnapshotRetentionPeriod(1)
+            //.enhancedVpcRouting(false)
+            //.manualSnapshotRetentionPeriod(1)
             .publiclyAccessible(false)
             .clusterSecurityGroups(new LinkedList<String>())
             .iamRoles(new LinkedList<String>())
             .vpcSecurityGroupIds(new LinkedList<String>())
+            .tags(new LinkedList<Tag>())
             .build();
 
 }

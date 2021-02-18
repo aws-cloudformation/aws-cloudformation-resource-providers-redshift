@@ -37,6 +37,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#iamroles" title="IamRoles">IamRoles</a>" : <i>[ String, ... ]</i>,
         "<a href="#tags" title="Tags">Tags</a>" : <i>[ <a href="tag.md">Tag</a>, ... ]</i>,
         "<a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>" : <i>[ String, ... ]</i>,
+        "<a href="#snapshotclusteridentifier" title="SnapshotClusterIdentifier">SnapshotClusterIdentifier</a>" : <i>String</i>,
+        "<a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>" : <i>String</i>,
         "<a href="#endpointport" title="EndpointPort">EndpointPort</a>" : <i>String</i>,
         "<a href="#endpointaddress" title="EndpointAddress">EndpointAddress</a>" : <i>String</i>,
         "<a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>" : <i>String</i>,
@@ -79,6 +81,8 @@ Properties:
       - <a href="tag.md">Tag</a></i>
     <a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>: <i>
       - String</i>
+    <a href="#snapshotclusteridentifier" title="SnapshotClusterIdentifier">SnapshotClusterIdentifier</a>: <i>String</i>
+    <a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>: <i>String</i>
     <a href="#endpointport" title="EndpointPort">EndpointPort</a>: <i>String</i>
     <a href="#endpointaddress" title="EndpointAddress">EndpointAddress</a>: <i>String</i>
     <a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>: <i>String</i>
@@ -337,6 +341,26 @@ _Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### SnapshotClusterIdentifier
+
+The name of the cluster the source snapshot was created from. This parameter is required if your IAM user has a policy containing a snapshot resource element that specifies anything other than * for the cluster name.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotIdentifier
+
+The name of the snapshot from which to create the new cluster. This parameter isn't case sensitive.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 #### EndpointPort
 
 _Required_: No
@@ -392,4 +416,3 @@ Returns the <code>Endpoint.Port</code> value.
 #### Endpoint.Address
 
 Returns the <code>Endpoint.Address</code> value.
-

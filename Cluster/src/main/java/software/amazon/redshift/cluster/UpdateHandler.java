@@ -67,23 +67,23 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         return ProgressEvent.progress(model, callbackContext)
-            .then(progress -> {
-                if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles()) || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
-                    .makeServiceCall(this::updateIAMRoles)
-                    .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                    .progress();
-                }
-                return progress;
-            })
+//            .then(progress -> {
+//                if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles()) || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
+//                    return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
+//                    .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
+//                    .makeServiceCall(this::updateIAMRoles)
+//                    .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+//                    .progress();
+//                }
+//                return progress;
+//            })
 
             .then(progress -> {
                 if(issueModifyClusterRequest(model)) {
                     return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToUpdateRequest)
                             .makeServiceCall(this::updateResource)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterModify(_client, _model, _context))
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                             .progress();
                 }
                 return progress;

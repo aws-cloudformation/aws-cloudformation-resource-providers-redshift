@@ -43,17 +43,17 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final Logger logger);
 
 
-  protected boolean isClusterActiveAfterModify (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
-            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
-
-    DescribeClustersRequest awsRequest =
-            DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
-    DescribeClustersResponse awsResponse =
-            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-
-    return awsResponse.clusters().get(0).clusterStatus().equals("available");
-  }
+//  protected boolean isClusterActiveAfterModify (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+//    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
+//            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
+//
+//    DescribeClustersRequest awsRequest =
+//            DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
+//    DescribeClustersResponse awsResponse =
+//            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+//
+//    return awsResponse.clusters().get(0).clusterStatus().equals("available");
+//  }
 
   protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
     DescribeClustersRequest awsRequest =
@@ -72,9 +72,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     try {
       awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
     } catch (final ClusterNotFoundException e) {
-        if (!StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())) {
-          return isClusterAvailableForUpdate(proxyClient, model, model.getNewClusterIdentifier());
-        }
+//        if (!StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())) {
+//          return isClusterAvailableForUpdate(proxyClient, model, model.getNewClusterIdentifier());
+//        }
         return false;
     }
     return true;
@@ -100,14 +100,13 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean issueModifyClusterRequest(ResourceModel model) {
-    return model.getNodeType() != null || model.getNumberOfNodes() != null || model.getNewClusterIdentifier() != null ||
-            model.getAllowVersionUpgrade() != null || model.getAutomatedSnapshotRetentionPeriod() != null ||
-            model.getClusterParameterGroupName() != null || model.getClusterType() != null || model.getClusterVersion() != null ||
-            model.getElasticIp() != null || model.getEncrypted() != null || model.getEnhancedVpcRouting() != null ||
-            model.getHsmClientCertificateIdentifier() != null || model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
-            model.getKmsKeyId() != null || model.getMaintenanceTrackName() != null || model.getManualSnapshotRetentionPeriod() != null ||
-            model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null || model.getClusterSecurityGroups() != null ||
-            model.getVpcSecurityGroupIds() != null;
+    return model.getNodeType() != null || model.getNumberOfNodes() != null || model.getAllowVersionUpgrade() != null ||
+            model.getAutomatedSnapshotRetentionPeriod() != null || model.getClusterParameterGroupName() != null ||
+            model.getClusterType() != null || model.getClusterVersion() != null ||
+            model.getElasticIp() != null || model.getEncrypted() != null || model.getHsmClientCertificateIdentifier() != null ||
+            model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
+            model.getKmsKeyId() != null || model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null ||
+            model.getClusterSecurityGroups() != null || model.getVpcSecurityGroupIds() != null;
   }
 
 }

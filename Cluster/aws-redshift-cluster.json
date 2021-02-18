@@ -6,7 +6,7 @@
         "Tag": {
             "description": "A key-value pair to associate with a resource.",
             "type": "object",
-            "additionalProperties" : false,
+            "additionalProperties": false,
             "properties": {
                 "Key": {
                     "type": "string",
@@ -26,18 +26,20 @@
                 "Key"
             ]
         },
-        "LoggingProperties" : {
-            "type" : "object",
-            "additionalProperties" : false,
-            "properties" : {
-                "BucketName" : {
-                    "type" : "string"
+        "LoggingProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "BucketName": {
+                    "type": "string"
                 },
-                "S3KeyPrefix" : {
-                    "type" : "string"
+                "S3KeyPrefix": {
+                    "type": "string"
                 }
             },
-            "required" : [ "BucketName" ]
+            "required": [
+                "BucketName"
+            ]
         }
     },
     "properties": {
@@ -87,7 +89,7 @@
         },
         "ClusterSubnetGroupName": {
             "description": "The name of a cluster subnet group to be associated with this cluster.",
-            "type" : "string"
+            "type": "string"
         },
         "DBName": {
             "description": "The name of the first database to be created when the cluster is created. To create additional databases after the cluster is created, connect to the cluster with a SQL client and use SQL commands to create a database.",
@@ -159,38 +161,46 @@
                 "type": "string"
             }
         },
-        "SnapshotClusterIdentifier" : {
+        "SnapshotClusterIdentifier": {
             "description": "The name of the cluster the source snapshot was created from. This parameter is required if your IAM user has a policy containing a snapshot resource element that specifies anything other than * for the cluster name.",
-            "type" : "string"
+            "type": "string"
         },
-        "SnapshotIdentifier" : {
-            "description":"The name of the snapshot from which to create the new cluster. This parameter isn't case sensitive.",
-            "type" : "string"
+        "SnapshotIdentifier": {
+            "description": "The name of the snapshot from which to create the new cluster. This parameter isn't case sensitive.",
+            "type": "string"
         },
-        "EndpointPort" : {
-            "type" : "string"
+        "EndpointPort": {
+            "type": "string"
         },
-        "EndpointAddress" : {
-            "type" : "string"
+        "EndpointAddress": {
+            "type": "string"
         },
-        "Id" : {
-            "type" : "string"
+        "Id": {
+            "type": "string"
         },
-        "OwnerAccount" : {
-            "type" : "string"
+        "OwnerAccount": {
+            "type": "string"
         },
-        "LoggingProperties" : {
-            "$ref" : "#/definitions/LoggingProperties"
+        "LoggingProperties": {
+            "$ref": "#/definitions/LoggingProperties"
         }
     },
     "additionalProperties": false,
     "required": [
-        "MasterUserPassword", "NodeType", "MasterUsername", "DBName", "ClusterType"
+        "MasterUserPassword",
+        "NodeType",
+        "MasterUsername",
+        "DBName",
+        "ClusterType"
     ],
     "primaryIdentifier": [
         "/properties/ClusterIdentifier"
     ],
-    "readOnlyProperties": ["/properties/Id", "/properties/Endpoint.Port", "/properties/Endpoint.Address"],
+    "readOnlyProperties": [
+        "/properties/Id",
+        "/properties/Endpoint.Port",
+        "/properties/Endpoint.Address"
+    ],
     "createOnlyProperties": [
         "/properties/ClusterIdentifier"
     ],

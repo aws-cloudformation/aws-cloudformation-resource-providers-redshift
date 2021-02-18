@@ -1,27 +1,41 @@
 package software.amazon.redshift.cluster;
 
+import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AccessToSnapshotDeniedException;
+import software.amazon.awssdk.services.redshift.model.BucketNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
+import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
+import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
+import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
 import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
 import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
+import software.amazon.awssdk.services.redshift.model.InsufficientS3BucketPolicyException;
+import software.amazon.awssdk.services.redshift.model.InvalidClusterSnapshotStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
 import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
+import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
+import software.amazon.awssdk.services.redshift.model.InvalidS3BucketNameException;
+import software.amazon.awssdk.services.redshift.model.InvalidS3KeyPrefixException;
 import software.amazon.awssdk.services.redshift.model.InvalidSubnetException;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.InvalidVpcNetworkStateException;
@@ -29,6 +43,9 @@ import software.amazon.awssdk.services.redshift.model.LimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
+import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotResponse;
 import software.amazon.awssdk.services.redshift.model.SnapshotScheduleNotFoundException;
 import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
@@ -64,21 +81,94 @@ public class CreateHandler extends BaseHandlerStd {
         prepareResourceModel(request);
         final ResourceModel resourceModel = request.getDesiredResourceState();
 
-        if(invalidCreateClusterRequest(resourceModel)) {
-            return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                    .status(OperationStatus.FAILED)
-                    .errorCode(HandlerErrorCode.InvalidRequest)
-                    .message(HandlerErrorCode.InvalidRequest.getMessage())
-                    .build();
-        }
-
         return ProgressEvent.progress(resourceModel, callbackContext)
-                .then(progress -> proxy.initiate("AWS-Redshift-Cluster::Create", proxyClient, resourceModel, callbackContext)
-                        .translateToServiceRequest((m) -> Translator.translateToCreateRequest(resourceModel))
-                        .makeServiceCall(this::createClusterResource)
-                        .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                        .progress())
+                .then(progress -> {
+                    if (!StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier())) {
+                        return proxy.initiate("AWS-Redshift-Cluster::restoreFromClusterSnapshot", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(Translator::translateToRestoreFromClusterSnapshotRequest)
+                                .makeServiceCall(this::restoreFromClusterSnapshot)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    if (StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier()) && !invalidCreateClusterRequest(resourceModel)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::createCluster", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(Translator::translateToCreateRequest)
+                                .makeServiceCall(this::createClusterResource)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    if (resourceModel.getLoggingProperties() != null) {
+                        return proxy.initiate("AWS-Redshift-Cluster::enableLogging", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
+                                .makeServiceCall(this::enableLogging)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                        return progress;
+                })
+                .then(progress -> {
+                    if (!CollectionUtils.isNullOrEmpty(resourceModel.getTags())) {
+                        return proxy.initiate("AWS-Redshift-Cluster::createTags", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(Translator::translateToCreateTagsRequest)
+                                .makeServiceCall(this::createTags)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+
+//        if(invalidCreateClusterRequest(resourceModel)) {
+//            return ProgressEvent.<ResourceModel, CallbackContext>builder()
+//                    .status(OperationStatus.FAILED)
+//                    .errorCode(HandlerErrorCode.InvalidRequest)
+//                    .message(HandlerErrorCode.InvalidRequest.getMessage())
+//                    .build();
+//        }
+//
+//        return ProgressEvent.progress(resourceModel, callbackContext)
+//                .then(progress -> proxy.initiate("AWS-Redshift-Cluster::Create", proxyClient, resourceModel, callbackContext)
+//                        .translateToServiceRequest((m) -> Translator.translateToCreateRequest(resourceModel))
+//                        .makeServiceCall(this::createClusterResource)
+//                        .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+//                        .progress())
+//                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+    }
+
+    private RestoreFromClusterSnapshotResponse restoreFromClusterSnapshot(
+            final RestoreFromClusterSnapshotRequest restoreFromClusterSnapshotRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        RestoreFromClusterSnapshotResponse restoreFromClusterSnapshotResponse = null;
+
+        try {
+            restoreFromClusterSnapshotResponse = proxyClient.injectCredentialsAndInvokeV2(restoreFromClusterSnapshotRequest,
+                    proxyClient.client()::restoreFromClusterSnapshot);
+        } catch (final ClusterAlreadyExistsException e) {
+            throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, restoreFromClusterSnapshotRequest.clusterIdentifier());
+        }  catch (final AccessToSnapshotDeniedException | InvalidClusterStateException | InvalidRetentionPeriodException
+                | ClusterSnapshotNotFoundException | ClusterQuotaExceededException | InsufficientClusterCapacityException
+                | InvalidClusterSnapshotStateException | InvalidRestoreException | NumberOfNodesQuotaExceededException
+                | NumberOfNodesPerClusterLimitExceededException | InvalidVpcNetworkStateException | InvalidClusterSubnetGroupStateException
+                | InvalidSubnetException | ClusterSubnetGroupNotFoundException | UnauthorizedOperationException
+                | HsmClientCertificateNotFoundException | HsmConfigurationNotFoundException
+                | InvalidElasticIpException | ClusterParameterGroupNotFoundException | ClusterSecurityGroupNotFoundException
+                | LimitExceededException | DependentServiceRequestThrottlingException
+                | InvalidClusterTrackException | SnapshotScheduleNotFoundException | TagLimitExceededException
+                | InvalidTagException e) {
+            throw new CfnInvalidRequestException(restoreFromClusterSnapshotRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(restoreFromClusterSnapshotRequest.toString(), e);
+        }
+        logger.log(String.format("%s Restore Cluster from Snapshot.", ResourceModel.TYPE_NAME));
+
+        return restoreFromClusterSnapshotResponse;
     }
 
     private CreateClusterResponse createClusterResource(
@@ -105,6 +195,43 @@ public class CreateHandler extends BaseHandlerStd {
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
 
         return createResponse;
+    }
+
+    private EnableLoggingResponse enableLogging(
+            final EnableLoggingRequest enableLoggingRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        EnableLoggingResponse enableLoggingResponse = null;
+
+        try {
+            enableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
+        } catch (final ClusterAlreadyExistsException e) {
+            throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier());
+        }  catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
+                | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
+            throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
+        }
+        logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
+
+        return enableLoggingResponse;
+    }
+
+    private CreateTagsResponse createTags(
+            final CreateTagsRequest createTagsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        CreateTagsResponse createTagsResponse = null;
+
+        try {
+            createTagsResponse = proxyClient.injectCredentialsAndInvokeV2(createTagsRequest, proxyClient.client()::createTags);
+        } catch (final TagLimitExceededException | ResourceNotFoundException | InvalidTagException
+                | InvalidClusterStateException e) {
+            throw new CfnInvalidRequestException(createTagsRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(createTagsRequest.toString(), e);
+        }
+        logger.log(String.format("%s create tags.", ResourceModel.TYPE_NAME));
+        return createTagsResponse;
     }
 
     private void prepareResourceModel(ResourceHandlerRequest<ResourceModel> request) {
