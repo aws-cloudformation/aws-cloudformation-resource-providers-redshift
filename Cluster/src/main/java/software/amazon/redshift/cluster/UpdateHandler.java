@@ -10,6 +10,10 @@ import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceededException;
+import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
+import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
+import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
@@ -21,6 +25,7 @@ import software.amazon.awssdk.services.redshift.model.InvalidClusterStateExcepti
 import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
 import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.LimitExceededException;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
@@ -29,7 +34,9 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.redshift.model.TableLimitExceededException;
+import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
@@ -43,8 +50,11 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.List;
+
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
+    private String RESOURCE_NAME_PREFIX = "arn:aws:redshift:";
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -67,16 +77,49 @@ public class UpdateHandler extends BaseHandlerStd {
         }
 
         return ProgressEvent.progress(model, callbackContext)
-//            .then(progress -> {
-//                if(!CollectionUtils.isNullOrEmpty(model.getAddIamRoles()) || !CollectionUtils.isNullOrEmpty(model.getRemoveIamRoles())) {
-//                    return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
-//                    .translateToServiceRequest(Translator::translateToUpdateIAMRolesRequest)
-//                    .makeServiceCall(this::updateIAMRoles)
-//                    .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-//                    .progress();
-//                }
-//                return progress;
-//            })
+                .then(progress -> {
+                    ProgressEvent<ResourceModel, CallbackContext> describeTags =
+                            new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger);
+
+                    String availabilityZone = describeTags.getResourceModel().getAvailabilityZone();
+                    String region = availabilityZone.substring(0, availabilityZone.length() - 1);
+
+                    List<Tag> existingTags = describeTags.getResourceModel().getTags();
+                    List<List<Tag>> updateTags = updateTags(existingTags, model.getTags());
+
+                    String resourceName = RESOURCE_NAME_PREFIX + region + ":" +model.getOwnerAccount() +
+                            ":cluster:" + model.getClusterIdentifier();
+
+                    if (!CollectionUtils.isNullOrEmpty(updateTags.get(CREATE_TAGS_INDEX))) {
+                        return proxy.initiate("AWS-Redshift-Cluster::CreateTags", proxyClient, model, callbackContext)
+                                .translateToServiceRequest((createTagsRequest) -> Translator.translateToCreateTagsRequest(model, updateTags.get(CREATE_TAGS_INDEX), resourceName))
+                                .makeServiceCall(this::createTags)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    if (!CollectionUtils.isNullOrEmpty(updateTags.get(DELETE_TAGS_INDEX))) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DeleteTags", proxyClient, model, callbackContext)
+                                .translateToServiceRequest((deleteTagsRequest) -> Translator.translateToDeleteTagsRequest(model, updateTags.get(DELETE_TAGS_INDEX), resourceName))
+                                .makeServiceCall(this::deleteTags)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+
+                    return progress;
+                })
+
+
+                .then(progress -> {
+                    List<List<String>> iamRolesForUpdate = iamRoleUpdate(request, model);
+                    if (!CollectionUtils.isNullOrEmpty(iamRolesForUpdate)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
+                            .translateToServiceRequest((iamRolesModifyRequest) -> Translator.translateToUpdateIAMRolesRequest(model, iamRolesForUpdate))
+                            .makeServiceCall(this::updateIAMRoles)
+                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                            .progress();
+                    }
+                    return progress;
+                })
 
             .then(progress -> {
                 if(issueModifyClusterRequest(model)) {
@@ -134,5 +177,47 @@ public class UpdateHandler extends BaseHandlerStd {
         logger.log(String.format("%s IAM Roles successfully updated.", ResourceModel.TYPE_NAME));
 
         return awsResponse;
+    }
+
+    private CreateTagsResponse createTags(
+            final CreateTagsRequest createTagsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        CreateTagsResponse createTagsResponse = null;
+
+        try {
+            createTagsResponse = proxyClient.injectCredentialsAndInvokeV2(createTagsRequest, proxyClient.client()::createTags);
+        } catch (final InvalidClusterStateException | TagLimitExceededException | InvalidTagException e ) {
+            throw new CfnInvalidRequestException(createTagsRequest.toString(), e);
+        } catch (final ResourceNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, createTagsRequest.resourceName());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(createTagsRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s create tags for resource %s.", ResourceModel.TYPE_NAME,
+                createTagsRequest.resourceName()));
+
+        return createTagsResponse;
+    }
+
+    private DeleteTagsResponse deleteTags(
+            final DeleteTagsRequest deleteTagsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DeleteTagsResponse deleteTagsResponse = null;
+
+        try {
+            deleteTagsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteTagsRequest, proxyClient.client()::deleteTags);
+        } catch (final InvalidClusterStateException | TagLimitExceededException | InvalidTagException e ) {
+            throw new CfnInvalidRequestException(deleteTagsRequest.toString(), e);
+        } catch (final ResourceNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteTagsRequest.resourceName());
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(deleteTagsRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s delete tags for resource %s.", ResourceModel.TYPE_NAME,
+                deleteTagsRequest.resourceName()));
+
+        return deleteTagsResponse;
     }
 }

@@ -7,7 +7,9 @@ import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
+import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
@@ -44,7 +46,8 @@ import java.util.stream.Stream;
 
 public class Translator {
   private static String FINAL_SNAPSHOT_SUFFIX = "-final-snapshot";
-
+  private static int ADD_IAM_ROLES_INDEX = 0;
+  private static int REMOVE_IAM_ROLES_INDEX = 1;
   /**
    * Request to create a resource
    * @param model resource model
@@ -295,7 +298,7 @@ public class Translator {
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
-    
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -398,15 +401,40 @@ public class Translator {
   /**
    * Request to update IAM of a previously created cluster
    * @param model resource model
+   * @param iamRoleUpdate IAM roles to be updated
    * @return awsRequest the aws service request to modify a resource
    */
-//  static ModifyClusterIamRolesRequest translateToUpdateIAMRolesRequest(final ResourceModel model) {
-//    return ModifyClusterIamRolesRequest.builder()
-//            .clusterIdentifier(model.getClusterIdentifier())
-//            .addIamRoles(model.getAddIamRoles())
-//            .removeIamRoles(model.getRemoveIamRoles())
-//            .build();
-//  }
+  static ModifyClusterIamRolesRequest translateToUpdateIAMRolesRequest(final ResourceModel model, List<List<String>> iamRoleUpdate) {
+    return ModifyClusterIamRolesRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .addIamRoles(iamRoleUpdate.get(ADD_IAM_ROLES_INDEX))
+            .removeIamRoles(iamRoleUpdate.get(REMOVE_IAM_ROLES_INDEX))
+            .build();
+  }
+
+  /**
+   * Request to create Tags
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static CreateTagsRequest translateToCreateTagsRequest(ResourceModel model, List<Tag> createTags, String resourceName) {
+    return CreateTagsRequest.builder()
+            .tags(translateTagsToSdk(createTags))
+            .resourceName(resourceName)
+            .build();
+  }
+
+  /**
+   * Request to delete Tags
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static DeleteTagsRequest translateToDeleteTagsRequest(ResourceModel model, List<Tag> deleteTags, String resourceName) {
+    return DeleteTagsRequest.builder()
+            .resourceName(resourceName)
+            .tagKeys(deleteTags.stream().map(Tag::getKey).collect(Collectors.toList()))
+            .build();
+  }
 
   /**
    * Request to update some other properties that could not be provisioned through first update request

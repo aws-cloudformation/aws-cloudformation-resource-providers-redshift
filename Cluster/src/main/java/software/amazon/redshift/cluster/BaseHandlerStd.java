@@ -2,6 +2,8 @@ package software.amazon.redshift.cluster;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.util.StringUtils;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
@@ -17,9 +19,17 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
+
+  protected int CREATE_TAGS_INDEX = 0;
+  protected int DELETE_TAGS_INDEX = 1;
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
@@ -107,6 +117,36 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
             model.getKmsKeyId() != null || model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null ||
             model.getClusterSecurityGroups() != null || model.getVpcSecurityGroupIds() != null;
+  }
+
+  protected List<List<String>> iamRoleUpdate (ResourceHandlerRequest<ResourceModel> request, ResourceModel model) {
+    List<List<String>> iamRolesForUpdate = new LinkedList<>();
+    if (ObjectUtils.notEqual(request.getPreviousResourceState().getIamRoles(), model.getIamRoles())) {
+      Set<String> iamRolesSetPrevious = new HashSet<>(request.getPreviousResourceState().getIamRoles());
+      Set<String> iamRolesSetCurrent = new HashSet<>(model.getIamRoles());
+
+      // Compute which iam roles we need to delete and add
+      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(request.getPreviousResourceState().getIamRoles()), new HashSet<>(model.getIamRoles()));
+      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(model.getIamRoles()), new HashSet<>(request.getPreviousResourceState().getIamRoles()));
+
+      iamRolesForUpdate.add(new LinkedList<>(iamRolesToAdd));
+      iamRolesForUpdate.add(new LinkedList<>(iamRolesToRemove));
+    }
+    return iamRolesForUpdate;
+  }
+
+  protected List<List<Tag>> updateTags (List<Tag> existingTags, List<Tag> newTags) {
+    List<List<Tag>> tagsForUpdate = new LinkedList<>();
+    if (ObjectUtils.notEqual(existingTags, newTags)) {
+
+      Set<Tag> tagsToDelete = Sets.difference(new HashSet<>(existingTags), new HashSet<>(newTags));
+      Set<Tag> tagsToAdd = Sets.difference(new HashSet<>(newTags), new HashSet<>(existingTags));
+
+      tagsForUpdate.add(new LinkedList<>(tagsToAdd));
+      tagsForUpdate.add(new LinkedList<>(tagsToDelete));
+
+    }
+    return tagsForUpdate;
   }
 
 }
