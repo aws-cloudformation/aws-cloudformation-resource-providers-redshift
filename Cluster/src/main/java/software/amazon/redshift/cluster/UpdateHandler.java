@@ -1,9 +1,11 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;;
+import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.BucketNotFoundException;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
@@ -17,14 +19,21 @@ import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.DisableLoggingResponse;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
 import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
 import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
+import software.amazon.awssdk.services.redshift.model.InsufficientS3BucketPolicyException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
 import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
+import software.amazon.awssdk.services.redshift.model.InvalidS3BucketNameException;
+import software.amazon.awssdk.services.redshift.model.InvalidS3KeyPrefixException;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.LimitExceededException;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
@@ -39,6 +48,7 @@ import software.amazon.awssdk.services.redshift.model.TableLimitExceededExceptio
 import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
+import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -108,7 +118,6 @@ public class UpdateHandler extends BaseHandlerStd {
                     return progress;
                 })
 
-
                 .then(progress -> {
                     List<List<String>> iamRolesForUpdate = iamRoleUpdate(request, model);
                     if (!CollectionUtils.isNullOrEmpty(iamRolesForUpdate)) {
@@ -121,17 +130,35 @@ public class UpdateHandler extends BaseHandlerStd {
                     return progress;
                 })
 
-            .then(progress -> {
-                if(issueModifyClusterRequest(model)) {
-                    return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToUpdateRequest)
-                            .makeServiceCall(this::updateResource)
-                            .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                            .progress();
-                }
-                return progress;
-            })
-            .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+                .then(progress -> {
+                    if (model.getLoggingProperties() == null) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DisableLogging", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
+                                .makeServiceCall(this::disableLogging)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    } else if (ObjectUtils.notEqual(model.getLoggingProperties(), request.getPreviousResourceState().getLoggingProperties())){
+                        return proxy.initiate("AWS-Redshift-Cluster::EnableLogging", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
+                                .makeServiceCall(this::enableLogging)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if(issueModifyClusterRequest(model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToUpdateRequest)
+                                .makeServiceCall(this::updateResource)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
     private ModifyClusterResponse updateResource(
@@ -219,5 +246,45 @@ public class UpdateHandler extends BaseHandlerStd {
                 deleteTagsRequest.resourceName()));
 
         return deleteTagsResponse;
+    }
+
+    private DisableLoggingResponse disableLogging(
+            final DisableLoggingRequest disableLoggingRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DisableLoggingResponse disableLoggingResponse = null;
+
+        try {
+            disableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(disableLoggingRequest, proxyClient.client()::disableLogging);
+        } catch (final ClusterAlreadyExistsException e) {
+            throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, disableLoggingRequest.clusterIdentifier());
+        }  catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
+                | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
+            throw new CfnInvalidRequestException(disableLoggingRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(disableLoggingRequest.toString(), e);
+        }
+        logger.log(String.format("%s disable logging properties.", ResourceModel.TYPE_NAME));
+
+        return disableLoggingResponse;
+    }
+
+    private EnableLoggingResponse enableLogging(
+            final EnableLoggingRequest enableLoggingRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        EnableLoggingResponse enableLoggingResponse = null;
+
+        try {
+            enableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
+        } catch (final ClusterAlreadyExistsException e) {
+            throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier());
+        }  catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
+                | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
+            throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
+        }
+        logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
+
+        return enableLoggingResponse;
     }
 }

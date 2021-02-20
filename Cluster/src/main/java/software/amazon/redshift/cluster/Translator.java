@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusReque
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
+import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
@@ -94,6 +95,17 @@ public class Translator {
             .clusterIdentifier(model.getClusterIdentifier())
             .bucketName(model.getLoggingProperties().getBucketName())
             .s3KeyPrefix(model.getLoggingProperties().getS3KeyPrefix())
+            .build();
+  }
+
+  /**
+   * Request to disable logging properties
+   * @param model resource model
+   * @return awsRequest the aws service request to create a resource
+   */
+  static DisableLoggingRequest translateToDisableLoggingRequest(final ResourceModel model) {
+    return DisableLoggingRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
             .build();
   }
 
