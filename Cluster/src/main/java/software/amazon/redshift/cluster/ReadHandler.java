@@ -1,11 +1,9 @@
 package software.amazon.redshift.cluster;
 
-import com.amazonaws.util.CollectionUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
@@ -15,7 +13,6 @@ import software.amazon.awssdk.services.redshift.model.InvalidClusterStateExcepti
 import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
-import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -71,7 +68,7 @@ public class ReadHandler extends BaseHandlerStd {
 
                 .then(progress -> {
                      progress = proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
-                            .translateToServiceRequest(Translator::translateToReadRequest)
+                            .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
                             .makeServiceCall(this::describeCluster)
                             .done(this::constructResourceModelFromResponse);
                      progress.getResourceModel().setLoggingProperties(callbackContext.getLoggingProperties());

@@ -23,6 +23,7 @@ import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
+import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -158,7 +159,7 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to describe a resource
    */
-  static DescribeClustersRequest translateToReadRequest(final ResourceModel model) {
+  static DescribeClustersRequest translateToDescribeClusterRequest(final ResourceModel model) {
 //    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
 //            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
 
@@ -389,20 +390,16 @@ public class Translator {
             .masterUserPassword(model.getMasterUserPassword())
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
-            //.newClusterIdentifier(model.getNewClusterIdentifier())
             .allowVersionUpgrade(model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
             .clusterParameterGroupName(model.getClusterParameterGroupName())
             .clusterType(model.getClusterType())
             .clusterVersion(model.getClusterVersion())
-            .elasticIp(model.getElasticIp())
+            .elasticIp(model.getElasticIp()) // Parameter present in AWS::Redshift::Cluster but modify not available in self-service
             .encrypted(model.getEncrypted())
-            //.enhancedVpcRouting(model.getEnhancedVpcRouting())
             .hsmClientCertificateIdentifier(model.getHsmClientCertificateIdentifier())
             .hsmConfigurationIdentifier(model.getHsmConfigurationIdentifier())
-            .kmsKeyId(model.getKmsKeyId())
-            //.maintenanceTrackName(model.getMaintenanceTrackName())
-            //.manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .kmsKeyId(model.getKmsKeyId()) // Parameter present in AWS::Redshift::Cluster but modify not available in self-service
             .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow())
             .publiclyAccessible(model.getPubliclyAccessible())
             .clusterSecurityGroups(model.getClusterSecurityGroups())
@@ -445,6 +442,17 @@ public class Translator {
     return DeleteTagsRequest.builder()
             .resourceName(resourceName)
             .tagKeys(deleteTags.stream().map(Tag::getKey).collect(Collectors.toList()))
+            .build();
+  }
+
+  /**
+   * Request to Reboot Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static RebootClusterRequest translateToRebootClusterRequest(ResourceModel model) {
+    return RebootClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
             .build();
   }
 

@@ -6,7 +6,6 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.BucketNotFoundException;
-import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
@@ -42,6 +41,8 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
+import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
+import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.redshift.model.TableLimitExceededException;
@@ -151,7 +152,18 @@ public class UpdateHandler extends BaseHandlerStd {
                     if(issueModifyClusterRequest(model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToUpdateRequest)
-                                .makeServiceCall(this::updateResource)
+                                .makeServiceCall(this::updateCluster)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if(isRebootRequired(model, proxyClient)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::RebootCluster", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToRebootClusterRequest)
+                                .makeServiceCall(this::rebootCluster)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
                     }
@@ -161,7 +173,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
-    private ModifyClusterResponse updateResource(
+    private ModifyClusterResponse updateCluster(
             final ModifyClusterRequest modifyRequest,
             final ProxyClient<RedshiftClient> proxyClient) {
         ModifyClusterResponse awsResponse = null;
@@ -286,5 +298,25 @@ public class UpdateHandler extends BaseHandlerStd {
         logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
 
         return enableLoggingResponse;
+    }
+
+    private RebootClusterResponse rebootCluster (
+            final RebootClusterRequest rebootClusterRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        RebootClusterResponse rebootClusterResponse = null;
+        try {
+            rebootClusterResponse = proxyClient.injectCredentialsAndInvokeV2(rebootClusterRequest, proxyClient.client()::rebootCluster);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rebootClusterRequest.clusterIdentifier());
+        } catch (final InvalidClusterStateException e) {
+            throw new CfnInvalidRequestException(rebootClusterRequest.toString(), e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(rebootClusterRequest.toString(), e);
+        } catch (final AwsServiceException e) { // ResourceNotFoundException
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s Reboot Cluster ", ResourceModel.TYPE_NAME));
+        return rebootClusterResponse;
     }
 }

@@ -30,6 +30,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected int CREATE_TAGS_INDEX = 0;
   protected int DELETE_TAGS_INDEX = 1;
+  private  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
@@ -147,6 +148,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     }
     return tagsForUpdate;
+  }
+
+  protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
+    String parameterGroupStatus = proxyClient.injectCredentialsAndInvokeV2(
+            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
+            .clusters().get(0).clusterParameterGroups().get(0).parameterApplyStatus();
+
+    return PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(parameterGroupStatus);
   }
 
 }
