@@ -111,14 +111,24 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             || model.getMasterUsername() == null || model.getMasterUserPassword() == null;
   }
 
-  protected boolean issueModifyClusterRequest(ResourceModel model) {
-    return model.getNodeType() != null || model.getNumberOfNodes() != null || model.getAllowVersionUpgrade() != null ||
-            model.getAutomatedSnapshotRetentionPeriod() != null || model.getClusterParameterGroupName() != null ||
-            model.getClusterType() != null || model.getClusterVersion() != null ||
-            model.getElasticIp() != null || model.getEncrypted() != null || model.getHsmClientCertificateIdentifier() != null ||
-            model.getHsmConfigurationIdentifier() != null || model.getMasterUserPassword() != null ||
-            model.getKmsKeyId() != null || model.getPreferredMaintenanceWindow() != null || model.getPubliclyAccessible() != null ||
-            model.getClusterSecurityGroups() != null || model.getVpcSecurityGroupIds() != null;
+  protected boolean issueModifyClusterRequest(ResourceModel prevModel, ResourceModel model) {
+    return  ObjectUtils.notEqual(prevModel.getNodeType(), model.getNodeType()) ||
+            ObjectUtils.notEqual(prevModel.getNumberOfNodes(), model.getNumberOfNodes()) ||
+            ObjectUtils.notEqual(prevModel.getMasterUserPassword(), model.getMasterUserPassword()) ||
+            ObjectUtils.notEqual(prevModel.getAllowVersionUpgrade(), model.getAllowVersionUpgrade()) ||
+            ObjectUtils.notEqual(prevModel.getAutomatedSnapshotRetentionPeriod(), model.getAutomatedSnapshotRetentionPeriod()) ||
+            ObjectUtils.notEqual(prevModel.getClusterParameterGroupName(), model.getClusterParameterGroupName()) ||
+            ObjectUtils.notEqual(prevModel.getClusterType(), model.getClusterType()) ||
+            ObjectUtils.notEqual(prevModel.getClusterVersion(), model.getClusterVersion()) ||
+            ObjectUtils.notEqual(prevModel.getElasticIp(), model.getElasticIp()) ||
+            ObjectUtils.notEqual(prevModel.getEncrypted(), model.getEncrypted()) ||
+            ObjectUtils.notEqual(prevModel.getHsmClientCertificateIdentifier(), model.getHsmClientCertificateIdentifier()) ||
+            ObjectUtils.notEqual(prevModel.getHsmConfigurationIdentifier(), model.getHsmConfigurationIdentifier()) ||
+            ObjectUtils.notEqual(prevModel.getKmsKeyId(), model.getKmsKeyId()) ||
+            ObjectUtils.notEqual(prevModel.getPreferredMaintenanceWindow(), model.getPreferredMaintenanceWindow()) ||
+            ObjectUtils.notEqual(prevModel.getPubliclyAccessible(), model.getPubliclyAccessible()) ||
+            ObjectUtils.notEqual(prevModel.getClusterSecurityGroups(), model.getClusterSecurityGroups()) ||
+            ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds());
   }
 
   protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {

@@ -96,14 +96,14 @@ public class UpdateHandler extends BaseHandlerStd {
                     String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" +model.getOwnerAccount() +
                             ":cluster:" + model.getClusterIdentifier();
 
-                    if (!CollectionUtils.isNullOrEmpty(updateTags.get(CREATE_TAGS_INDEX))) {
+                    if (!CollectionUtils.isNullOrEmpty(updateTags) && !CollectionUtils.isNullOrEmpty(updateTags.get(CREATE_TAGS_INDEX))) {
                         return proxy.initiate("AWS-Redshift-Cluster::CreateTags", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((createTagsRequest) -> Translator.translateToCreateTagsRequest(model, updateTags.get(CREATE_TAGS_INDEX), resourceName))
                                 .makeServiceCall(this::createTags)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
                     }
-                    if (!CollectionUtils.isNullOrEmpty(updateTags.get(DELETE_TAGS_INDEX))) {
+                    if (!CollectionUtils.isNullOrEmpty(updateTags) && !CollectionUtils.isNullOrEmpty(updateTags.get(DELETE_TAGS_INDEX))) {
                         return proxy.initiate("AWS-Redshift-Cluster::DeleteTags", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((deleteTagsRequest) -> Translator.translateToDeleteTagsRequest(model, updateTags.get(DELETE_TAGS_INDEX), resourceName))
                                 .makeServiceCall(this::deleteTags)
@@ -144,7 +144,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if(issueModifyClusterRequest(model)) {
+                    if(issueModifyClusterRequest(request.getPreviousResourceState(), model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToUpdateRequest)
                                 .makeServiceCall(this::updateCluster)
