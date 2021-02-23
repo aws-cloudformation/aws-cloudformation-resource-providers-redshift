@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
@@ -56,6 +57,7 @@ import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
 import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 import static software.amazon.redshift.cluster.TestUtils.OWNER_ACCOUNT_NO;
@@ -430,5 +432,108 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testModifyMasterUserName() {
+        ResourceModel previousModel = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .masterUserPassword(MASTER_USERPASSWORD)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(null)
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .tags(null)
+                .loggingProperties(null)
+                .build();
+
+        ResourceModel updateModel = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .masterUserPassword("new"+MASTER_USERPASSWORD)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(null)
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .tags(null)
+                .loggingProperties(null)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .build();
+
+        Cluster existingCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+//                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+//                .iamRoles(null)
+//                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                //.tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
+                .build();
+
+        Cluster modifiedCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+//                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+//                .iamRoles(null)
+//                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                //.tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
+                .build();
+
+
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().disableLogging(any(DisableLoggingRequest.class)))
+                .thenReturn(DisableLoggingResponse.builder().build());
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
     }
 }

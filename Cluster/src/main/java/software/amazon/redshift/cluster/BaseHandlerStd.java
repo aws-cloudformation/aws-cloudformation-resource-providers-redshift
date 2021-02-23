@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
@@ -166,11 +167,16 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
-    String parameterGroupStatus = proxyClient.injectCredentialsAndInvokeV2(
+    Cluster cluster = proxyClient.injectCredentialsAndInvokeV2(
             Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
-            .clusters().get(0).clusterParameterGroups().get(0).parameterApplyStatus();
+            .clusters().get(0);
+    if (ObjectUtils.anyNotNull(cluster)) {
+      if (!CollectionUtils.isNullOrEmpty(cluster.clusterParameterGroups())) {
+        return cluster.clusterParameterGroups().get(0).parameterApplyStatus().equals(PARAMETER_GROUP_STATUS_PENDING_REBOOT);
+      }
+    }
 
-    return PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(parameterGroupStatus);
+    return false;
   }
 
 }
