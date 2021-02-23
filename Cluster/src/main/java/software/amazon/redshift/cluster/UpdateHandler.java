@@ -89,13 +89,8 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
-//                    ProgressEvent<ResourceModel, CallbackContext> describeTags =
-//                            new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger);
-
-                    //String availabilityZone = describeTags.getResourceModel().getAvailabilityZone();
-                    //String region = availabilityZone.substring(0, availabilityZone.length() - 1);
-
-                    List<Tag> existingTags = request.getPreviousResourceState().getTags();    //describeTags.getResourceModel().getTags();
+                    logger.log("previous resource state  UPDATE    " + request.getPreviousResourceState());
+                    List<Tag> existingTags = request.getPreviousResourceState().getTags();
                     List<List<Tag>> updateTags = updateTags(existingTags, model.getTags());
 
                     String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" +model.getOwnerAccount() +
@@ -120,7 +115,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    List<List<String>> iamRolesForUpdate = iamRoleUpdate(request, model);
+                    List<List<String>> iamRolesForUpdate = iamRoleUpdate(request.getPreviousResourceState().getIamRoles(), model.getIamRoles());
                     if (!CollectionUtils.isNullOrEmpty(iamRolesForUpdate)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
                             .translateToServiceRequest((iamRolesModifyRequest) -> Translator.translateToUpdateIAMRolesRequest(model, iamRolesForUpdate))

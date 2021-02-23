@@ -16,6 +16,8 @@ import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
@@ -258,14 +260,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testCreateTags_CreateIamRole_Logging_ModifyNodeType() {
-        Tag tag = Tag.builder()
-                .key("foo")
-                .value("bar")
-                .build();
-
-        List<Tag> prevModelTags = new LinkedList<>();
-        prevModelTags.add(tag);
-
         List<String> prevModelIamRoles = new LinkedList<>();
         prevModelIamRoles.add(IAM_ROLE_ARN);
 
@@ -281,11 +275,14 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(prevModelIamRoles)
                 .vpcSecurityGroupIds(new LinkedList<String>())
-                .tags(prevModelTags)
+                .tags(null)
                 .loggingProperties(null)
                 .build();
 
-
+        Tag tag = Tag.builder()
+                .key("foo")
+                .value("bar")
+                .build();
         Tag tagToAdd = Tag.builder()
                 .key("foo-add")
                 .value("bar-add")
@@ -301,7 +298,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
                 .build();
-        String resourceName = RESOURCE_NAME_PREFIX + AWS_REGION + ":" + OWNER_ACCOUNT_NO + ":" + CLUSTER_IDENTIFIER;
 
         ResourceModel updateModel = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -329,10 +325,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoleArn(IAM_ROLE_ARN)
                 .applyStatus("in-sync")
                 .build();
-        ClusterIamRole iamRole_remove = ClusterIamRole
+        ClusterIamRole iamRole_add = ClusterIamRole
                 .builder()
-                .iamRoleArn(IAM_ROLE_ARN)
-                .applyStatus("arn:aws:iam::1111:role/cfn_migration_test_IAM_role_to_remove")
+                .iamRoleArn("arn:aws:iam::1111:role/cfn_migration_test_IAM_role_to_add")
+                .applyStatus("in-sync")
                 .build();
 
         Cluster existingCluster = Cluster.builder()
@@ -348,13 +344,13 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(iamRole, iamRole_remove)
+                .iamRoles(iamRole)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-remove").value("bar-remove").build())
+                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
                 .build();
 
 
-        Cluster modifiedCluster_tagRemoved_iamRoleRemoved = Cluster.builder()
+        Cluster modifiedCluster_tagAdded_iamRoleAdded = Cluster.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
                 .nodeType("dc2.large")
@@ -367,16 +363,16 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(iamRole)
+                .iamRoles(iamRole, iamRole_add)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
+                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
                 .build();
 
-        Cluster modifiedCluster_tagRemoved_iamRoleRemoved_NumberOfNodes = Cluster.builder()
+        Cluster modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify = Cluster.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES * 2)
+                .nodeType("ds2.xlarge")
+                .numberOfNodes(NUMBER_OF_NODES)
                 .clusterStatus("available")
                 .allowVersionUpgrade(true)
                 .automatedSnapshotRetentionPeriod(0)
@@ -385,9 +381,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(iamRole)
+                .iamRoles(iamRole, iamRole_add)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
+                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
                 .clusterParameterGroups(ClusterParameterGroupStatus.builder().parameterApplyStatus("in-sync").build())
                 .build();
 
@@ -396,25 +392,27 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .clusters(existingCluster)
                         .build())
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_NumberOfNodes)
+                        .clusters(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
 
-        when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class)))
-                .thenReturn(DeleteTagsResponse.builder()
-                        .build());
+        when(proxyClient.client().createTags(any(CreateTagsRequest.class)))
+                .thenReturn(CreateTagsResponse.builder().build());
+
 
         when(proxyClient.client().modifyClusterIamRoles(any(ModifyClusterIamRolesRequest.class)))
                 .thenReturn(ModifyClusterIamRolesResponse.builder()
-                        .cluster(modifiedCluster_tagRemoved_iamRoleRemoved)
+                        .cluster(modifiedCluster_tagAdded_iamRoleAdded)
                         .build());
 
-        when(proxyClient.client().disableLogging(any(DisableLoggingRequest.class)))
-                .thenReturn(DisableLoggingResponse.builder()
-                        .build());
+        when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
+                .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
                 .thenReturn(ModifyClusterResponse.builder()
-                        .cluster(modifiedCluster_tagRemoved_iamRoleRemoved_NumberOfNodes)
+                        .cluster(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
 
 

@@ -80,6 +80,7 @@ public class CreateHandler extends BaseHandlerStd {
 
         prepareResourceModel(request);
         final ResourceModel resourceModel = request.getDesiredResourceState();
+        logger.log("prev resource state = create ===  "+request.getPreviousResourceState());
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> {

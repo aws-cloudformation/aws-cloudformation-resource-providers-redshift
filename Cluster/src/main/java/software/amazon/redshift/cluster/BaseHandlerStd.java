@@ -1,6 +1,7 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.SdkClientException;
+import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
@@ -120,15 +121,15 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             model.getClusterSecurityGroups() != null || model.getVpcSecurityGroupIds() != null;
   }
 
-  protected List<List<String>> iamRoleUpdate (ResourceHandlerRequest<ResourceModel> request, ResourceModel model) {
+  protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {
     List<List<String>> iamRolesForUpdate = new LinkedList<>();
-    if (ObjectUtils.notEqual(request.getPreviousResourceState().getIamRoles(), model.getIamRoles())) {
-      Set<String> iamRolesSetPrevious = new HashSet<>(request.getPreviousResourceState().getIamRoles());
-      Set<String> iamRolesSetCurrent = new HashSet<>(model.getIamRoles());
+    existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
+    newIamRoles = CollectionUtils.isNullOrEmpty(newIamRoles) ? new LinkedList<String>() : newIamRoles;
 
+    if (ObjectUtils.notEqual(existingIamRoles, newIamRoles)) {
       // Compute which iam roles we need to delete and add
-      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(request.getPreviousResourceState().getIamRoles()), new HashSet<>(model.getIamRoles()));
-      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(model.getIamRoles()), new HashSet<>(request.getPreviousResourceState().getIamRoles()));
+      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(), new HashSet<>(newIamRoles));
+      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(newIamRoles), new HashSet<>());
 
       iamRolesForUpdate.add(new LinkedList<>(iamRolesToAdd));
       iamRolesForUpdate.add(new LinkedList<>(iamRolesToRemove));
@@ -138,6 +139,10 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected List<List<Tag>> updateTags (List<Tag> existingTags, List<Tag> newTags) {
     List<List<Tag>> tagsForUpdate = new LinkedList<>();
+    //if tags are null, create an empty list for set difference
+    existingTags = CollectionUtils.isNullOrEmpty(existingTags) ? new LinkedList<Tag>() : existingTags;
+    newTags = CollectionUtils.isNullOrEmpty(newTags) ? new LinkedList<Tag>() : newTags;
+
     if (ObjectUtils.notEqual(existingTags, newTags)) {
 
       Set<Tag> tagsToDelete = Sets.difference(new HashSet<>(existingTags), new HashSet<>(newTags));
