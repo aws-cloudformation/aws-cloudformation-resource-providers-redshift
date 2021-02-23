@@ -21,6 +21,8 @@ public class TestUtils {
     final static String IAM_ROLE_ARN = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role";
     final static String BUCKET_NAME = "bucket-enable-logging";
     final static String S3_KEY_PREFIX = "create";
+    final static String RESOURCE_NAME_PREFIX = "arn:aws:redshift:";
+    final static String OWNER_ACCOUNT_NO = "1111";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)

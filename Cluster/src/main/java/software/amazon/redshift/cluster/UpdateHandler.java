@@ -89,16 +89,16 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
-                    ProgressEvent<ResourceModel, CallbackContext> describeTags =
-                            new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger);
+//                    ProgressEvent<ResourceModel, CallbackContext> describeTags =
+//                            new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger);
 
-                    String availabilityZone = describeTags.getResourceModel().getAvailabilityZone();
-                    String region = availabilityZone.substring(0, availabilityZone.length() - 1);
+                    //String availabilityZone = describeTags.getResourceModel().getAvailabilityZone();
+                    //String region = availabilityZone.substring(0, availabilityZone.length() - 1);
 
-                    List<Tag> existingTags = describeTags.getResourceModel().getTags();
+                    List<Tag> existingTags = request.getPreviousResourceState().getTags();    //describeTags.getResourceModel().getTags();
                     List<List<Tag>> updateTags = updateTags(existingTags, model.getTags());
 
-                    String resourceName = RESOURCE_NAME_PREFIX + region + ":" +model.getOwnerAccount() +
+                    String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" +model.getOwnerAccount() +
                             ":cluster:" + model.getClusterIdentifier();
 
                     if (!CollectionUtils.isNullOrEmpty(updateTags.get(CREATE_TAGS_INDEX))) {
