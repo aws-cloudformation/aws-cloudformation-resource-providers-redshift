@@ -8,10 +8,12 @@ import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -25,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
@@ -132,6 +135,26 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds());
   }
 
+  protected List<List<String>> modifyIamRoles (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
+    List<List<String>> iamRolesForUpdate = new LinkedList<>();
+    List<String> existingIamRoles = proxyClient.injectCredentialsAndInvokeV2(
+            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
+            .clusters().get(0).iamRoles().stream().map(ClusterIamRole::iamRoleArn).collect(Collectors.toList());
+
+    existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
+    List<String> newIamRoles = CollectionUtils.isNullOrEmpty(model.getIamRoles()) ? new LinkedList<String>() : model.getIamRoles();
+
+    if (ObjectUtils.notEqual(existingIamRoles, newIamRoles)) {
+      // Compute which iam roles we need to delete and add
+      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(existingIamRoles), new HashSet<>(newIamRoles));
+      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(newIamRoles), new HashSet<>(existingIamRoles));
+
+      iamRolesForUpdate.add(new LinkedList<>(iamRolesToAdd));
+      iamRolesForUpdate.add(new LinkedList<>(iamRolesToRemove));
+    }
+    return iamRolesForUpdate;
+  }
+
   protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {
     List<List<String>> iamRolesForUpdate = new LinkedList<>();
     existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
@@ -139,13 +162,34 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     if (ObjectUtils.notEqual(existingIamRoles, newIamRoles)) {
       // Compute which iam roles we need to delete and add
-      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(), new HashSet<>(newIamRoles));
-      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(newIamRoles), new HashSet<>());
+      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(existingIamRoles), new HashSet<>(newIamRoles));
+      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(newIamRoles), new HashSet<>(existingIamRoles));
 
       iamRolesForUpdate.add(new LinkedList<>(iamRolesToAdd));
       iamRolesForUpdate.add(new LinkedList<>(iamRolesToRemove));
     }
     return iamRolesForUpdate;
+  }
+
+  protected List<List<Tag>> updateClusterTags (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
+    List<List<Tag>> tagsForUpdate = new LinkedList<>();
+    List<Tag> existingTags = Translator.translateTagsFromSdk(proxyClient.injectCredentialsAndInvokeV2(
+            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
+            .clusters().get(0).tags());
+
+    existingTags = CollectionUtils.isNullOrEmpty(existingTags) ? new LinkedList<Tag>() : existingTags;
+    List<Tag> newTags = CollectionUtils.isNullOrEmpty(model.getTags()) ? new LinkedList<Tag>() : model.getTags();
+
+    if (ObjectUtils.notEqual(existingTags, newTags)) {
+
+      Set<Tag> tagsToDelete = Sets.difference(new HashSet<>(existingTags), new HashSet<>(newTags));
+      Set<Tag> tagsToAdd = Sets.difference(new HashSet<>(newTags), new HashSet<>(existingTags));
+
+      tagsForUpdate.add(new LinkedList<>(tagsToAdd));
+      tagsForUpdate.add(new LinkedList<>(tagsToDelete));
+
+    }
+    return tagsForUpdate;
   }
 
   protected List<List<Tag>> updateTags (List<Tag> existingTags, List<Tag> newTags) {
@@ -164,6 +208,15 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
     }
     return tagsForUpdate;
+  }
+
+  protected boolean isLoggingEnabled(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+    DescribeLoggingStatusResponse describeLoggingStatusResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToDescribeStatusLoggingRequest(model),
+            proxyClient.client()::describeLoggingStatus);
+    if(ObjectUtils.allNotNull(describeLoggingStatusResponse)) {
+      return describeLoggingStatusResponse.loggingEnabled();
+    }
+    return false;
   }
 
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {

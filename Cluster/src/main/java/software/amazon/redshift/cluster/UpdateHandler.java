@@ -89,9 +89,8 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
-                    logger.log("previous resource state  UPDATE    " + request.getPreviousResourceState());
-                    List<Tag> existingTags = request.getPreviousResourceState().getTags();
-                    List<List<Tag>> updateTags = updateTags(existingTags, model.getTags());
+                    //List<List<Tag>> updateTags = updateTags(request.getPreviousResourceState().getTags(), model.getTags());
+                    List<List<Tag>> updateTags = updateClusterTags(model, proxyClient);
 
                     String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" +model.getOwnerAccount() +
                             ":cluster:" + model.getClusterIdentifier();
@@ -115,7 +114,9 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    List<List<String>> iamRolesForUpdate = iamRoleUpdate(request.getPreviousResourceState().getIamRoles(), model.getIamRoles());
+                    //List<List<String>> iamRolesForUpdate = iamRoleUpdate(request.getPreviousResourceState().getIamRoles(), model.getIamRoles());
+                    List<List<String>> iamRolesForUpdate = modifyIamRoles(model, proxyClient);
+                    logger.log("value of iamRolesForUpdate == >"+ iamRolesForUpdate);
                     if (!CollectionUtils.isNullOrEmpty(iamRolesForUpdate)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
                             .translateToServiceRequest((iamRolesModifyRequest) -> Translator.translateToUpdateIAMRolesRequest(model, iamRolesForUpdate))
@@ -127,7 +128,8 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if (model.getLoggingProperties() == null) {
+                    logger.log("value of isLoggingEnabled == >"+ isLoggingEnabled(proxyClient, model));
+                    if (model.getLoggingProperties() == null && isLoggingEnabled(proxyClient, model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::DisableLogging", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDisableLoggingRequest)
                                 .makeServiceCall(this::disableLogging)
