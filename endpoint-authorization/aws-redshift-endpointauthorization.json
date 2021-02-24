@@ -1,0 +1,114 @@
+{
+    "typeName": "AWS::Redshift::EndpointAuthorization",
+    "description": "An example resource schema demonstrating some basic constructs and validation rules.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions":{},
+    "properties": {
+        "Grantor": {
+            "description": "The account ID of the grantor.",
+            "type": "string"
+        },
+        "Grantee": {
+            "description": "The account ID of the grantee.",
+            "type": "string"
+        },
+        "Account": {
+            "description": "The account that is being authorized or revoked.",
+            "type": "string"
+        },
+        "VpcIds": {
+            "description": "The list of VPC ids that are being authorized or revoked.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "AsGrantee": {
+            "description": "Whether to call the API as a grantor or grantee",
+            "type": "boolean"
+        },
+        "Revoke": {
+            "description": "Whether to revoke access by the specified resources or not.",
+            "type": "boolean"
+        },
+        "Force": {
+            "description": "Whether to force revoke access to a cluster.",
+            "type": "boolean"
+        },
+        "ClusterIdentifier": {
+            "description": "A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account",
+            "type": "string"
+        },
+        "AuthorizationTime": {
+            "description": "The time when the authorization was last given.",
+            "type": "string"
+        },
+        "ClusterStatus": {
+            "description": "The cluster status.",
+            "type": "string"
+        },
+        "Status": {
+            "description": "The authorization status. TODO create enum",
+            "type": "string"
+        },
+        "AllowedAllVPCs": {
+            "description": "Whether all VPCs from the grantee are allowed to connect to the cluster",
+            "type": "boolean"
+        },
+        "AllowedVPCs": {
+            "description": "The VPCs that are allowed to connect to the cluster",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+    ],
+    "primaryIdentifier": [
+        "/properties/ClusterIdentifier"
+    ],
+    "readOnlyProperties": [
+        "/properties/ClusterIdentifier",
+        "/properties/Address",
+        "/properties/EndpointStatus",
+        "/properties/EndpointCreateTime",
+        "/properties/VpcSecurityGroups"
+    ],
+    "writeOnlyProperties": [
+        "/properties/VpcId",
+        "/properties/Account"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "redshift:AuthorizeEndpointAccess"
+            ],
+            "timeoutInMinutes": 60
+        },
+        "read": {
+            "permissions": [
+                "redshift:DescribeEndpointAuthorization"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "redshift:RevokeEndpointAccess",
+                "redshift:AuthorizeEndpointAccess"
+            ],
+            "timeoutInMinutes": 60
+        },
+        "delete": {
+            "permissions": [
+                "redshift:RevokeEndpointAccess"
+            ],
+            "timeoutInMinutes": 60
+        },
+        "list": {
+            "permissions": [
+                "redshift:DescribeEndpointAuthorization"
+            ]
+        }
+    }
+}

@@ -1,0 +1,11 @@
+{
+  "desiredResourceState":  
+  {    "clusterIdentifier": "ny-cfn-test-cluster"  },  
+  "previousResourceState": null,  
+  "logicalResourceIdentifier": null,  
+  "region": "us-east-1",  
+  "awsPartition": "aws",  
+  "awsAccountId": "799216990474",  
+  "callbackContext": null,  
+  "clientRequestToken":"token"
+}
