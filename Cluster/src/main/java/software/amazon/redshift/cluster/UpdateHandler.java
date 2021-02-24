@@ -91,9 +91,15 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> {
                     //List<List<Tag>> updateTags = updateTags(request.getPreviousResourceState().getTags(), model.getTags());
                     List<List<Tag>> updateTags = updateClusterTags(model, proxyClient);
+                    logger.log("updateTags == >  "+updateTags);
 
-                    String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" +model.getOwnerAccount() +
+                    logger.log("model.getOwnerAccount() "+model.getOwnerAccount());
+                    logger.log("request.getAwsAccountId() ==>"+request.getAwsAccountId());
+
+                    String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" + request.getAwsAccountId() +
                             ":cluster:" + model.getClusterIdentifier();
+
+                    logger.log("resource name ==> "+resourceName);
 
                     if (!CollectionUtils.isNullOrEmpty(updateTags) && !CollectionUtils.isNullOrEmpty(updateTags.get(CREATE_TAGS_INDEX))) {
                         return proxy.initiate("AWS-Redshift-Cluster::CreateTags", proxyClient, model, callbackContext)

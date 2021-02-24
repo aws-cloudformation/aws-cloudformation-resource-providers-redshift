@@ -205,26 +205,35 @@
         "/properties/ClusterIdentifier"
     ],
     "writeOnlyProperties": [
-        "/properties/MasterUserPassword"
+        "/properties/MasterUserPassword",
+        "/properties/ClusterType"
     ],
     "handlers": {
         "create": {
             "permissions": [
                 "redshift:DescribeClusters",
-                "redshift:CreateCluster"
+                "redshift:CreateCluster",
+                "redshift:RestoreFromClusterSnapshot",
+                "redshift:EnableLogging"
             ],
             "timeoutInMinutes": 2160
         },
         "read": {
             "permissions": [
-                "redshift:DescribeClusters"
+                "redshift:DescribeClusters",
+                "redshift:DescribeLoggingStatus"
             ]
         },
         "update": {
             "permissions": [
                 "redshift:DescribeClusters",
                 "redshift:ModifyCluster",
-                "redshift:ModifyClusterIamRoles"
+                "redshift:ModifyClusterIamRoles",
+                "redshift:EnableLogging",
+                "redshift:CreateTags",
+                "redshift:DeleteTags",
+                "redshift:DisableLogging",
+                "redshift:RebootCluster"
             ],
             "timeoutInMinutes": 2160
         },

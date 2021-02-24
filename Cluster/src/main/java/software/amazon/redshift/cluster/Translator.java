@@ -69,7 +69,6 @@ public class Translator {
             .clusterParameterGroupName(model.getClusterParameterGroupName())
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .clusterSubnetGroupName(model.getClusterSubnetGroupName())
-            .clusterType(model.getClusterType())
             .clusterVersion(model.getClusterVersion())
             .dbName(model.getDBName())
             .elasticIp(model.getElasticIp())

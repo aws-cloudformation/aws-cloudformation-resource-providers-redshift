@@ -24,10 +24,17 @@ Resources:
               - Effect: Allow
                 Action:
                 - "redshift:CreateCluster"
+                - "redshift:CreateTags"
                 - "redshift:DeleteCluster"
+                - "redshift:DeleteTags"
                 - "redshift:DescribeClusters"
+                - "redshift:DescribeLoggingStatus"
+                - "redshift:DisableLogging"
+                - "redshift:EnableLogging"
                 - "redshift:ModifyCluster"
                 - "redshift:ModifyClusterIamRoles"
+                - "redshift:RebootCluster"
+                - "redshift:RestoreFromClusterSnapshot"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:
