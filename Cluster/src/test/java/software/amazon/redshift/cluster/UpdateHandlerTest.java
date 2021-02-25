@@ -234,12 +234,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(existingCluster)
+//                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(existingCluster)
+//                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes)
                         .build());
@@ -282,6 +282,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testCreateTags_CreateIamRole_Logging_ModifyNodeType() {
+        List<Tag> prevTags = new LinkedList<>();
+        prevTags.add(Tag.builder().key("dummyKey").value("dummyValue").build());
         List<String> prevModelIamRoles = new LinkedList<>();
         prevModelIamRoles.add(IAM_ROLE_ARN);
 
@@ -298,7 +300,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(prevModelIamRoles)
                 .vpcSecurityGroupIds(new LinkedList<String>())
-                .tags(null)
+                .tags(prevTags)
                 .loggingProperties(null)
                 .build();
 
@@ -417,18 +419,21 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(existingCluster)
+//                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(existingCluster)
+//                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
 
         when(proxyClient.client().createTags(any(CreateTagsRequest.class)))
                 .thenReturn(CreateTagsResponse.builder().build());
+
+        when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class)))
+                .thenReturn(DeleteTagsResponse.builder().build());
 
 
         when(proxyClient.client().modifyClusterIamRoles(any(ModifyClusterIamRolesRequest.class)))
@@ -440,7 +445,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
-                .thenReturn(DescribeLoggingStatusResponse.builder().build())
+                //.thenReturn(DescribeLoggingStatusResponse.builder().build())
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
