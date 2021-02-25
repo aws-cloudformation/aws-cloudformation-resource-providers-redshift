@@ -243,7 +243,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return cluster.clusterParameterGroups().get(0).parameterApplyStatus().equals(PARAMETER_GROUP_STATUS_PENDING_REBOOT);
       }
     }
-
     return false;
   }
 
