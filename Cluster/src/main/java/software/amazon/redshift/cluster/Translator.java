@@ -382,27 +382,27 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to modify a resource
    */
-  static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model) {
+  static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model, final ResourceModel prevModel) {
 
     return ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            .masterUserPassword(model.getMasterUserPassword())
-            .nodeType(model.getNodeType())
-            .numberOfNodes(model.getNumberOfNodes())
-            .allowVersionUpgrade(model.getAllowVersionUpgrade())
-            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
-            .clusterParameterGroupName(model.getClusterParameterGroupName())
-            .clusterType(model.getClusterType())
-            .clusterVersion(model.getClusterVersion())
-            .elasticIp(model.getElasticIp()) // Parameter present in AWS::Redshift::Cluster but modify not available in self-service
-            .encrypted(model.getEncrypted())
-            .hsmClientCertificateIdentifier(model.getHsmClientCertificateIdentifier())
-            .hsmConfigurationIdentifier(model.getHsmConfigurationIdentifier())
-            .kmsKeyId(model.getKmsKeyId()) // Parameter present in AWS::Redshift::Cluster but modify not available in self-service
-            .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow())
-            .publiclyAccessible(model.getPubliclyAccessible())
-            .clusterSecurityGroups(model.getClusterSecurityGroups())
-            .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .masterUserPassword(model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
+            .nodeType(model.getNodeType().equals(prevModel.getNodeType()) ? null : model.getNodeType())
+            .numberOfNodes(model.getNumberOfNodes().equals(prevModel.getNumberOfNodes()) ? null : model.getNumberOfNodes())
+            .allowVersionUpgrade(model.getAllowVersionUpgrade() == null || model.getAllowVersionUpgrade().equals(prevModel.getAllowVersionUpgrade()) ? null : model.getAllowVersionUpgrade())
+            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod() == null || model.getAutomatedSnapshotRetentionPeriod().equals(prevModel.getAutomatedSnapshotRetentionPeriod()) ? null : model.getAutomatedSnapshotRetentionPeriod())
+            .clusterParameterGroupName(model.getClusterParameterGroupName() == null || model.getClusterParameterGroupName().equals(prevModel.getClusterParameterGroupName()) ? null : model.getClusterParameterGroupName())
+            .clusterType(model.getClusterType() == null || model.getClusterType().equals(prevModel.getClusterType()) ? null : model.getClusterType())
+            .clusterVersion(model.getClusterVersion() == null || model.getClusterVersion().equals(prevModel.getClusterVersion()) ? null : model.getClusterVersion())
+            .elasticIp(model.getElasticIp() == null || model.getElasticIp().equals(prevModel.getElasticIp()) ? null : model.getElasticIp()) // Parameter present in AWS::Redshift::Cluster but modify not available in self-service
+            .encrypted(model.getEncrypted() == null || model.getEncrypted().equals(prevModel.getEncrypted()) ? null : model.getEncrypted())
+            .hsmClientCertificateIdentifier(model.getHsmClientCertificateIdentifier() == null || model.getHsmClientCertificateIdentifier().equals(prevModel.getHsmClientCertificateIdentifier()) ? null : model.getHsmClientCertificateIdentifier())
+            .hsmConfigurationIdentifier(model.getHsmConfigurationIdentifier() == null || model.getHsmConfigurationIdentifier().equals(prevModel.getHsmConfigurationIdentifier()) ? null : model.getHsmConfigurationIdentifier())
+            .kmsKeyId(model.getKmsKeyId() == null || model.getKmsKeyId().equals(prevModel.getKmsKeyId()) ? null : model.getKmsKeyId()) // Parameter present in AWS::Redshift::Cluster but modify not available in self-service
+            .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow() == null || model.getPreferredMaintenanceWindow().equals(prevModel.getPreferredMaintenanceWindow()) ? null : model.getPreferredMaintenanceWindow())
+            .publiclyAccessible(model.getPubliclyAccessible() == null || model.getPubliclyAccessible().equals(prevModel.getPubliclyAccessible()) ? null : model.getPubliclyAccessible())
+            .clusterSecurityGroups(model.getClusterSecurityGroups() == null || model.getClusterSecurityGroups().equals(prevModel.getClusterSecurityGroups()) ? null : model.getClusterSecurityGroups())
+            .vpcSecurityGroupIds(model.getVpcSecurityGroupIds() == null || model.getVpcSecurityGroupIds().equals(prevModel.getVpcSecurityGroupIds()) ? null : model.getVpcSecurityGroupIds())
             .build();
   }
 
