@@ -366,7 +366,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(iamRole)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                //.tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
                 .build();
 
 
@@ -437,6 +436,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build())
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
@@ -477,7 +477,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(null)
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(null)
-                .loggingProperties(null)
                 .build();
 
         ResourceModel updateModel = ResourceModel.builder()
@@ -494,7 +493,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(null)
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(null)
-                .loggingProperties(null)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -530,8 +528,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .publiclyAccessible(false)
                 .build();
 
-
-
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
@@ -541,7 +537,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
-                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
 
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
                 .thenReturn(ModifyClusterResponse.builder()

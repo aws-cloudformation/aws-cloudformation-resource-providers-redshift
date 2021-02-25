@@ -35,6 +35,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected int CREATE_TAGS_INDEX = 0;
   protected int DELETE_TAGS_INDEX = 1;
+  protected int ADD_IAM_ROLES_INDEX = 0;
+  protected int DELETE_IAM_ROLES_INDEX = 1;
   private  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -214,9 +216,22 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     DescribeLoggingStatusResponse describeLoggingStatusResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToDescribeStatusLoggingRequest(model),
             proxyClient.client()::describeLoggingStatus);
     if(ObjectUtils.allNotNull(describeLoggingStatusResponse)) {
-      return describeLoggingStatusResponse.loggingEnabled();
+      return describeLoggingStatusResponse.loggingEnabled() != null && describeLoggingStatusResponse.loggingEnabled();
     }
     return false;
+  }
+
+  protected LoggingProperties convertExistingClusterLoggingToLoggingProperties(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+    DescribeLoggingStatusResponse describeLoggingStatusResponse = proxyClient.injectCredentialsAndInvokeV2(
+            Translator.translateToDescribeStatusLoggingRequest(model),
+            proxyClient.client()::describeLoggingStatus);
+    if(ObjectUtils.allNotNull(describeLoggingStatusResponse)) {
+      return LoggingProperties.builder()
+              .bucketName(describeLoggingStatusResponse.bucketName())
+              .s3KeyPrefix(describeLoggingStatusResponse.s3KeyPrefix())
+              .build();
+    }
+    return LoggingProperties.builder().build();
   }
 
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
