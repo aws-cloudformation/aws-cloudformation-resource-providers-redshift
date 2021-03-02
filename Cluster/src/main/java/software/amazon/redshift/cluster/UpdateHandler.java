@@ -87,6 +87,11 @@ public class UpdateHandler extends BaseHandlerStd {
                     .message(HandlerErrorCode.NotFound.getMessage())
                     .build();
         }
+        logger.log("REQUEST DRIFTABLE : "+ request.getDriftable());
+
+        logger.log("node type ==> "+ model.getNodeType());
+        logger.log("number of nodes ==> "+ model.getNumberOfNodes());
+        logger.log("clusterTpe ==> "+ model.getClusterType());
 
         //Redshift is Driftable
         if(request.getDriftable() != null && request.getDriftable().equals(true)) {
@@ -346,8 +351,6 @@ public class UpdateHandler extends BaseHandlerStd {
                 proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
         String clusterStatus = awsResponse.clusters().get(0).clusterStatus();
-
-        logger.log("DescribeClustersResponse ==>\n "+awsResponse);
 
         logger.log("isClusterActive >> "+ clusterStatus);
         logger.log("awsResponse.clusters().get(0).clusterAvailabilityStatus() >>   "+awsResponse.clusters().get(0).clusterAvailabilityStatus());
