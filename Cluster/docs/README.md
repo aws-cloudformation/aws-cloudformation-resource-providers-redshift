@@ -99,6 +99,8 @@ _Required_: No
 
 _Type_: String
 
+_Maximum_: <code>63</code>
+
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### MasterUsername
@@ -109,6 +111,8 @@ _Required_: Yes
 
 _Type_: String
 
+_Maximum_: <code>128</code>
+
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### MasterUserPassword
@@ -118,6 +122,8 @@ The password associated with the master user account for the cluster that is bei
 _Required_: Yes
 
 _Type_: String
+
+_Maximum_: <code>64</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -168,6 +174,8 @@ The name of the parameter group to be associated with this cluster.
 _Required_: No
 
 _Type_: String
+
+_Maximum_: <code>255</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

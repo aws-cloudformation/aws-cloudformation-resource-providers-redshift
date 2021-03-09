@@ -46,17 +46,17 @@
         "ClusterIdentifier": {
             "description": "A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account",
             "type": "string",
-            "maximum": 63
+            "maxLength": 63
         },
         "MasterUsername": {
             "description": "The user name associated with the master user account for the cluster that is being created. The user name can't be PUBLIC and first character must be a letter.",
             "type": "string",
-            "maximum": 128
+            "maxLength": 128
         },
         "MasterUserPassword": {
             "description": "The password associated with the master user account for the cluster that is being created. Password must be between 8 and 64 characters in length, should have at least one uppercase letter.Must contain at least one lowercase letter.Must contain one number.Can be any printable ASCII character.",
             "type": "string",
-            "maximum": 64
+            "maxLength": 64
         },
         "NodeType": {
             "description": "The node type to be provisioned for the cluster.Valid Values: ds2.xlarge | ds2.8xlarge | dc1.large | dc1.8xlarge | dc2.large | dc2.8xlarge | ra3.4xlarge | ra3.16xlarge",
@@ -77,7 +77,7 @@
         "ClusterParameterGroupName": {
             "description": "The name of the parameter group to be associated with this cluster.",
             "type": "string",
-            "maximum": 255
+            "maxLength": 255
         },
         "ClusterType": {
             "description": "The type of the cluster. When cluster type is specified as single-node, the NumberOfNodes parameter is not required and if multi-node, the NumberOfNodes parameter is required",

@@ -1,6 +1,7 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.StringUtils;
+import com.google.common.collect.MapDifference;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
@@ -50,6 +51,8 @@ public class Translator {
   private static String FINAL_SNAPSHOT_SUFFIX = "-final-snapshot";
   private static int ADD_IAM_ROLES_INDEX = 0;
   private static int REMOVE_IAM_ROLES_INDEX = 1;
+  private static String CLUSTER_TYPE_SINGLE_NODE = "single-node";
+  private static String CLUSTER_TYPE_MULTI_NODE = "multi-node";
   /**
    * Request to create a resource
    * @param model resource model
@@ -191,23 +194,23 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    final int numberOfNodes = streamOfOrEmpty(awsResponse.clusters())
+    final Integer numberOfNodes = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::numberOfNodes)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(0);
+            .orElse(null);
 
-    final boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
+    final Boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(true);
+            .orElse(null);
 
-    final int automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+    final Integer automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
-            .orElse(0);
+            .orElse(null);
 
 
     final String availabilityZone = streamOfOrEmpty(awsResponse.clusters())
@@ -316,14 +319,14 @@ public class Translator {
             .masterUsername(masterUsername)
             .nodeType(nodeType)
             .numberOfNodes(numberOfNodes)
-            .allowVersionUpgrade(allowVersionUpgrade)
+            .allowVersionUpgrade(allowVersionUpgrade == null ? null : allowVersionUpgrade.booleanValue())
             .automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
             .availabilityZone(availabilityZone)
             .clusterVersion(clusterVersion)
-            .encrypted(encrypted)
+            .encrypted(encrypted == null ? null : encrypted.booleanValue())
             .kmsKeyId(kmsKeyId)
             .preferredMaintenanceWindow(preferredMaintenanceWindow)
-            .publiclyAccessible(publiclyAccessible)
+            .publiclyAccessible(publiclyAccessible == null ? null : publiclyAccessible.booleanValue())
             .clusterSecurityGroups(translateClusterSecurityGroupsFromSdk(clusterSecurityGroups))
             .iamRoles(translateIamRolesFromSdk(iamRoles))
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
@@ -383,13 +386,40 @@ public class Translator {
    * @return awsRequest the aws service request to modify a resource
    */
   static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model, final ResourceModel prevModel) {
+    String nodeType = null; String clusterType = null;
+    Integer numberOfNodes = null;
 
-    return ModifyClusterRequest.builder()
+    if(!model.getClusterType().equals(prevModel.getClusterType())){
+      System.out.println("modify cluster type from single to multi or multi to single node");
+      clusterType = model.getClusterType();
+      nodeType = model.getNodeType();
+      if (model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE)){
+        numberOfNodes = model.getNumberOfNodes();//model.getNumberOfNodes() != null ? model.getNumberOfNodes() : null;
+      }
+      //check for this case if nodetype needs to be given a value.
+      System.out.println("nodeType = "+nodeType+"\n clusterType = "+clusterType+"\n number of nodes = "+numberOfNodes);
+
+    } else if (!model.getNodeType().equals(prevModel.getNodeType())) {
+      System.out.println("modify node type");
+      nodeType = model.getNodeType();
+      numberOfNodes = model.getNumberOfNodes();
+      clusterType = model.getClusterType();
+
+      System.out.println("nodeType = "+nodeType+"\n clusterType = "+clusterType+"\n number of nodes = "+numberOfNodes);
+
+    } else if (!model.getNumberOfNodes().equals(prevModel.getNumberOfNodes())) {
+      System.out.println("modify number of nodes");
+      numberOfNodes = model.getNumberOfNodes();
+      System.out.println("nodeType = "+nodeType+"\n clusterType = "+clusterType+"\n number of nodes = "+numberOfNodes);
+    }
+
+
+      ModifyClusterRequest req =  ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUserPassword(model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
-            .nodeType(model.getNodeType())
-            .clusterType(model.getClusterType())
-            .numberOfNodes(model.getNumberOfNodes())
+            .nodeType(nodeType)
+            .clusterType(clusterType)
+            .numberOfNodes(numberOfNodes)
             //.numberOfNodes(model.getNumberOfNodes() == null || model.getNumberOfNodes().equals(prevModel.getNumberOfNodes()) ? null : model.getNumberOfNodes())
             .allowVersionUpgrade(model.getAllowVersionUpgrade() == null || model.getAllowVersionUpgrade().equals(prevModel.getAllowVersionUpgrade()) ? null : model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod() == null || model.getAutomatedSnapshotRetentionPeriod().equals(prevModel.getAutomatedSnapshotRetentionPeriod()) ? null : model.getAutomatedSnapshotRetentionPeriod())
@@ -405,6 +435,9 @@ public class Translator {
             .clusterSecurityGroups(model.getClusterSecurityGroups() == null || model.getClusterSecurityGroups().equals(prevModel.getClusterSecurityGroups()) ? null : model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds() == null || model.getVpcSecurityGroupIds().equals(prevModel.getVpcSecurityGroupIds()) ? null : model.getVpcSecurityGroupIds())
             .build();
+
+    System.out.println("req = "+req);
+    return req;
   }
 
   /**

@@ -79,6 +79,8 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
+        System.out.println("HERE PREVIOUS REOURCE STATE :  "+request.getPreviousResourceState());
+
         boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model, model.getClusterIdentifier());
         if(!clusterExists) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
