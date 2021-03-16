@@ -205,8 +205,7 @@
         "/properties/ClusterIdentifier"
     ],
     "writeOnlyProperties": [
-        "/properties/MasterUserPassword",
-        "/properties/ClusterType"
+        "/properties/MasterUserPassword"
     ],
     "handlers": {
         "create": {

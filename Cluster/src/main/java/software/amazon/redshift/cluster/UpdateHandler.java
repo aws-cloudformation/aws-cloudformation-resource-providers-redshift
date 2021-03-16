@@ -79,8 +79,6 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        System.out.println("HERE PREVIOUS REOURCE STATE :  "+request.getPreviousResourceState());
-
         boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model, model.getClusterIdentifier());
         if(!clusterExists) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
@@ -89,11 +87,6 @@ public class UpdateHandler extends BaseHandlerStd {
                     .message(HandlerErrorCode.NotFound.getMessage())
                     .build();
         }
-        logger.log("REQUEST DRIFTABLE : "+ request.getDriftable());
-
-        logger.log("node type ==> "+ model.getNodeType());
-        logger.log("number of nodes ==> "+ model.getNumberOfNodes());
-        logger.log("clusterTpe ==> "+ model.getClusterType());
 
         //Redshift is Driftable
         if(request.getDriftable() != null && request.getDriftable().equals(true)) {
@@ -109,8 +102,6 @@ public class UpdateHandler extends BaseHandlerStd {
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
                     List<List<Tag>> updateTags = updateTags(request.getPreviousResourceState().getTags(), model.getTags());
-                    //List<List<Tag>> updateTags = updateClusterTags(model, proxyClient);
-                    logger.log("updateTags == >  " + updateTags);
 
                     String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" + request.getAwsAccountId() +
                             ":cluster:" + model.getClusterIdentifier();
@@ -122,7 +113,6 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
                     }
-                    //System.out.println("delete tag keys "+updateTags.get(DELETE_TAGS_INDEX).stream().map(Tag::getKey).collect(Collectors.toList()));
 
                     if (!CollectionUtils.isNullOrEmpty(updateTags) && !CollectionUtils.isNullOrEmpty(updateTags.get(DELETE_TAGS_INDEX))) {
                         progress = proxy.initiate("AWS-Redshift-Cluster::DeleteTags", proxyClient, model, callbackContext)
@@ -137,8 +127,6 @@ public class UpdateHandler extends BaseHandlerStd {
 
                 .then(progress -> {
                     List<List<String>> iamRolesForUpdate = iamRoleUpdate(request.getPreviousResourceState().getIamRoles(), model.getIamRoles());
-                    //List<List<String>> iamRolesForUpdate = modifyIamRoles(model, proxyClient);
-                    logger.log("value of iamRolesForUpdate == >" + iamRolesForUpdate);
                     if ((!CollectionUtils.isNullOrEmpty(iamRolesForUpdate)) && (!CollectionUtils.isNullOrEmpty(iamRolesForUpdate.get(ADD_IAM_ROLES_INDEX)) || !CollectionUtils.isNullOrEmpty(iamRolesForUpdate.get(DELETE_IAM_ROLES_INDEX)))) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateClusterIAMRoles", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((iamRolesModifyRequest) -> Translator.translateToUpdateIAMRolesRequest(model, iamRolesForUpdate))
@@ -156,7 +144,6 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .makeServiceCall(this::disableLogging)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
-                        //} else if (model.getLoggingProperties() != null && (ObjectUtils.notEqual(model.getLoggingProperties(), convertExistingClusterLoggingToLoggingProperties(proxyClient, model)))){
                     } else if (model.getLoggingProperties() != null && (ObjectUtils.notEqual(model.getLoggingProperties(), request.getPreviousResourceState().getLoggingProperties()))) {
                         return proxy.initiate("AWS-Redshift-Cluster::EnableLogging", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
@@ -164,13 +151,6 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
                     }
-//                    else if (model.getLoggingProperties() != null && !(ObjectUtils.notEqual(model.getLoggingProperties(), convertExistingClusterLoggingToLoggingProperties(proxyClient, model)))){
-//                        return proxy.initiate("AWS-Redshift-Cluster::EnableLogging", proxyClient, model, callbackContext)
-//                                .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
-//                                .makeServiceCall(this::enableLogging)
-//                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-//                                .progress();
-//                    }
                     return progress;
                 })
 
@@ -353,11 +333,6 @@ public class UpdateHandler extends BaseHandlerStd {
                 proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
         String clusterStatus = awsResponse.clusters().get(0).clusterStatus();
-
-        logger.log("isClusterActive >> "+ clusterStatus);
-        logger.log("awsResponse.clusters().get(0).clusterAvailabilityStatus() >>   "+awsResponse.clusters().get(0).clusterAvailabilityStatus());
-
-        //return awsResponse.clusters().get(0).clusterStatus().equals("available");
         return clusterStatus.equals("available");
     }
 }

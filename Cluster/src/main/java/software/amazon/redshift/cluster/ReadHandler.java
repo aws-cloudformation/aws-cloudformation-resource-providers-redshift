@@ -131,12 +131,7 @@ public class ReadHandler extends BaseHandlerStd {
      */
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromResponse(
             final DescribeClustersResponse awsResponse) {
-        ProgressEvent<ResourceModel, CallbackContext> op = ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse));
-        logger.log("allowedVersion upgrade = "+op.getResourceModel().getAllowVersionUpgrade());
-        logger.log("encrypted = "+op.getResourceModel().getEncrypted());
-        logger.log("publicly accessible = "+op.getResourceModel().getPubliclyAccessible());
-
-        return op;
+        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse));
     }
 
     private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeLoggingResponse(

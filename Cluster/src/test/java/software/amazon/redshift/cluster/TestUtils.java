@@ -63,6 +63,7 @@ public class TestUtils {
             .masterUserPassword(MASTER_USERPASSWORD)
             .nodeType(NODETYPE)
             .numberOfNodes(NUMBER_OF_NODES)
+            .clusterType("multi-node")
             .allowVersionUpgrade(true)
             .automatedSnapshotRetentionPeriod(0)
             .encrypted(false)

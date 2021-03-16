@@ -314,10 +314,13 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final String clusterType = numberOfNodes == null || numberOfNodes < 2 ? CLUSTER_TYPE_SINGLE_NODE : CLUSTER_TYPE_MULTI_NODE;
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
             .nodeType(nodeType)
+            .clusterType(clusterType)
             .numberOfNodes(numberOfNodes)
             .allowVersionUpgrade(allowVersionUpgrade == null ? null : allowVersionUpgrade.booleanValue())
             .automatedSnapshotRetentionPeriod(automatedSnapshotRetentionPeriod)
@@ -390,37 +393,26 @@ public class Translator {
     Integer numberOfNodes = null;
 
     if(!model.getClusterType().equals(prevModel.getClusterType())){
-      System.out.println("modify cluster type from single to multi or multi to single node");
       clusterType = model.getClusterType();
       nodeType = model.getNodeType();
       if (model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE)){
         numberOfNodes = model.getNumberOfNodes();//model.getNumberOfNodes() != null ? model.getNumberOfNodes() : null;
       }
-      //check for this case if nodetype needs to be given a value.
-      System.out.println("nodeType = "+nodeType+"\n clusterType = "+clusterType+"\n number of nodes = "+numberOfNodes);
-
     } else if (!model.getNodeType().equals(prevModel.getNodeType())) {
-      System.out.println("modify node type");
       nodeType = model.getNodeType();
       numberOfNodes = model.getNumberOfNodes();
       clusterType = model.getClusterType();
-
-      System.out.println("nodeType = "+nodeType+"\n clusterType = "+clusterType+"\n number of nodes = "+numberOfNodes);
-
     } else if (!model.getNumberOfNodes().equals(prevModel.getNumberOfNodes())) {
-      System.out.println("modify number of nodes");
       numberOfNodes = model.getNumberOfNodes();
-      System.out.println("nodeType = "+nodeType+"\n clusterType = "+clusterType+"\n number of nodes = "+numberOfNodes);
     }
 
 
-      ModifyClusterRequest req =  ModifyClusterRequest.builder()
+      ModifyClusterRequest modifyClusterRequest =  ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUserPassword(model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
             .nodeType(nodeType)
             .clusterType(clusterType)
             .numberOfNodes(numberOfNodes)
-            //.numberOfNodes(model.getNumberOfNodes() == null || model.getNumberOfNodes().equals(prevModel.getNumberOfNodes()) ? null : model.getNumberOfNodes())
             .allowVersionUpgrade(model.getAllowVersionUpgrade() == null || model.getAllowVersionUpgrade().equals(prevModel.getAllowVersionUpgrade()) ? null : model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod() == null || model.getAutomatedSnapshotRetentionPeriod().equals(prevModel.getAutomatedSnapshotRetentionPeriod()) ? null : model.getAutomatedSnapshotRetentionPeriod())
             .clusterParameterGroupName(model.getClusterParameterGroupName() == null || model.getClusterParameterGroupName().equals(prevModel.getClusterParameterGroupName()) ? null : model.getClusterParameterGroupName())
@@ -436,8 +428,7 @@ public class Translator {
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds() == null || model.getVpcSecurityGroupIds().equals(prevModel.getVpcSecurityGroupIds()) ? null : model.getVpcSecurityGroupIds())
             .build();
 
-    System.out.println("req = "+req);
-    return req;
+    return modifyClusterRequest;
   }
 
   /**

@@ -61,18 +61,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final Logger logger);
 
 
-//  protected boolean isClusterActiveAfterModify (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-//    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
-//            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
-//
-//    DescribeClustersRequest awsRequest =
-//            DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
-//    DescribeClustersResponse awsResponse =
-//            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-//
-//    return awsResponse.clusters().get(0).clusterStatus().equals("available");
-//  }
-
   protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
     DescribeClustersRequest awsRequest =
             DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
@@ -90,9 +78,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     try {
       awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
     } catch (final ClusterNotFoundException e) {
-//        if (!StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())) {
-//          return isClusterAvailableForUpdate(proxyClient, model, model.getNewClusterIdentifier());
-//        }
         return false;
     }
     return true;
