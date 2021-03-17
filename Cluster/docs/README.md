@@ -424,4 +424,3 @@ Returns the <code>Endpoint.Port</code> value.
 #### Endpoint.Address
 
 Returns the <code>Endpoint.Address</code> value.
-
