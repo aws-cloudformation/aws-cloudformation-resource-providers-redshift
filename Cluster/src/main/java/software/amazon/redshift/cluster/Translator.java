@@ -162,9 +162,6 @@ public class Translator {
    * @return awsRequest the aws service request to describe a resource
    */
   static DescribeClustersRequest translateToDescribeClusterRequest(final ResourceModel model) {
-//    String clusterIdentifier = StringUtils.isNullOrEmpty(model.getNewClusterIdentifier())
-//            ? model.getClusterIdentifier() : model.getNewClusterIdentifier();
-
     return DescribeClustersRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .build();
@@ -396,18 +393,19 @@ public class Translator {
       clusterType = model.getClusterType();
       nodeType = model.getNodeType();
       if (model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE)){
-        numberOfNodes = model.getNumberOfNodes();//model.getNumberOfNodes() != null ? model.getNumberOfNodes() : null;
+        numberOfNodes = model.getNumberOfNodes();
       }
     } else if (!model.getNodeType().equals(prevModel.getNodeType())) {
       nodeType = model.getNodeType();
       numberOfNodes = model.getNumberOfNodes();
       clusterType = model.getClusterType();
-    } else if (!model.getNumberOfNodes().equals(prevModel.getNumberOfNodes())) {
+
+    } else if ((model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE) || prevModel.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE))
+            && (!model.getNumberOfNodes().equals(prevModel.getNumberOfNodes()))) {
       numberOfNodes = model.getNumberOfNodes();
     }
 
-
-      ModifyClusterRequest modifyClusterRequest =  ModifyClusterRequest.builder()
+    ModifyClusterRequest modifyClusterRequest =  ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUserPassword(model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
             .nodeType(nodeType)
