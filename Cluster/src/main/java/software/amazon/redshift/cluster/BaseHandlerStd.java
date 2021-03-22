@@ -122,26 +122,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds());
   }
 
-//  protected List<List<String>> modifyIamRoles (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
-//    List<List<String>> iamRolesForUpdate = new LinkedList<>();
-//    List<String> existingIamRoles = proxyClient.injectCredentialsAndInvokeV2(
-//            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
-//            .clusters().get(0).iamRoles().stream().map(ClusterIamRole::iamRoleArn).collect(Collectors.toList());
-//
-//    existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
-//    List<String> newIamRoles = CollectionUtils.isNullOrEmpty(model.getIamRoles()) ? new LinkedList<String>() : model.getIamRoles();
-//
-//    if (ObjectUtils.notEqual(existingIamRoles, newIamRoles)) {
-//      // Compute which iam roles we need to delete and add
-//      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(existingIamRoles), new HashSet<>(newIamRoles));
-//      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(newIamRoles), new HashSet<>(existingIamRoles));
-//
-//      iamRolesForUpdate.add(new LinkedList<>(iamRolesToAdd));
-//      iamRolesForUpdate.add(new LinkedList<>(iamRolesToRemove));
-//    }
-//    return iamRolesForUpdate;
-//  }
-
   protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {
     List<List<String>> iamRolesForUpdate = new LinkedList<>();
     existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
@@ -157,27 +137,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
     return iamRolesForUpdate;
   }
-
-//  protected List<List<Tag>> updateClusterTags (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
-//    List<List<Tag>> tagsForUpdate = new LinkedList<>();
-//    List<Tag> existingTags = Translator.translateTagsFromSdk(proxyClient.injectCredentialsAndInvokeV2(
-//            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
-//            .clusters().get(0).tags());
-//
-//    existingTags = CollectionUtils.isNullOrEmpty(existingTags) ? new LinkedList<Tag>() : existingTags;
-//    List<Tag> newTags = CollectionUtils.isNullOrEmpty(model.getTags()) ? new LinkedList<Tag>() : model.getTags();
-//
-//    if (ObjectUtils.notEqual(existingTags, newTags)) {
-//
-//      Set<Tag> tagsToDelete = Sets.difference(new HashSet<>(existingTags), new HashSet<>(newTags));
-//      Set<Tag> tagsToAdd = Sets.difference(new HashSet<>(newTags), new HashSet<>(existingTags));
-//
-//      tagsForUpdate.add(new LinkedList<>(tagsToAdd));
-//      tagsForUpdate.add(new LinkedList<>(tagsToDelete));
-//
-//    }
-//    return tagsForUpdate;
-//  }
 
   protected List<List<Tag>> updateTags (List<Tag> existingTags, List<Tag> newTags) {
     List<List<Tag>> tagsForUpdate = new LinkedList<>();
@@ -205,19 +164,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     }
     return false;
   }
-
-//  protected LoggingProperties convertExistingClusterLoggingToLoggingProperties(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
-//    DescribeLoggingStatusResponse describeLoggingStatusResponse = proxyClient.injectCredentialsAndInvokeV2(
-//            Translator.translateToDescribeStatusLoggingRequest(model),
-//            proxyClient.client()::describeLoggingStatus);
-//    if(ObjectUtils.allNotNull(describeLoggingStatusResponse)) {
-//      return LoggingProperties.builder()
-//              .bucketName(describeLoggingStatusResponse.bucketName())
-//              .s3KeyPrefix(describeLoggingStatusResponse.s3KeyPrefix())
-//              .build();
-//    }
-//    return LoggingProperties.builder().build();
-//  }
 
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
     Cluster cluster = proxyClient.injectCredentialsAndInvokeV2(
