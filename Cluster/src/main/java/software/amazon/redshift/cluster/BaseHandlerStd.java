@@ -38,6 +38,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected int ADD_IAM_ROLES_INDEX = 0;
   protected int DELETE_IAM_ROLES_INDEX = 1;
   private  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
+  private final String CLUSTER_STATUS_AVAILABLE = "available";
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
@@ -66,12 +67,11 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
     DescribeClustersResponse awsResponse =
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-
-    return awsResponse.clusters().get(0).clusterStatus().equals("available");
+    return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus());
   }
 
-  protected boolean isClusterAvailableForUpdate (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model,
-                                                 String clusterIdentifier) {
+  protected boolean doesClusterExist(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model,
+                                     String clusterIdentifier) {
     DescribeClustersResponse awsResponse = null;
     DescribeClustersRequest awsRequest =
             DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
@@ -122,25 +122,25 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds());
   }
 
-  protected List<List<String>> modifyIamRoles (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
-    List<List<String>> iamRolesForUpdate = new LinkedList<>();
-    List<String> existingIamRoles = proxyClient.injectCredentialsAndInvokeV2(
-            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
-            .clusters().get(0).iamRoles().stream().map(ClusterIamRole::iamRoleArn).collect(Collectors.toList());
-
-    existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
-    List<String> newIamRoles = CollectionUtils.isNullOrEmpty(model.getIamRoles()) ? new LinkedList<String>() : model.getIamRoles();
-
-    if (ObjectUtils.notEqual(existingIamRoles, newIamRoles)) {
-      // Compute which iam roles we need to delete and add
-      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(existingIamRoles), new HashSet<>(newIamRoles));
-      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(newIamRoles), new HashSet<>(existingIamRoles));
-
-      iamRolesForUpdate.add(new LinkedList<>(iamRolesToAdd));
-      iamRolesForUpdate.add(new LinkedList<>(iamRolesToRemove));
-    }
-    return iamRolesForUpdate;
-  }
+//  protected List<List<String>> modifyIamRoles (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
+//    List<List<String>> iamRolesForUpdate = new LinkedList<>();
+//    List<String> existingIamRoles = proxyClient.injectCredentialsAndInvokeV2(
+//            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
+//            .clusters().get(0).iamRoles().stream().map(ClusterIamRole::iamRoleArn).collect(Collectors.toList());
+//
+//    existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
+//    List<String> newIamRoles = CollectionUtils.isNullOrEmpty(model.getIamRoles()) ? new LinkedList<String>() : model.getIamRoles();
+//
+//    if (ObjectUtils.notEqual(existingIamRoles, newIamRoles)) {
+//      // Compute which iam roles we need to delete and add
+//      Set<String> iamRolesToRemove = Sets.difference(new HashSet<>(existingIamRoles), new HashSet<>(newIamRoles));
+//      Set<String> iamRolesToAdd = Sets.difference(new HashSet<>(newIamRoles), new HashSet<>(existingIamRoles));
+//
+//      iamRolesForUpdate.add(new LinkedList<>(iamRolesToAdd));
+//      iamRolesForUpdate.add(new LinkedList<>(iamRolesToRemove));
+//    }
+//    return iamRolesForUpdate;
+//  }
 
   protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {
     List<List<String>> iamRolesForUpdate = new LinkedList<>();
@@ -158,26 +158,26 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return iamRolesForUpdate;
   }
 
-  protected List<List<Tag>> updateClusterTags (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
-    List<List<Tag>> tagsForUpdate = new LinkedList<>();
-    List<Tag> existingTags = Translator.translateTagsFromSdk(proxyClient.injectCredentialsAndInvokeV2(
-            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
-            .clusters().get(0).tags());
-
-    existingTags = CollectionUtils.isNullOrEmpty(existingTags) ? new LinkedList<Tag>() : existingTags;
-    List<Tag> newTags = CollectionUtils.isNullOrEmpty(model.getTags()) ? new LinkedList<Tag>() : model.getTags();
-
-    if (ObjectUtils.notEqual(existingTags, newTags)) {
-
-      Set<Tag> tagsToDelete = Sets.difference(new HashSet<>(existingTags), new HashSet<>(newTags));
-      Set<Tag> tagsToAdd = Sets.difference(new HashSet<>(newTags), new HashSet<>(existingTags));
-
-      tagsForUpdate.add(new LinkedList<>(tagsToAdd));
-      tagsForUpdate.add(new LinkedList<>(tagsToDelete));
-
-    }
-    return tagsForUpdate;
-  }
+//  protected List<List<Tag>> updateClusterTags (ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
+//    List<List<Tag>> tagsForUpdate = new LinkedList<>();
+//    List<Tag> existingTags = Translator.translateTagsFromSdk(proxyClient.injectCredentialsAndInvokeV2(
+//            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
+//            .clusters().get(0).tags());
+//
+//    existingTags = CollectionUtils.isNullOrEmpty(existingTags) ? new LinkedList<Tag>() : existingTags;
+//    List<Tag> newTags = CollectionUtils.isNullOrEmpty(model.getTags()) ? new LinkedList<Tag>() : model.getTags();
+//
+//    if (ObjectUtils.notEqual(existingTags, newTags)) {
+//
+//      Set<Tag> tagsToDelete = Sets.difference(new HashSet<>(existingTags), new HashSet<>(newTags));
+//      Set<Tag> tagsToAdd = Sets.difference(new HashSet<>(newTags), new HashSet<>(existingTags));
+//
+//      tagsForUpdate.add(new LinkedList<>(tagsToAdd));
+//      tagsForUpdate.add(new LinkedList<>(tagsToDelete));
+//
+//    }
+//    return tagsForUpdate;
+//  }
 
   protected List<List<Tag>> updateTags (List<Tag> existingTags, List<Tag> newTags) {
     List<List<Tag>> tagsForUpdate = new LinkedList<>();
@@ -206,18 +206,18 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return false;
   }
 
-  protected LoggingProperties convertExistingClusterLoggingToLoggingProperties(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
-    DescribeLoggingStatusResponse describeLoggingStatusResponse = proxyClient.injectCredentialsAndInvokeV2(
-            Translator.translateToDescribeStatusLoggingRequest(model),
-            proxyClient.client()::describeLoggingStatus);
-    if(ObjectUtils.allNotNull(describeLoggingStatusResponse)) {
-      return LoggingProperties.builder()
-              .bucketName(describeLoggingStatusResponse.bucketName())
-              .s3KeyPrefix(describeLoggingStatusResponse.s3KeyPrefix())
-              .build();
-    }
-    return LoggingProperties.builder().build();
-  }
+//  protected LoggingProperties convertExistingClusterLoggingToLoggingProperties(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+//    DescribeLoggingStatusResponse describeLoggingStatusResponse = proxyClient.injectCredentialsAndInvokeV2(
+//            Translator.translateToDescribeStatusLoggingRequest(model),
+//            proxyClient.client()::describeLoggingStatus);
+//    if(ObjectUtils.allNotNull(describeLoggingStatusResponse)) {
+//      return LoggingProperties.builder()
+//              .bucketName(describeLoggingStatusResponse.bucketName())
+//              .s3KeyPrefix(describeLoggingStatusResponse.s3KeyPrefix())
+//              .build();
+//    }
+//    return LoggingProperties.builder().build();
+//  }
 
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
     Cluster cluster = proxyClient.injectCredentialsAndInvokeV2(
@@ -225,7 +225,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             .clusters().get(0);
     if (ObjectUtils.anyNotNull(cluster)) {
       if (!CollectionUtils.isNullOrEmpty(cluster.clusterParameterGroups())) {
-        return cluster.clusterParameterGroups().get(0).parameterApplyStatus().equals(PARAMETER_GROUP_STATUS_PENDING_REBOOT);
+        return PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(cluster.clusterParameterGroups().get(0).parameterApplyStatus());
       }
     }
     return false;

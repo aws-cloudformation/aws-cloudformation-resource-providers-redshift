@@ -62,7 +62,6 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -79,7 +78,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        boolean clusterExists = isClusterAvailableForUpdate(proxyClient, model, model.getClusterIdentifier());
+        boolean clusterExists = doesClusterExist(proxyClient, model, model.getClusterIdentifier());
         if(!clusterExists) {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
@@ -324,15 +323,5 @@ public class UpdateHandler extends BaseHandlerStd {
 
         logger.log(String.format("%s Reboot Cluster ", ResourceModel.TYPE_NAME));
         return rebootClusterResponse;
-    }
-
-    protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-        DescribeClustersRequest awsRequest =
-                DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
-        DescribeClustersResponse awsResponse =
-                proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-
-        String clusterStatus = awsResponse.clusters().get(0).clusterStatus();
-        return clusterStatus.equals("available");
     }
 }

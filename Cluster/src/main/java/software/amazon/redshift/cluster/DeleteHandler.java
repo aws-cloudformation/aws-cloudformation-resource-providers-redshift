@@ -17,7 +17,9 @@ import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -35,10 +37,20 @@ public class DeleteHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
+
+        boolean clusterExists = doesClusterExist(proxyClient, model, model.getClusterIdentifier());
+        if(!clusterExists) {
+            return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                    .status(OperationStatus.FAILED)
+                    .errorCode(HandlerErrorCode.NotFound)
+                    .message(HandlerErrorCode.NotFound.getMessage())
+                    .build();
+        }
+
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-Cluster::Delete", proxyClient, model, callbackContext)
-                                .translateToServiceRequest((m) -> Translator.translateToDeleteRequest(model, request.getSnapshotRequested()))
+                                .translateToServiceRequest((_model) -> Translator.translateToDeleteRequest(_model, request.getSnapshotRequested()))
                                 .makeServiceCall(this::deleteResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterDelete(_client, _model, _context))
                                 .done((response) -> ProgressEvent.defaultSuccessHandler(null)));

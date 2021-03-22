@@ -30,6 +30,7 @@ import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 
 import java.util.Collection;
