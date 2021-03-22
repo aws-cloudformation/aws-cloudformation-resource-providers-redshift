@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
+import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 
@@ -78,6 +79,9 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .thenReturn(DeleteClusterResponse.builder().build());
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build())
                 .thenThrow(ClusterNotFoundException.class);
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
