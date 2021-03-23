@@ -272,10 +272,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         try {
             disableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(disableLoggingRequest, proxyClient.client()::disableLogging);
-        } catch (final ClusterAlreadyExistsException e) {
-            throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, disableLoggingRequest.clusterIdentifier());
-        }  catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
-                | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
+        } catch (final ClusterNotFoundException  e) {
             throw new CfnInvalidRequestException(disableLoggingRequest.toString(), e);
         } catch (SdkClientException | RedshiftException e) {
             throw new CfnGeneralServiceException(disableLoggingRequest.toString(), e);

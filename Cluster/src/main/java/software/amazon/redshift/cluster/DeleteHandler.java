@@ -38,15 +38,6 @@ public class DeleteHandler extends BaseHandlerStd {
 
         final ResourceModel model = request.getDesiredResourceState();
 
-        boolean clusterExists = doesClusterExist(proxyClient, model, model.getClusterIdentifier());
-        if(!clusterExists) {
-            return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                    .status(OperationStatus.FAILED)
-                    .errorCode(HandlerErrorCode.NotFound)
-                    .message(HandlerErrorCode.NotFound.getMessage())
-                    .build();
-        }
-
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-Cluster::Delete", proxyClient, model, callbackContext)
