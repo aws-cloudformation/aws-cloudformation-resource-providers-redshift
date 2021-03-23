@@ -93,10 +93,8 @@ public class ReadHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
         } catch (final InvalidTagException e) {
             throw new CfnInvalidRequestException(awsRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(awsRequest.toString(), e);
-        } catch (final AwsServiceException e) { // ResourceNotFoundException
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
 
         logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
@@ -113,10 +111,8 @@ public class ReadHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
         } catch (final InvalidClusterStateException | InvalidRestoreException e ) {
             throw new CfnInvalidRequestException(awsRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(awsRequest.toString(), e);
-        } catch (final AwsServiceException e) { // ResourceNotFoundException
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
 
         logger.log(String.format("%s Logging Status read.", ResourceModel.TYPE_NAME));

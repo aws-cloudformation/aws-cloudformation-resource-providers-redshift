@@ -194,7 +194,7 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (final ClusterNotFoundException | ClusterSecurityGroupNotFoundException |
                 ClusterParameterGroupNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier());
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(modifyRequest.toString(), e);
         }
 
@@ -214,7 +214,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnInvalidRequestException(modifyRequest.toString(), e);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier());
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(modifyRequest.toString(), e);
         }
 
@@ -234,7 +234,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnInvalidRequestException(createTagsRequest.toString(), e);
         } catch (final ResourceNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, createTagsRequest.resourceName());
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(createTagsRequest.toString(), e);
         }
 
@@ -255,7 +255,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnInvalidRequestException(deleteTagsRequest.toString(), e);
         } catch (final ResourceNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteTagsRequest.resourceName());
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(deleteTagsRequest.toString(), e);
         }
 
@@ -274,7 +274,7 @@ public class UpdateHandler extends BaseHandlerStd {
             disableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(disableLoggingRequest, proxyClient.client()::disableLogging);
         } catch (final ClusterNotFoundException  e) {
             throw new CfnInvalidRequestException(disableLoggingRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(disableLoggingRequest.toString(), e);
         }
         logger.log(String.format("%s disable logging properties.", ResourceModel.TYPE_NAME));
@@ -292,7 +292,7 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
                 | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
             throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
         }
         logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
@@ -310,10 +310,8 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rebootClusterRequest.clusterIdentifier());
         } catch (final InvalidClusterStateException e) {
             throw new CfnInvalidRequestException(rebootClusterRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(rebootClusterRequest.toString(), e);
-        } catch (final AwsServiceException e) { // ResourceNotFoundException
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
 
         logger.log(String.format("%s Reboot Cluster ", ResourceModel.TYPE_NAME));

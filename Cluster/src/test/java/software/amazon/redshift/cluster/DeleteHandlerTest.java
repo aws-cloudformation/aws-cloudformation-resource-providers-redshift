@@ -79,9 +79,6 @@ public class DeleteHandlerTest extends AbstractTestBase {
                 .thenReturn(DeleteClusterResponse.builder().build());
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(BASIC_CLUSTER)
-                        .build())
                 .thenThrow(ClusterNotFoundException.class);
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);

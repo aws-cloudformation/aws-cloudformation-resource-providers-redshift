@@ -67,7 +67,12 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
     DescribeClustersResponse awsResponse =
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-    return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus());
+
+    List<Cluster> clusters = awsResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus());
+    }
+    return false;
   }
 
   protected boolean doesClusterExist(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model,
@@ -166,15 +171,15 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
-    Cluster cluster = proxyClient.injectCredentialsAndInvokeV2(
+    List<Cluster> clusters = proxyClient.injectCredentialsAndInvokeV2(
             Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
-            .clusters().get(0);
-    if (ObjectUtils.anyNotNull(cluster)) {
-      if (!CollectionUtils.isNullOrEmpty(cluster.clusterParameterGroups())) {
-        return PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(cluster.clusterParameterGroups().get(0).parameterApplyStatus());
+            .clusters();
+    if (!CollectionUtils.isNullOrEmpty(clusters)) {
+      if (!CollectionUtils.isNullOrEmpty(clusters.get(0).clusterParameterGroups())) {
+        return PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(clusters.get(0).clusterParameterGroups().get(0)
+                .parameterApplyStatus());
       }
     }
     return false;
   }
-
 }

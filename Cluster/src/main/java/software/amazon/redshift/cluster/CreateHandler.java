@@ -136,7 +136,7 @@ public class CreateHandler extends BaseHandlerStd {
                 | InvalidClusterTrackException | SnapshotScheduleNotFoundException | TagLimitExceededException
                 | InvalidTagException e) {
             throw new CfnInvalidRequestException(restoreFromClusterSnapshotRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(restoreFromClusterSnapshotRequest.toString(), e);
         }
         logger.log(String.format("%s Restore Cluster from Snapshot.", ResourceModel.TYPE_NAME));
@@ -162,7 +162,7 @@ public class CreateHandler extends BaseHandlerStd {
                 LimitExceededException | DependentServiceRequestThrottlingException | InvalidClusterTrackException |
                 SnapshotScheduleNotFoundException  e) {
             throw new CfnInvalidRequestException(createRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(createRequest.toString(), e);
         }
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
@@ -180,7 +180,7 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
                 | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
             throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
         }
         logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
