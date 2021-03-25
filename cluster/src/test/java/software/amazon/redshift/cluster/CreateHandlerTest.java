@@ -5,7 +5,6 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 
-import junit.framework.Assert;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
@@ -170,7 +169,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
         assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
 
-        Assert.assertEquals("expected not equal to actual",response.getResourceModel(), request.getDesiredResourceState());
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
 
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
         verify(proxyClient.client(), times(3))
@@ -262,7 +261,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
         assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
 
-        Assert.assertEquals("expected not equal to actual",response.getResourceModel(), request.getDesiredResourceState());
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
 
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
         verify(proxyClient.client(), times(4))
