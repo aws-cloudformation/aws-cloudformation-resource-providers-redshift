@@ -40,12 +40,10 @@ public class ListHandler extends BaseHandler<CallbackContext> {
                             ClientBuilder.getClient()::describeClusters);
 
         } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getClusterIdentifier());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getClusterIdentifier(), e);
         } catch (final InvalidTagException e) {
             throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
-        } catch (SdkClientException | RedshiftException e) {
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
-        } catch (final AwsServiceException e) { // ResourceNotFoundException
+        } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
 

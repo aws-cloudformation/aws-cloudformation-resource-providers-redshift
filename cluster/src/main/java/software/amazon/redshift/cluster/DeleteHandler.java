@@ -55,11 +55,11 @@ public class DeleteHandler extends BaseHandlerStd {
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteRequest, proxyClient.client()::deleteCluster);
         } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteRequest.clusterIdentifier());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteRequest.clusterIdentifier(), e);
         } catch (final InvalidClusterStateException | InvalidRetentionPeriodException | ClusterSnapshotAlreadyExistsException | ClusterSnapshotQuotaExceededException e) {
-            throw new CfnInvalidRequestException(deleteRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(deleteRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME,

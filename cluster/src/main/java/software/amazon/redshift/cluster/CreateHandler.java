@@ -135,9 +135,9 @@ public class CreateHandler extends BaseHandlerStd {
                 | LimitExceededException | DependentServiceRequestThrottlingException
                 | InvalidClusterTrackException | SnapshotScheduleNotFoundException | TagLimitExceededException
                 | InvalidTagException e) {
-            throw new CfnInvalidRequestException(restoreFromClusterSnapshotRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(restoreFromClusterSnapshotRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
         logger.log(String.format("%s Restore Cluster from Snapshot.", ResourceModel.TYPE_NAME));
 
@@ -161,9 +161,9 @@ public class CreateHandler extends BaseHandlerStd {
                 HsmConfigurationNotFoundException | InvalidElasticIpException | TagLimitExceededException | InvalidTagException |
                 LimitExceededException | DependentServiceRequestThrottlingException | InvalidClusterTrackException |
                 SnapshotScheduleNotFoundException  e) {
-            throw new CfnInvalidRequestException(createRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(createRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
         logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
 
@@ -179,9 +179,9 @@ public class CreateHandler extends BaseHandlerStd {
             enableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
         } catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
                 | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
-            throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
         logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
 

@@ -190,12 +190,12 @@ public class UpdateHandler extends BaseHandlerStd {
                 DependentServiceRequestThrottlingException | ClusterSubnetQuotaExceededException | NumberOfNodesQuotaExceededException |
                 NumberOfNodesPerClusterLimitExceededException | InsufficientClusterCapacityException | HsmClientCertificateNotFoundException | HsmConfigurationNotFoundException |
                 ClusterAlreadyExistsException | TableLimitExceededException | InvalidRetentionPeriodException e ) {
-            throw new CfnInvalidRequestException(modifyRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (final ClusterNotFoundException | ClusterSecurityGroupNotFoundException |
                 ClusterParameterGroupNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier(), e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(modifyRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
@@ -211,11 +211,11 @@ public class UpdateHandler extends BaseHandlerStd {
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyRequest, proxyClient.client()::modifyClusterIamRoles);
         } catch (final InvalidClusterStateException e ) {
-            throw new CfnInvalidRequestException(modifyRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyRequest.clusterIdentifier(), e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(modifyRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s IAM Roles successfully updated.", ResourceModel.TYPE_NAME));
@@ -231,11 +231,11 @@ public class UpdateHandler extends BaseHandlerStd {
         try {
             createTagsResponse = proxyClient.injectCredentialsAndInvokeV2(createTagsRequest, proxyClient.client()::createTags);
         } catch (final InvalidClusterStateException | TagLimitExceededException | InvalidTagException e ) {
-            throw new CfnInvalidRequestException(createTagsRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (final ResourceNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, createTagsRequest.resourceName());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, createTagsRequest.resourceName(), e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(createTagsRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s create tags for resource %s.", ResourceModel.TYPE_NAME,
@@ -252,11 +252,11 @@ public class UpdateHandler extends BaseHandlerStd {
         try {
             deleteTagsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteTagsRequest, proxyClient.client()::deleteTags);
         } catch (final InvalidClusterStateException | TagLimitExceededException | InvalidTagException e ) {
-            throw new CfnInvalidRequestException(deleteTagsRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (final ResourceNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteTagsRequest.resourceName());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteTagsRequest.resourceName(), e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(deleteTagsRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s delete tags for resource %s.", ResourceModel.TYPE_NAME,
@@ -273,9 +273,9 @@ public class UpdateHandler extends BaseHandlerStd {
         try {
             disableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(disableLoggingRequest, proxyClient.client()::disableLogging);
         } catch (final ClusterNotFoundException  e) {
-            throw new CfnInvalidRequestException(disableLoggingRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(disableLoggingRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
         logger.log(String.format("%s disable logging properties.", ResourceModel.TYPE_NAME));
 
@@ -291,9 +291,9 @@ public class UpdateHandler extends BaseHandlerStd {
             enableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
         } catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
                 | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
-            throw new CfnInvalidRequestException(enableLoggingRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(enableLoggingRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
         logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
 
@@ -307,11 +307,11 @@ public class UpdateHandler extends BaseHandlerStd {
         try {
             rebootClusterResponse = proxyClient.injectCredentialsAndInvokeV2(rebootClusterRequest, proxyClient.client()::rebootCluster);
         } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rebootClusterRequest.clusterIdentifier());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rebootClusterRequest.clusterIdentifier(), e);
         } catch (final InvalidClusterStateException e) {
-            throw new CfnInvalidRequestException(rebootClusterRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(rebootClusterRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s Reboot Cluster ", ResourceModel.TYPE_NAME));

@@ -90,11 +90,11 @@ public class ReadHandler extends BaseHandlerStd {
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
         } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
         } catch (final InvalidTagException e) {
-            throw new CfnInvalidRequestException(awsRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s has successfully been read.", ResourceModel.TYPE_NAME));
@@ -108,11 +108,11 @@ public class ReadHandler extends BaseHandlerStd {
         try {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeLoggingStatus);
         } catch (final ClusterNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
         } catch (final InvalidClusterStateException | InvalidRestoreException e ) {
-            throw new CfnInvalidRequestException(awsRequest.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
-            throw new CfnGeneralServiceException(awsRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         logger.log(String.format("%s Logging Status read.", ResourceModel.TYPE_NAME));
