@@ -66,6 +66,7 @@ import java.util.List;
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
     private String RESOURCE_NAME_PREFIX = "arn:aws:redshift:";
+    private final int MAX_NUMBER_OF_RETRIES = 60;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -89,7 +90,18 @@ public class UpdateHandler extends BaseHandlerStd {
 
         //Redshift is Driftable
         if(request.getDriftable() != null && request.getDriftable().equals(true)) {
-            if(isRebootRequired(model, proxyClient)) {
+            boolean isClusterAvailable = isClusterActive(proxyClient, model, callbackContext);
+            // stabilize before Reboot
+            if (!isClusterAvailable) {
+                CallbackContext.retryCount ++;
+                logger.log("CallbackContext retry Count ==   "+CallbackContext.retryCount);
+                return ProgressEvent.progress(model, callbackContext);
+            } else if (CallbackContext.retryCount >= MAX_NUMBER_OF_RETRIES) {
+                ProgressEvent.failed(model, callbackContext, HandlerErrorCode.NotStabilized,
+                        String.format("Resource %s did not stabilize", model.getClusterIdentifier()));
+            }
+            // stabilized, Reboot if required
+            if(isClusterAvailable && isRebootRequired(model, proxyClient)) {
                 return proxy.initiate("AWS-Redshift-Cluster::RebootCluster", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToRebootClusterRequest)
                         .makeServiceCall(this::rebootCluster)
@@ -165,7 +177,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if (isRebootRequired(model, proxyClient)) {
+                    if (issueModifyClusterRequest(request.getPreviousResourceState(), model) && isRebootRequired(model, proxyClient)) {
                         return proxy.initiate("AWS-Redshift-Cluster::RebootCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToRebootClusterRequest)
                                 .makeServiceCall(this::rebootCluster)

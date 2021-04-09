@@ -37,8 +37,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected int DELETE_TAGS_INDEX = 1;
   protected int ADD_IAM_ROLES_INDEX = 0;
   protected int DELETE_IAM_ROLES_INDEX = 1;
-  private  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
-  private final String CLUSTER_STATUS_AVAILABLE = "available";
+  protected  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
+  protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
+  protected final String CLUSTER_STATUS_AVAILABLE = "available";
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
