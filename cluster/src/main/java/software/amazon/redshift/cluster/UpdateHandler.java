@@ -6,7 +6,6 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.BucketNotFoundException;
-import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;

@@ -8,6 +8,7 @@ import software.amazon.cloudformation.proxy.StdCallbackContext;
 @lombok.EqualsAndHashCode(callSuper = true)
 public class CallbackContext extends StdCallbackContext {
     LoggingProperties loggingProperties;
+    static int retryCount = 0;
 
     public void setLoggingProperties(LoggingProperties loggingProperties) {
         this.loggingProperties = loggingProperties;
