@@ -37,8 +37,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected int DELETE_TAGS_INDEX = 1;
   protected int ADD_IAM_ROLES_INDEX = 0;
   protected int DELETE_IAM_ROLES_INDEX = 1;
-  private  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
-  private final String CLUSTER_STATUS_AVAILABLE = "available";
+  protected  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
+  protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
+  protected final String CLUSTER_STATUS_AVAILABLE = "available";
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,
@@ -96,6 +97,31 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
               proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
     } catch (final ClusterNotFoundException e) {
       return true;
+    }
+    return false;
+  }
+
+  protected boolean stabilizeCluster(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt, ResourceHandlerRequest<ResourceModel> request) {
+    if(ObjectUtils.notEqual(request.getPreviousResourceState().getClusterParameterGroupName(),
+            model.getClusterParameterGroupName())) {
+      // UpdateDbParamterGroup starts with a slight delay, hence separate stabilization implementation.
+      return isClusterActiveAfterUpdateDbParameterGroup(proxyClient, model, cxt);
+    }
+    return isClusterActive(proxyClient, model, cxt);
+  }
+
+  protected boolean isClusterActiveAfterUpdateDbParameterGroup (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = awsResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      String clusterParameterGroupApplyStatus =
+              clusters.get(0).clusterParameterGroups().get(0).parameterApplyStatus();
+      return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus())
+              && PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(clusterParameterGroupApplyStatus);
     }
     return false;
   }
