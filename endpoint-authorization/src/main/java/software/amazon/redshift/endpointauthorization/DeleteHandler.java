@@ -3,8 +3,8 @@ package software.amazon.redshift.endpointauthorization;
 import com.google.common.annotations.VisibleForTesting;
 import software.amazon.awssdk.services.cloudwatch.model.InvalidParameterValueException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.AuthorizationNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
+import software.amazon.awssdk.services.redshift.model.EndpointAuthorizationNotFoundException;
 import software.amazon.awssdk.services.redshift.model.InvalidAuthorizationStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidEndpointStateException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
@@ -59,7 +59,7 @@ public class DeleteHandler extends BaseHandlerStd {
             response = proxyClient.injectCredentialsAndInvokeV2(
                     request, proxyClient.client()::revokeEndpointAccess
             );
-        } catch (AuthorizationNotFoundException e) {
+        } catch (EndpointAuthorizationNotFoundException e) {
             throw new CfnNotFoundException(e);
         } catch (ClusterNotFoundException
                 | InvalidAuthorizationStateException

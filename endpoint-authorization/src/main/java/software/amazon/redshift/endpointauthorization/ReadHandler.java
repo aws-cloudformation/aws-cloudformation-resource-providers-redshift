@@ -38,6 +38,7 @@ public class ReadHandler extends BaseHandlerStd {
 
     }
 
+    
     @VisibleForTesting
     DescribeEndpointAuthorizationResponse readEndpointAuthorization(
             final DescribeEndpointAuthorizationRequest request,
@@ -49,7 +50,12 @@ public class ReadHandler extends BaseHandlerStd {
                     request, proxyClient.client()::describeEndpointAuthorization
             );
         } catch (ClusterNotFoundException e) {
-            throw new CfnNotFoundException(e);
+            throw new CfnNotFoundException(
+                    request.toString(),
+                    String.format("account%s-clusteridentifier%s-auth",
+                            request.account(),
+                            request.clusterIdentifier()),
+                    e);
         } catch (Exception e) {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
