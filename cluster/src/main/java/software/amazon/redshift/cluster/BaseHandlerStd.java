@@ -40,6 +40,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
   protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
   protected final String CLUSTER_STATUS_AVAILABLE = "available";
+  protected final int CALLBACK_DELAY_SECONDS = 30;
+
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,

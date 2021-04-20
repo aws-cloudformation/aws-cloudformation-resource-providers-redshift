@@ -159,7 +159,14 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateRequest(model, request.getPreviousResourceState()))
                                 .makeServiceCall(this::updateCluster)
                                 .stabilize((_request, _response, _client, _model, _context) -> stabilizeCluster(_client, _model, _context, request))
-                                .progress();
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    if(!callbackContext.getCallBackForReboot()) {
+                                        callbackContext.setCallBackForReboot(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
                     }
                     return progress;
                 })

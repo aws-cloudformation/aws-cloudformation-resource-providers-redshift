@@ -266,7 +266,13 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -448,17 +454,25 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
                 .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
 
-        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
-                //.thenReturn(DescribeLoggingStatusResponse.builder().build())
-                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
-
         when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
                 .thenReturn(ModifyClusterResponse.builder()
                         .cluster(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
 
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder()
+                        .loggingEnabled(true)
+                        .bucketName(BUCKET_NAME)
+                        .build());
+        //call back
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -560,9 +574,13 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+
+        //callback
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
     }
