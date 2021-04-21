@@ -93,10 +93,10 @@ public class UpdateHandler extends BaseHandlerStd {
             List<String> vpcIdsToSend = null;
             List<String> vpcIdsInUpdateRequest = request.vpcIds();
 
-            // This means that we are trying to authorize all
-            if (vpcIdsInUpdateRequest.isEmpty()) {
-                // If we had specific VPCs authorized before, we cannot go from auth specific -> auth all
-                if (!existingVpcIds.isEmpty()) {
+            // This means that we are trying to authorize specific after doing an authorize all - not allowed
+            if (existingVpcIds.isEmpty()) {
+                // If we had authorized all before, we cannot go from auth all -> auth specific yet
+                if (!vpcIdsInUpdateRequest.isEmpty()) {
                     throw new CfnInvalidRequestException(request.toString());
                 }
                 // Otherwise, we are trying to do an idempotent update?

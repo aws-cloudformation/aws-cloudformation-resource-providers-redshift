@@ -17,7 +17,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#asgrantee" title="AsGrantee">AsGrantee</a>" : <i>Boolean</i>,
         "<a href="#force" title="Force">Force</a>" : <i>Boolean</i>,
         "<a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>" : <i>String</i>,
-        "<a href="#authorizationtime" title="AuthorizationTime">AuthorizationTime</a>" : <i>String</i>,
         "<a href="#allowedvpcs" title="AllowedVPCs">AllowedVPCs</a>" : <i>[ String, ... ]</i>,
     }
 }
@@ -34,7 +33,6 @@ Properties:
     <a href="#asgrantee" title="AsGrantee">AsGrantee</a>: <i>Boolean</i>
     <a href="#force" title="Force">Force</a>: <i>Boolean</i>
     <a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>: <i>String</i>
-    <a href="#authorizationtime" title="AuthorizationTime">AuthorizationTime</a>: <i>String</i>
     <a href="#allowedvpcs" title="AllowedVPCs">AllowedVPCs</a>: <i>
       - String</i>
 </pre>
@@ -90,16 +88,6 @@ _Required_: Yes
 _Type_: String
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
-
-#### AuthorizationTime
-
-The time (UTC) when the authorization was created.
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### AllowedVPCs
 

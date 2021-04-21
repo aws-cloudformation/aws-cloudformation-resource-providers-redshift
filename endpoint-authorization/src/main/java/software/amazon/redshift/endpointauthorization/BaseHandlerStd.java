@@ -64,6 +64,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
                                 request.account(), request.clusterIdentifier())
                 );
             }
+        } catch (CfnAlreadyExistsException e) {
+            throw e;
         } catch (Exception e) {
             // If anything happened, we can just return false (does not exist). The error checking for cluster id
             // etc should be at the create level.
@@ -90,7 +92,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             // etc should be at the create level.
         }
 
-        if (describeResponse != null && describeResponse.endpointAuthorizationList().isEmpty()) {
+        if (describeResponse == null || describeResponse.endpointAuthorizationList().isEmpty()) {
             throw new CfnNotFoundException(
                     ResourceModel.TYPE_NAME,
                     String.format("account:%s-clusteridentifier:%s",

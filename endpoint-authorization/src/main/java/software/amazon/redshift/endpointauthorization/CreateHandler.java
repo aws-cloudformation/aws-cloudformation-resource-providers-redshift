@@ -39,7 +39,41 @@ public class CreateHandler extends BaseHandlerStd {
         ResourceModel resourceModel = request.getDesiredResourceState();
         parseResourceModel(resourceModel);
 
-        // AWS-Redshift-EndpointAuthorization::Create
+        // Resets the callback delay
+//        ProgressEvent<ResourceModel, CallbackContext> prog = ProgressEvent.progress(resourceModel, callbackContext);
+//
+//        try {
+//            logger.log("VALIDATING");
+//            validateAuthNotExists(Translator.translateToCreateRequest(resourceModel), proxyClient);
+//        } catch (Exception e) {
+//            logger.log("INSIDE THE CATCH");
+//            return ProgressEvent.progress(resourceModel, callbackContext)
+//                    .then(progress ->
+//                            getReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger)
+//                    );
+//        }
+        // its null for the first invocation, not null otherwise
+//        if (callbackContext. == null) {
+//            logger.log("NULL CALLBACK CTC");
+//        }
+//        if (callbackContext != null) {
+//            logger.log(callbackContext.toString());
+//            return prog.then(progress ->
+//                            getReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger)
+//                    );
+//        }
+
+//        return prog.then(progress ->
+//                        proxy.initiate("AWS-Redshift-EndpointAuthorization::Create",
+//                                proxyClient,
+//                                progress.getResourceModel(),
+//                                progress.getCallbackContext())
+//                                .translateToServiceRequest(Translator::translateToCreateRequest)
+//                                .makeServiceCall(this::createEndpointAuthorization)
+//                                .progress(120)); // this pause happens when we return from this handler
+        // it will wait 1 minute until it calls the handler again
+
+//         AWS-Redshift- EndpointAuthorization::Create
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-EndpointAuthorization::Create",
@@ -48,10 +82,13 @@ public class CreateHandler extends BaseHandlerStd {
                                 progress.getCallbackContext())
                                 .translateToServiceRequest(Translator::translateToCreateRequest)
                                 .makeServiceCall(this::createEndpointAuthorization)
-                                .progress())
-                .then(progress ->
-                        getReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger)
-                );
+                                .progress()) // since the callback delay is not 0, we do not
+                // chain to the next step, and instead return ourselves. This return output is fed
+                // into the input of another handler, but since we memoized the call to the service
+                // nothing happens?
+        .then(progress ->
+                getReadHandler().handleRequest(proxy, request, progress.getCallbackContext(), proxyClient, logger)
+        );
     }
 
     @VisibleForTesting

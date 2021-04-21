@@ -35,10 +35,6 @@
             "description": "The cluster identifier.",
             "type": "string"
         },
-        "AuthorizationTime": {
-            "description": "The time (UTC) when the authorization was created.",
-            "type": "string"
-        },
         "ClusterStatus": {
             "description": "The status of the cluster.",
             "type": "string"

@@ -89,7 +89,6 @@ public class Translator {
                 .grantor((String) producer.apply(EndpointAuthorization::grantor))
                 .grantee((String) producer.apply(EndpointAuthorization::grantee))
                 .clusterIdentifier((String) producer.apply(EndpointAuthorization::clusterIdentifier))
-                .authorizationTime(producer.apply(EndpointAuthorization::authorizeTime).toString())
                 .clusterStatus((String) producer.apply(EndpointAuthorization::clusterStatus))
                 .status(producer.apply(EndpointAuthorization::status).toString())
                 .allowedAllVPCs((Boolean) producer.apply(EndpointAuthorization::allowedAllVPCs))
