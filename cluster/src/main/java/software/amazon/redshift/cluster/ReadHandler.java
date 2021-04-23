@@ -26,6 +26,8 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class ReadHandler extends BaseHandlerStd {
     private Logger logger;
+    private final String DESCRIBE_LOGGING_ERROR = "not authorized to perform: redshift:DescribeLoggingStatus";
+    private final String DESCRIBE_LOGGING_ERROR_CODE = "403";
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
@@ -111,6 +113,14 @@ public class ReadHandler extends BaseHandlerStd {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
         } catch (final InvalidClusterStateException | InvalidRestoreException e ) {
             throw new CfnInvalidRequestException(e);
+        } catch (RedshiftException e) {
+            if (e.awsErrorDetails().errorCode().equals(DESCRIBE_LOGGING_ERROR_CODE) &&
+                    e.awsErrorDetails().errorMessage().contains(DESCRIBE_LOGGING_ERROR)) {
+                logger.log(String.format("RedshiftException: User is not authorized to perform: redshift:DescribeLoggingStatus on resource %s",
+                        e.getMessage()));
+            } else {
+                throw new CfnGeneralServiceException(e);
+            }
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }

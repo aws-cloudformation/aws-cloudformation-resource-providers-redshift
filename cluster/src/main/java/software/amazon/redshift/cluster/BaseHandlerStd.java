@@ -22,7 +22,9 @@ import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import software.amazon.cloudformation.proxy.delay.Constant;
 
+import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -41,6 +43,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
   protected final String CLUSTER_STATUS_AVAILABLE = "available";
   protected final int CALLBACK_DELAY_SECONDS = 30;
+  protected static final Constant BACKOFF_STRATEGY = Constant.of().
+          timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
 
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(

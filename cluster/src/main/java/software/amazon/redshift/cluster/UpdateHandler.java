@@ -6,6 +6,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.BucketNotFoundException;
+import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
@@ -157,9 +158,11 @@ public class UpdateHandler extends BaseHandlerStd {
                     if (issueModifyClusterRequest(request.getPreviousResourceState(), model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateRequest(model, request.getPreviousResourceState()))
+                                .backoffDelay(BACKOFF_STRATEGY)
                                 .makeServiceCall(this::updateCluster)
                                 .stabilize((_request, _response, _client, _model, _context) -> stabilizeCluster(_client, _model, _context, request))
                                 .done((_request, _response, _client, _model, _context) -> {
+                                    logger.log(String.format("Resource %s stabilized and available", _request.clusterIdentifier()));
                                     if(!callbackContext.getCallBackForReboot()) {
                                         callbackContext.setCallBackForReboot(true);
                                         logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds");
@@ -205,7 +208,8 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s modify cluster %s.", ResourceModel.TYPE_NAME,
+                modifyRequest.clusterIdentifier()));
 
         return awsResponse;
     }
@@ -225,7 +229,8 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s IAM Roles successfully updated.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s update IAM Roles for %s.", ResourceModel.TYPE_NAME,
+                modifyRequest.clusterIdentifier()));
 
         return awsResponse;
     }
@@ -284,7 +289,8 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s disable logging properties.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s disable logging properties %s.", ResourceModel.TYPE_NAME,
+                disableLoggingRequest.clusterIdentifier()));
 
         return disableLoggingResponse;
     }
@@ -302,7 +308,8 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s enable logging properties %s.",
+                ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier()));
 
         return enableLoggingResponse;
     }
@@ -321,7 +328,8 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s Reboot Cluster ", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Reboot Cluster %s", ResourceModel.TYPE_NAME,
+                rebootClusterRequest.clusterIdentifier()));
         return rebootClusterResponse;
     }
 }

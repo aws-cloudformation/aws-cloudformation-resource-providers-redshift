@@ -165,7 +165,7 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s Create %s.", ResourceModel.TYPE_NAME, createRequest.clusterIdentifier()));
 
         return createResponse;
     }
@@ -183,8 +183,8 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
-
+        logger.log(String.format("%s enable logging properties %s.",
+                ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier()));
         return enableLoggingResponse;
     }
 
