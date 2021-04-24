@@ -83,12 +83,13 @@ public class UpdateHandler extends BaseHandlerStd {
             return ProgressEvent.<ResourceModel, CallbackContext>builder()
                     .status(OperationStatus.FAILED)
                     .errorCode(HandlerErrorCode.NotFound)
-                    .message(HandlerErrorCode.NotFound.getMessage())
+                    .message(String.format("Cluster %s Not Found %s", model.getClusterIdentifier(),HandlerErrorCode.NotFound.getMessage()))
                     .build();
         }
 
         //Redshift is Driftable
         if(request.getDriftable() != null && request.getDriftable().equals(true)) {
+            logger.log(String.format("%s %s is Drifted", ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
             if(isRebootRequired(model, proxyClient)) {
                 return proxy.initiate("AWS-Redshift-Cluster::RebootCluster", proxyClient, model, callbackContext)
                         .translateToServiceRequest(Translator::translateToRebootClusterRequest)
@@ -157,9 +158,11 @@ public class UpdateHandler extends BaseHandlerStd {
                     if (issueModifyClusterRequest(request.getPreviousResourceState(), model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateRequest(model, request.getPreviousResourceState()))
+                                .backoffDelay(BACKOFF_STRATEGY)
                                 .makeServiceCall(this::updateCluster)
                                 .stabilize((_request, _response, _client, _model, _context) -> stabilizeCluster(_client, _model, _context, request))
                                 .done((_request, _response, _client, _model, _context) -> {
+                                    logger.log(String.format("Update Cluster complete. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
                                     if(!callbackContext.getCallBackForReboot()) {
                                         callbackContext.setCallBackForReboot(true);
                                         logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds");
@@ -191,6 +194,8 @@ public class UpdateHandler extends BaseHandlerStd {
         ModifyClusterResponse awsResponse = null;
 
         try {
+            logger.log(String.format("%s %s modifyCluster.", ResourceModel.TYPE_NAME,
+                    modifyRequest.clusterIdentifier()));
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyRequest, proxyClient.client()::modifyCluster);
         } catch (final InvalidClusterStateException | InvalidClusterSecurityGroupStateException | UnauthorizedOperationException |
                 UnsupportedOptionException | LimitExceededException | InvalidElasticIpException | InvalidClusterTrackException |
@@ -205,7 +210,8 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s has successfully been updated.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s %s modify cluster issued.", ResourceModel.TYPE_NAME,
+                modifyRequest.clusterIdentifier()));
 
         return awsResponse;
     }
@@ -216,6 +222,8 @@ public class UpdateHandler extends BaseHandlerStd {
         ModifyClusterIamRolesResponse awsResponse = null;
 
         try {
+            logger.log(String.format("%s %s modifyClusterIamRoles.", ResourceModel.TYPE_NAME,
+                    modifyRequest.clusterIdentifier()));
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(modifyRequest, proxyClient.client()::modifyClusterIamRoles);
         } catch (final InvalidClusterStateException e ) {
             throw new CfnInvalidRequestException(e);
@@ -225,7 +233,8 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s IAM Roles successfully updated.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s %s modify IAM Roles issued.", ResourceModel.TYPE_NAME,
+                modifyRequest.clusterIdentifier()));
 
         return awsResponse;
     }
@@ -236,6 +245,7 @@ public class UpdateHandler extends BaseHandlerStd {
         CreateTagsResponse createTagsResponse = null;
 
         try {
+            logger.log(String.format("createTags for %s", createTagsRequest.resourceName()));
             createTagsResponse = proxyClient.injectCredentialsAndInvokeV2(createTagsRequest, proxyClient.client()::createTags);
         } catch (final InvalidClusterStateException | TagLimitExceededException | InvalidTagException e ) {
             throw new CfnInvalidRequestException(e);
@@ -245,7 +255,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s create tags for resource %s.", ResourceModel.TYPE_NAME,
+        logger.log(String.format("%s %s create tags for resource issued.", ResourceModel.TYPE_NAME,
                 createTagsRequest.resourceName()));
 
         return createTagsResponse;
@@ -257,6 +267,7 @@ public class UpdateHandler extends BaseHandlerStd {
         DeleteTagsResponse deleteTagsResponse = null;
 
         try {
+            logger.log(String.format("deleteTags for %s", deleteTagsRequest.resourceName()));
             deleteTagsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteTagsRequest, proxyClient.client()::deleteTags);
         } catch (final InvalidClusterStateException | TagLimitExceededException | InvalidTagException e ) {
             throw new CfnInvalidRequestException(e);
@@ -266,7 +277,7 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s delete tags for resource %s.", ResourceModel.TYPE_NAME,
+        logger.log(String.format("%s %s delete tags for resource issued.", ResourceModel.TYPE_NAME,
                 deleteTagsRequest.resourceName()));
 
         return deleteTagsResponse;
@@ -278,13 +289,16 @@ public class UpdateHandler extends BaseHandlerStd {
         DisableLoggingResponse disableLoggingResponse = null;
 
         try {
+            logger.log(String.format("%s %s disableLogging.", ResourceModel.TYPE_NAME,
+                    disableLoggingRequest.clusterIdentifier()));
             disableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(disableLoggingRequest, proxyClient.client()::disableLogging);
         } catch (final ClusterNotFoundException  e) {
             throw new CfnInvalidRequestException(e);
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s disable logging properties.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s %s disable logging properties issued.", ResourceModel.TYPE_NAME,
+                disableLoggingRequest.clusterIdentifier()));
 
         return disableLoggingResponse;
     }
@@ -295,6 +309,8 @@ public class UpdateHandler extends BaseHandlerStd {
         EnableLoggingResponse enableLoggingResponse = null;
 
         try {
+            logger.log(String.format("%s %s enableLogging.", ResourceModel.TYPE_NAME,
+                    enableLoggingRequest.clusterIdentifier()));
             enableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
         } catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
                 | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
@@ -302,7 +318,8 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s %s enable logging properties issued.",
+                ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier()));
 
         return enableLoggingResponse;
     }
@@ -312,6 +329,8 @@ public class UpdateHandler extends BaseHandlerStd {
             final ProxyClient<RedshiftClient> proxyClient) {
         RebootClusterResponse rebootClusterResponse = null;
         try {
+            logger.log(String.format("%s %s rebootCluster.", ResourceModel.TYPE_NAME,
+                    rebootClusterRequest.clusterIdentifier()));
             rebootClusterResponse = proxyClient.injectCredentialsAndInvokeV2(rebootClusterRequest, proxyClient.client()::rebootCluster);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, rebootClusterRequest.clusterIdentifier(), e);
@@ -321,7 +340,8 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s Reboot Cluster ", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s %s Reboot Cluster issued.", ResourceModel.TYPE_NAME,
+                rebootClusterRequest.clusterIdentifier()));
         return rebootClusterResponse;
     }
 }

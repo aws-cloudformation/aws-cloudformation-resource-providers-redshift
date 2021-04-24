@@ -44,7 +44,10 @@ public class DeleteHandler extends BaseHandlerStd {
                                 .translateToServiceRequest((_model) -> Translator.translateToDeleteRequest(_model, request.getSnapshotRequested()))
                                 .makeServiceCall(this::deleteResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActiveAfterDelete(_client, _model, _context))
-                                .done((response) -> ProgressEvent.defaultSuccessHandler(null)));
+                                .done((response) -> {
+                                    logger.log(String.format("%s %s deleted.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
+                                    return ProgressEvent.defaultSuccessHandler(null);
+                                }));
 
     }
 
@@ -53,6 +56,7 @@ public class DeleteHandler extends BaseHandlerStd {
             final ProxyClient<RedshiftClient> proxyClient) {
         DeleteClusterResponse awsResponse = null;
         try {
+            logger.log(String.format("%s %s deleteCluster", ResourceModel.TYPE_NAME, deleteRequest.clusterIdentifier()));
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteRequest, proxyClient.client()::deleteCluster);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, deleteRequest.clusterIdentifier(), e);
@@ -62,7 +66,7 @@ public class DeleteHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME,
+        logger.log(String.format("%s %s Deleting", ResourceModel.TYPE_NAME,
                 deleteRequest.clusterIdentifier()));
 
         return awsResponse;

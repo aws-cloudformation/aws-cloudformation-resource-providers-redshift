@@ -110,7 +110,7 @@ public class CreateHandler extends BaseHandlerStd {
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
                     }
-                        return progress;
+                    return progress;
                 })
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
@@ -121,6 +121,7 @@ public class CreateHandler extends BaseHandlerStd {
         RestoreFromClusterSnapshotResponse restoreFromClusterSnapshotResponse = null;
 
         try {
+            logger.log(String.format("restoreFromClusterSnapshot for %s", restoreFromClusterSnapshotRequest.clusterIdentifier()));
             restoreFromClusterSnapshotResponse = proxyClient.injectCredentialsAndInvokeV2(restoreFromClusterSnapshotRequest,
                     proxyClient.client()::restoreFromClusterSnapshot);
         } catch (final ClusterAlreadyExistsException e) {
@@ -139,7 +140,7 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s Restore Cluster from Snapshot.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s %s Restore Cluster from Snapshot issued.", ResourceModel.TYPE_NAME, restoreFromClusterSnapshotRequest.clusterIdentifier()));
 
         return restoreFromClusterSnapshotResponse;
     }
@@ -150,6 +151,7 @@ public class CreateHandler extends BaseHandlerStd {
         CreateClusterResponse createResponse = null;
 
         try {
+            logger.log(String.format("createCluster for %s", createRequest.clusterIdentifier()));
             createResponse = proxyClient.injectCredentialsAndInvokeV2(createRequest, proxyClient.client()::createCluster);
         } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createRequest.clusterIdentifier());
@@ -165,7 +167,7 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s successfully created.", ResourceModel.TYPE_NAME));
+        logger.log(String.format("%s %s Create issued.", ResourceModel.TYPE_NAME, createRequest.clusterIdentifier()));
 
         return createResponse;
     }
@@ -176,6 +178,7 @@ public class CreateHandler extends BaseHandlerStd {
         EnableLoggingResponse enableLoggingResponse = null;
 
         try {
+            logger.log(String.format("enableLogging for %s", enableLoggingRequest.clusterIdentifier()));
             enableLoggingResponse = proxyClient.injectCredentialsAndInvokeV2(enableLoggingRequest, proxyClient.client()::enableLogging);
         } catch (final ClusterNotFoundException | BucketNotFoundException | InsufficientS3BucketPolicyException
                 | InvalidS3KeyPrefixException | InvalidS3BucketNameException | InvalidClusterStateException  e) {
@@ -183,8 +186,8 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(String.format("%s enable logging properties.", ResourceModel.TYPE_NAME));
-
+        logger.log(String.format("%s %s enable logging properties issued.",
+                ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier()));
         return enableLoggingResponse;
     }
 
@@ -198,6 +201,7 @@ public class CreateHandler extends BaseHandlerStd {
                 ? "cluster-" + UUID.randomUUID().toString() : request.getLogicalResourceIdentifier();
 
         if (StringUtils.isNullOrEmpty(model.getClusterIdentifier())) {
+            logger.log(String.format("Setting Cluster Identifier as it is not found for %s", ResourceModel.TYPE_NAME));
             model.setClusterIdentifier(
                     IdentifierUtils.generateResourceIdentifier(
                             logicalResourceIdentifier,
@@ -205,6 +209,7 @@ public class CreateHandler extends BaseHandlerStd {
                             MAX_CLUSTER_IDENTIFIER_LENGTH
                     ).toLowerCase()
             );
+            logger.log(String.format("Set Cluster Identifier for %s as %s", ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
         }
     }
 }

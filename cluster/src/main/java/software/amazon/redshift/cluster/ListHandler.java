@@ -35,6 +35,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
 
         DescribeClustersResponse describeClustersResponse = null;
         try {
+            logger.log("List "+ ResourceModel.TYPE_NAME);
             describeClustersResponse =
                     proxy.injectCredentialsAndInvokeV2(Translator.translateToListRequest(request.getNextToken()),
                             ClientBuilder.getClient()::describeClusters);
