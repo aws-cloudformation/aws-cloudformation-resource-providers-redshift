@@ -155,6 +155,12 @@ public class Translator {
             .collect(Collectors.toList());
   }
 
+  static software.amazon.redshift.cluster.Endpoint translateEndpointFromSdk(final Endpoint endpoint) {
+    return software.amazon.redshift.cluster.Endpoint.builder().port(endpoint.port().toString())
+            .address(endpoint.address())
+            .build();
+  }
+
   /**
    * Request to read a resource
    * @param model resource model
@@ -337,6 +343,7 @@ public class Translator {
             .hsmClientCertificateIdentifier(hsmStatus != null ? hsmStatus.hsmClientCertificateIdentifier() : null)
             .hsmConfigurationIdentifier(hsmStatus != null ? hsmStatus.hsmConfigurationIdentifier() : null)
             .port(endpoint != null ? endpoint.port() : null)
+            .endpoint(endpoint != null ? translateEndpointFromSdk(endpoint) : null)
             .tags(translateTagsFromSdk(tags))
             .build();
   }

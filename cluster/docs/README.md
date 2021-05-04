@@ -39,8 +39,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>" : <i>[ String, ... ]</i>,
         "<a href="#snapshotclusteridentifier" title="SnapshotClusterIdentifier">SnapshotClusterIdentifier</a>" : <i>String</i>,
         "<a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>" : <i>String</i>,
-        "<a href="#endpointport" title="EndpointPort">EndpointPort</a>" : <i>String</i>,
-        "<a href="#endpointaddress" title="EndpointAddress">EndpointAddress</a>" : <i>String</i>,
+        "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i><a href="endpoint.md">Endpoint</a></i>,
         "<a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>" : <i>String</i>,
         "<a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>" : <i><a href="loggingproperties.md">LoggingProperties</a></i>
     }
@@ -83,8 +82,7 @@ Properties:
       - String</i>
     <a href="#snapshotclusteridentifier" title="SnapshotClusterIdentifier">SnapshotClusterIdentifier</a>: <i>String</i>
     <a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>: <i>String</i>
-    <a href="#endpointport" title="EndpointPort">EndpointPort</a>: <i>String</i>
-    <a href="#endpointaddress" title="EndpointAddress">EndpointAddress</a>: <i>String</i>
+    <a href="#endpoint" title="Endpoint">Endpoint</a>: <i><a href="endpoint.md">Endpoint</a></i>
     <a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>: <i>String</i>
     <a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>: <i><a href="loggingproperties.md">LoggingProperties</a></i>
 </pre>
@@ -369,19 +367,11 @@ _Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### EndpointPort
+#### Endpoint
 
 _Required_: No
 
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### EndpointAddress
-
-_Required_: No
-
-_Type_: String
+_Type_: <a href="endpoint.md">Endpoint</a>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -417,11 +407,10 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 Returns the <code>Id</code> value.
 
-#### Endpoint.Port
+#### Port
 
-Returns the <code>Endpoint.Port</code> value.
+Returns the <code>Port</code> value.
 
-#### Endpoint.Address
+#### Address
 
-Returns the <code>Endpoint.Address</code> value.
-
+Returns the <code>Address</code> value.

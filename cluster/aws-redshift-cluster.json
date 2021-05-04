@@ -169,11 +169,16 @@
             "description": "The name of the snapshot from which to create the new cluster. This parameter isn't case sensitive.",
             "type": "string"
         },
-        "EndpointPort": {
-            "type": "string"
-        },
-        "EndpointAddress": {
-            "type": "string"
+        "Endpoint": {
+            "type": "object",
+            "properties": {
+                "Port": {
+                    "type": "string"
+                },
+                "Address": {
+                    "type": "string"
+                }
+            }
         },
         "Id": {
             "type": "string"
@@ -198,8 +203,8 @@
     ],
     "readOnlyProperties": [
         "/properties/Id",
-        "/properties/Endpoint.Port",
-        "/properties/Endpoint.Address"
+        "/properties/Endpoint/Port",
+        "/properties/Endpoint/Address"
     ],
     "createOnlyProperties": [
         "/properties/ClusterIdentifier"

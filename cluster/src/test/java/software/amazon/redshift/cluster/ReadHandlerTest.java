@@ -1,11 +1,18 @@
 package software.amazon.redshift.cluster;
 
 import java.time.Duration;
+import java.util.LinkedList;
+
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
+import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.Endpoint;
+import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -67,6 +74,76 @@ public class ReadHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(BASIC_MODEL)
             .build();
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+
+    }
+
+    @Test
+    public void testClusterEndPoint() {
+        Endpoint endpoint = Endpoint.builder()
+                .port(1234)
+                .address("read-cluster-endpoint.us-east-1.redshift.amazonaws.com")
+                .build();
+
+        final Cluster BASIC_CLUSTER = Cluster.builder()
+                .clusterIdentifier("read-cluster-endpoint")
+                .masterUsername("master")
+                .nodeType("dc2.large")
+                .numberOfNodes(2)
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+                .iamRoles(new LinkedList<ClusterIamRole>())
+                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .endpoint(endpoint)
+                .build();
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(BASIC_CLUSTER)
+                        .build());
+
+        software.amazon.redshift.cluster.Endpoint modelEndpoint = software.amazon.redshift.cluster.Endpoint.builder()
+                .port("1234")
+                .address("read-cluster-endpoint.us-east-1.redshift.amazonaws.com")
+                .build();
+
+        final ResourceModel BASIC_MODEL = ResourceModel.builder()
+                .clusterIdentifier("read-cluster-endpoint")
+                .masterUsername("master")
+                .nodeType("dc2.large")
+                .masterUserPassword(MASTER_USERPASSWORD)
+                .numberOfNodes(2)
+                .clusterType("multi-node")
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(new LinkedList<String>())
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .tags(new LinkedList<Tag>())
+                .endpoint(modelEndpoint)
+                .port(1234)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(BASIC_MODEL)
+                .build();
 
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
