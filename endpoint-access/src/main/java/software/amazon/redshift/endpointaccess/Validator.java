@@ -92,13 +92,24 @@ public class Validator {
 
     static void validateCreateOnlyProperties(@NonNull EndpointAccess endpointAccess,
                                              @NonNull ResourceModel resourceModel) {
-        if (!endpointAccess.endpointName().equals(resourceModel.getEndpointName()) ||
-                !endpointAccess.subnetGroupName().equals(resourceModel.getSubnetGroupName()) ||
-                !endpointAccess.resourceOwner().equals(resourceModel.getResourceOwner()) ||
-                !endpointAccess.clusterIdentifier().equals(resourceModel.getClusterIdentifier())) {
+        // If the parameter from the resource model is null, skip the check, otherwise, check it against the
+        // value from the describe call
+        if (!validateCreateOnlyProperty(endpointAccess.endpointName(), resourceModel.getEndpointName()) ||
+                !validateCreateOnlyProperty(endpointAccess.subnetGroupName(), resourceModel.getSubnetGroupName()) ||
+                !validateCreateOnlyProperty(endpointAccess.resourceOwner(), resourceModel.getResourceOwner()) ||
+                !validateCreateOnlyProperty(endpointAccess.clusterIdentifier(), resourceModel.getClusterIdentifier())) {
 
             throw new CfnNotUpdatableException(ResourceModel.TYPE_NAME, resourceModel.getEndpointName());
         }
+    }
+
+    static boolean validateCreateOnlyProperty(@NonNull Object endpointAccessValue,
+                                              @Nullable Object resourceValue) {
+        if (resourceValue == null) {
+            return true;
+        }
+
+        return endpointAccessValue.equals(resourceValue);
     }
 
     static boolean isEmpty(@Nullable String string) {

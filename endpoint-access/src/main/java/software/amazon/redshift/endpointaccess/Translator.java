@@ -1,6 +1,5 @@
 package software.amazon.redshift.endpointaccess;
 
-import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessRequest;
@@ -174,18 +173,6 @@ public class Translator {
                 .endpointName(model.getEndpointName())
                 .vpcSecurityGroupIds(new ArrayList<>(model.getVpcSecurityGroupIds()))
                 .build();
-    }
-
-    /**
-     * Request to update some other properties that could not be provisioned through first update request
-     *
-     * @param model resource model
-     * @return awsRequest the aws service request to modify a resource
-     */
-    static AwsRequest translateToSecondUpdateRequest(final ResourceModel model) {
-        final AwsRequest awsRequest = null;
-        // TODO: construct a request
-        return awsRequest;
     }
 
     /**

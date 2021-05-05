@@ -1,6 +1,6 @@
 # AWS::Redshift::EndpointAccess
 
-An example resource schema demonstrating some basic constructs and validation rules.
+Resource schema for a Redshift-managed VPC endpoint.
 
 ## Syntax
 
@@ -50,7 +50,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### ResourceOwner
 
-The cluster owner's AWS account ID.
+The AWS account ID of the owner of the cluster.
 
 _Required_: No
 
@@ -60,7 +60,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### EndpointName
 
-The endpoint's name.
+The name of the endpoint.
 
 _Required_: Yes
 
@@ -72,7 +72,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### SubnetGroupName
 
-The subnet group that contains the endpoint.
+The subnet group name where Amazon Redshift chooses to deploy the endpoint.
 
 _Required_: No
 
@@ -82,7 +82,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### VpcId
 
-The VPC ID representing the VPC the endpoint belongs to.
+The VPC identifier that the endpoint is associated.
 
 _Required_: No
 
@@ -114,19 +114,19 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 #### Address
 
-The DNS address associated with the EndpointAccess.
+The DNS address of the endpoint.
 
 #### EndpointStatus
 
-The status of the endpoint. TODO change to enum?
+The status of the endpoint.
 
 #### EndpointCreateTime
 
-The date and time when the endpoint was created.
+The time (UTC) that the endpoint was created.
 
 #### Port
 
-The port on the cluster to connect to.
+The port number on which the cluster accepts incoming connections.
 
 #### VpcSecurityGroups
 
