@@ -39,6 +39,14 @@ public class DeleteHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
 
         return ProgressEvent.progress(model, callbackContext)
+                .then(progress -> {
+                    if (!callbackContext.getCallBackForDelete()) {
+                        callbackContext.setCallBackForDelete(true);
+                        logger.log ("In Delete, Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds");
+                            progress = ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, model);
+                    }
+                    return progress;
+                })
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-Cluster::Delete", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((_model) -> Translator.translateToDeleteRequest(_model, request.getSnapshotRequested()))
