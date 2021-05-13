@@ -135,4 +135,3 @@ A list of Virtual Private Cloud (VPC) security groups to be associated with the 
 #### VpcEndpoint
 
 The connection endpoint for connecting to an Amazon Redshift cluster through the proxy.
-

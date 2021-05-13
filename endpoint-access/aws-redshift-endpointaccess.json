@@ -15,7 +15,6 @@
                     "type": "string",
                     "description": "The status of the VPC security group."
                 }
-
             }
         },
         "NetworkInterface": {
@@ -50,7 +49,7 @@
             "description": "A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account",
             "type": "string"
         },
-       "VpcSecurityGroups": {
+        "VpcSecurityGroups": {
             "description": "A list of Virtual Private Cloud (VPC) security groups to be associated with the endpoint.",
             "type": "array",
             "items": {
