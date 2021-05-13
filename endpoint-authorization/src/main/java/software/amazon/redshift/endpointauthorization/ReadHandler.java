@@ -38,7 +38,7 @@ public class ReadHandler extends BaseHandlerStd {
 
     }
 
-    
+
     @VisibleForTesting
     DescribeEndpointAuthorizationResponse readEndpointAuthorization(
             final DescribeEndpointAuthorizationRequest request,

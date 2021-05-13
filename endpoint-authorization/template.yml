@@ -21,4 +21,3 @@ Resources:
       Handler: software.amazon.redshift.endpointauthorization.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-redshift-endpointauthorization-handler-1.0-SNAPSHOT.jar
-

@@ -134,4 +134,3 @@ The AWS account ID of the cluster owner.
 #### Grantee
 
 The AWS account ID of the grantee of the cluster.
-
