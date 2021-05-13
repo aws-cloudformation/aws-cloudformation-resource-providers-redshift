@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.redshift.model.EndpointAuthorizationsPerC
 import software.amazon.awssdk.services.redshift.model.InvalidAuthorizationStateException;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.RevokeEndpointAccessRequest;
+import software.amazon.awssdk.services.redshift.model.RevokeEndpointAccessResponse;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -27,6 +28,7 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,10 +64,16 @@ public class UpdateHandler extends BaseHandlerStd {
                                 proxyClient,
                                 progress.getResourceModel(),
                                 progress.getCallbackContext())
-                                .translateToServiceRequest((model) ->
-                                        Translator.translateToCreateRequest(model))
-                                .makeServiceCall(this::updateEndpointAuthorization)
+                                .translateToServiceRequest((model) -> Translator.translateToCreateRequest(model))
+                                .makeServiceCall(this::authorizeEndpointAccess)
                                 .progress())
+                .then(progress ->
+                        proxy.initiate("AWS-Redshift-EndpointAuthorization::Delete",
+                                proxyClient,
+                                progress.getResourceModel(),
+                                progress.getCallbackContext())
+                                .translateToServiceRequest((model) -> Translator.translateToRevokeRequest(model))
+                                .makeServiceCall(this::revokeEndpointAuthorization).progress())
                 .then(progress ->
                         getReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger)
                 );
@@ -73,24 +81,22 @@ public class UpdateHandler extends BaseHandlerStd {
 
 
     @VisibleForTesting
-    AuthorizeEndpointAccessResponse updateEndpointAuthorization(
+    AuthorizeEndpointAccessResponse authorizeEndpointAccess(
             final AuthorizeEndpointAccessRequest request,
             final ProxyClient<RedshiftClient> proxyClient) {
-        AuthorizeEndpointAccessResponse response = null;
-
-        // Validate the auth exists. If it does not, this throws the CfnNotFound error
-        validateAuthExists(request, proxyClient);
-
         if (doesNotExist(request.account())) {
+            logger.log("request did not contain an account");
             throw new CfnInvalidRequestException(request.toString());
         }
 
         // Update request will include a list of VPC ids. After the request is handled, that should be the list of
         // vpc ids remaining on the auth.
-
         try {
-            List<String> existingVpcIds = getExistingVpcIds(request, proxyClient);
-            List<String> vpcIdsToSend = null;
+            List<String> existingVpcIds = getExistingVpcIds(
+                    request.account(),
+                    request.clusterIdentifier(),
+                    proxyClient
+            );
             List<String> vpcIdsInUpdateRequest = request.vpcIds();
 
             // This means that we are trying to authorize specific after doing an authorize all - not allowed
@@ -99,20 +105,23 @@ public class UpdateHandler extends BaseHandlerStd {
                 if (!vpcIdsInUpdateRequest.isEmpty()) {
                     throw new CfnInvalidRequestException(request.toString());
                 }
-                // Otherwise, we are trying to do an idempotent update?
-                // TODO handle allow all -> allow all
-            }
-
-            // First, send the remove auth call
-            List<String> vpcIdsToRemove = getVpcIdsToRemove(existingVpcIds, vpcIdsInUpdateRequest);
-            if (!vpcIdsToRemove.isEmpty()) {
-                removeVpcIds(request, vpcIdsToRemove, proxyClient);
+                // Otherwise, we are trying to do an idempotent update
+                return null;
             }
 
             // Then, handle adding new VPC ids
             // For each of the existing VPC ids, remove it from the list of VPC ids to send as an auth request
-            if (!existingVpcIds.isEmpty()) {
-                vpcIdsToSend = getVpcIdsToAdd(existingVpcIds, vpcIdsInUpdateRequest);
+            // If we are doing an authorize all call, then we can just set the vpc ids to empty
+            List<String> vpcIdsToSend = vpcIdsInUpdateRequest.isEmpty() ?
+                    Collections.emptyList() :
+                    getVpcIdsToAdd(existingVpcIds, vpcIdsInUpdateRequest);
+
+            // If the request was an authorize-all request, then we should authorize all with the empty list.
+            // If the request had vpcIds in it, then we should skip this.
+            if (vpcIdsToSend.isEmpty() && !vpcIdsInUpdateRequest.isEmpty()) {
+                // If we have no vpcs to add to the auth, but the request was not an empty one, then
+                // we should not call the auth api with an empty list (this would result in an auth all)
+                return null;
             }
 
             AuthorizeEndpointAccessRequest newRequest = AuthorizeEndpointAccessRequest.builder()
@@ -121,7 +130,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     .clusterIdentifier(request.clusterIdentifier())
                     .build();
 
-            response = proxyClient.injectCredentialsAndInvokeV2(
+            return proxyClient.injectCredentialsAndInvokeV2(
                     newRequest, proxyClient.client()::authorizeEndpointAccess
             );
         } catch (EndpointAuthorizationAlreadyExistsException e) {
@@ -135,17 +144,74 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (RedshiftException | SdkClientException e) {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
-
-        return response;
     }
 
-    List<String> getExistingVpcIds(final AuthorizeEndpointAccessRequest request,
+    @VisibleForTesting
+    RevokeEndpointAccessResponse revokeEndpointAuthorization(
+            final RevokeEndpointAccessRequest request,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        if (doesNotExist(request.account())) {
+            logger.log("request did not contain an account");
+            throw new CfnInvalidRequestException(request.toString());
+        }
+
+        // Update request will include a list of VPC ids. After the request is handled, that should be the list of
+        // vpc ids remaining on the auth.
+        try {
+            List<String> existingVpcIds = getExistingVpcIds(
+                    request.account(),
+                    request.clusterIdentifier(),
+                    proxyClient
+            );
+            List<String> vpcIdsInUpdateRequest = request.vpcIds();
+
+            // This means that we are trying to authorize specific after doing an authorize all - not allowed
+            if (existingVpcIds.isEmpty()) {
+                // If we had authorized all before, we cannot go from auth all -> auth specific yet
+                if (!vpcIdsInUpdateRequest.isEmpty()) {
+                    throw new CfnInvalidRequestException(request.toString() + existingVpcIds);
+                }
+                // Otherwise, we are trying to do an idempotent update?
+                return null;
+            }
+
+            List<String> vpcIdsToRemove = getVpcIdsToRemove(existingVpcIds, vpcIdsInUpdateRequest);
+            // If there were no vpcs to remove
+            if (vpcIdsToRemove.isEmpty()) {
+                return null;
+            }
+
+            RevokeEndpointAccessRequest revokeRequest = RevokeEndpointAccessRequest.builder()
+                    .clusterIdentifier(request.clusterIdentifier())
+                    .account(request.account())
+                    .vpcIds(vpcIdsToRemove)
+                    .build();
+
+            return proxyClient.injectCredentialsAndInvokeV2(
+                    revokeRequest,
+                    proxyClient.client()::revokeEndpointAccess
+            );
+        } catch (EndpointAuthorizationAlreadyExistsException e) {
+            throw new CfnAlreadyExistsException(e);
+        } catch (ClusterNotFoundException | InvalidParameterValueException | UnsupportedOperationException e) {
+            throw new CfnInvalidRequestException(request.toString(), e);
+        } catch (InvalidAuthorizationStateException e) {
+            throw new CfnResourceConflictException(e);
+        } catch (EndpointAuthorizationsPerClusterLimitExceededException e) {
+            throw new CfnServiceLimitExceededException(e);
+        } catch (RedshiftException | SdkClientException e) {
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+    }
+
+    List<String> getExistingVpcIds(final String accountId,
+                                   final String clusterId,
                                    final ProxyClient<RedshiftClient> proxyClient) {
         // Make a call to check the existing VPC ids that exist for the auth. Remove the ones that already
         // exist before making the API call, otherwise we get an error saying vpc id already exists.
         DescribeEndpointAuthorizationRequest describeRequest = DescribeEndpointAuthorizationRequest.builder()
-                .account(request.account())
-                .clusterIdentifier(request.clusterIdentifier())
+                .account(accountId)
+                .clusterIdentifier(clusterId)
                 .build();
 
         DescribeEndpointAuthorizationResponse describeResponse = null;
@@ -155,29 +221,18 @@ public class UpdateHandler extends BaseHandlerStd {
                 describeRequest, proxyClient.client()::describeEndpointAuthorization
         );
 
+        logger.log("describe response when getting existing vpc ids: " + describeResponse);
+
         List<EndpointAuthorization> endpointAuthorizationList = describeResponse.endpointAuthorizationList();
         if (endpointAuthorizationList.isEmpty()) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME,
                     String.format("account:%s-clusteridentifier:%s",
-                            request.account(),
-                            request.clusterIdentifier())
+                            accountId,
+                            clusterId)
             );
         }
 
         return endpointAuthorizationList.get(0).allowedVPCs();
-    }
-
-    void removeVpcIds(AuthorizeEndpointAccessRequest request,
-                      List<String> vpcIdsToRemove,
-                      final ProxyClient<RedshiftClient> proxyClient) {
-
-        RevokeEndpointAccessRequest revokeRequest = RevokeEndpointAccessRequest.builder()
-                .clusterIdentifier(request.clusterIdentifier())
-                .account(request.account())
-                .vpcIds(vpcIdsToRemove)
-                .build();
-
-        proxyClient.injectCredentialsAndInvokeV2(revokeRequest, proxyClient.client()::revokeEndpointAccess);
     }
 
     List<String> getVpcIdsToAdd(List<String> existingVpcIds, List<String> vpcIdsInUpdateRequest) {
