@@ -1,17 +1,23 @@
 package software.amazon.redshift.endpointaccess;
 
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessResponse;
+import software.amazon.awssdk.services.redshift.model.EndpointAccess;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,6 +44,12 @@ public class ListHandlerTest {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
             .build();
+
+        DescribeEndpointAccessResponse describeResponse = DescribeEndpointAccessResponse.builder()
+                .endpointAccessList(Arrays.asList(EndpointAccess.builder().endpointName("endpoint-name").build()))
+                .build();
+
+        doReturn(describeResponse).when(proxy).injectCredentialsAndInvokeV2(any(), any());
 
         final ProgressEvent<ResourceModel, CallbackContext> response =
             handler.handleRequest(proxy, request, null, logger);

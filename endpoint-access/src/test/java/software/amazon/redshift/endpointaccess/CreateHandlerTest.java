@@ -59,49 +59,51 @@ public class CreateHandlerTest extends AbstractTestBase {
         final CreateHandler handler = new CreateHandler();
 
         final ResourceModel model = ResourceModel.builder()
+                .endpointName("sample-endpoint-name")
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
             .build();
 
-        try (MockedStatic<Translator> mockedTranslator = Mockito.mockStatic(Translator.class)) {
-            // Mock the interactions with the translator, which is used by both the create and read handlers
-            CreateEndpointAccessRequest createRequest = CreateEndpointAccessRequest.builder().build();
-            DescribeEndpointAccessRequest describeRequest = DescribeEndpointAccessRequest.builder().build();
-            mockedTranslator.when(() -> Translator.translateToCreateRequest(model)).thenReturn(createRequest);
-            mockedTranslator.when(() -> Translator.translateToReadRequest(model)).thenReturn(describeRequest);
-            mockedTranslator.when(() -> Translator.translateFromReadResponse(any(DescribeEndpointAccessResponse.class)))
-                    .thenReturn(model);
+        try (MockedStatic<Validator> mockedValidator = Mockito.mockStatic(Validator.class)) {
+            try (MockedStatic<Translator> mockedTranslator = Mockito.mockStatic(Translator.class)) {
+                // Mock the interactions with the translator, which is used by both the create and read handlers
+                CreateEndpointAccessRequest createRequest = CreateEndpointAccessRequest.builder().build();
+                DescribeEndpointAccessRequest describeRequest = DescribeEndpointAccessRequest.builder().build();
+                mockedTranslator.when(() -> Translator.translateToCreateRequest(model)).thenReturn(createRequest);
+                mockedTranslator.when(() -> Translator.translateToReadRequest(model)).thenReturn(describeRequest);
+                mockedTranslator.when(() -> Translator.translateFromReadResponse(any(DescribeEndpointAccessResponse.class)))
+                        .thenReturn(model);
 
-            try (MockedStatic<EndpointAccessStabilizers> mockedStabilizers =
-                         Mockito.mockStatic(EndpointAccessStabilizers.class)) {
-                // Mock the interactions with the stabilizers
-                mockedStabilizers.when(() -> EndpointAccessStabilizers.isEndpointActive(any(), any(), any()))
-                        .thenReturn(true);
+                try (MockedStatic<EndpointAccessStabilizers> mockedStabilizers =
+                             Mockito.mockStatic(EndpointAccessStabilizers.class)) {
+                    // Mock the interactions with the stabilizers
+                    mockedStabilizers.when(() -> EndpointAccessStabilizers.isEndpointActive(any(), any(), any()))
+                            .thenReturn(true);
 
-                // Mock the interactions with the proxy client
-                when(proxyClient.client().createEndpointAccess(any(CreateEndpointAccessRequest.class)))
-                        .thenReturn(CreateEndpointAccessResponse.builder()
-                                .build());
+                    // Mock the interactions with the proxy client
+                    when(proxyClient.client().createEndpointAccess(any(CreateEndpointAccessRequest.class)))
+                            .thenReturn(CreateEndpointAccessResponse.builder()
+                                    .build());
 
-                when(proxyClient.client().describeEndpointAccess(any(DescribeEndpointAccessRequest.class)))
-                        .thenReturn(DescribeEndpointAccessResponse.builder()
-                                .build());
+                    when(proxyClient.client().describeEndpointAccess(any(DescribeEndpointAccessRequest.class)))
+                            .thenReturn(DescribeEndpointAccessResponse.builder()
+                                    .build());
 
-                final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(
-                        proxy, request, new CallbackContext(), proxyClient, logger
-                );
+                    final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(
+                            proxy, request, new CallbackContext(), proxyClient, logger
+                    );
 
-                assertThat(response).isNotNull();
-                assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-                assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-                assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-                assertThat(response.getResourceModels()).isNull();
-                assertThat(response.getMessage()).isNull();
-                assertThat(response.getErrorCode()).isNull();
+                    assertThat(response).isNotNull();
+                    assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+                    assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+                    assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+                    assertThat(response.getResourceModels()).isNull();
+                    assertThat(response.getMessage()).isNull();
+                    assertThat(response.getErrorCode()).isNull();
+                }
             }
-
         }
     }
 }

@@ -44,11 +44,12 @@ public class CreateHandler extends BaseHandlerStd {
 
         ResourceModel resourceModel = prepareResourceModel(request);
 
+        logResourceModelRequest(resourceModel, logger);
         if (hasReadOnlyProperties(resourceModel)) {
             throw new CfnInvalidRequestException("Attempting to set a ReadOnly Property.");
         }
 
-        Validator.validateCreateRequest(resourceModel);
+        Validator.validateCreateRequest(resourceModel, logger);
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> proxy.initiate(
@@ -70,6 +71,7 @@ public class CreateHandler extends BaseHandlerStd {
             @NonNull final ProxyClient<RedshiftClient> proxyClient) {
         CreateEndpointAccessResponse createResponse = null;
 
+        logAPICall(createRequest, "CreateEndpointAccess", logger);
         try {
             createResponse = proxyClient.injectCredentialsAndInvokeV2(
                     createRequest, proxyClient.client()::createEndpointAccess

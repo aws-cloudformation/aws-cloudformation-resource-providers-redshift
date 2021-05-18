@@ -35,7 +35,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
         ResourceModel resourceModel = request.getDesiredResourceState();
 
-        Validator.validateUpdateRequest(proxyClient, resourceModel);
+        Validator.validateUpdateRequest(proxyClient, resourceModel, logger);
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress -> proxy.initiate(
@@ -56,6 +56,7 @@ public class UpdateHandler extends BaseHandlerStd {
             @NonNull final ProxyClient<RedshiftClient> proxyClient) {
         ModifyEndpointAccessResponse response;
 
+        logAPICall(request, "ModifyEndpointAccess", logger);
         try {
             response = proxyClient.injectCredentialsAndInvokeV2(
                     request, proxyClient.client()::modifyEndpointAccess

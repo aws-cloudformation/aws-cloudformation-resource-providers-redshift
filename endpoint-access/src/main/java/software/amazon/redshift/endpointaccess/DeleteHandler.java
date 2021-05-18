@@ -32,7 +32,7 @@ public class DeleteHandler extends BaseHandlerStd {
 
         ResourceModel resourceModel = request.getDesiredResourceState();
 
-        Validator.validateDeleteRequest(resourceModel);
+        Validator.validateDeleteRequest(resourceModel, logger);
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-EndpointAccess::Delete",
@@ -53,6 +53,7 @@ public class DeleteHandler extends BaseHandlerStd {
 
         DeleteEndpointAccessResponse response;
 
+        logAPICall(deleteRequest, "DeleteEndpointAccess", logger);
         try {
             response = proxyClient.injectCredentialsAndInvokeV2(
                     deleteRequest, proxyClient.client()::deleteEndpointAccess

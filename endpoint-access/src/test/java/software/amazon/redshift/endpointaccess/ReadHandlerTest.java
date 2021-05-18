@@ -59,32 +59,34 @@ public class ReadHandlerTest extends AbstractTestBase {
         final ResourceModel model = ResourceModel.builder().build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-            .desiredResourceState(model)
-            .build();
+                .desiredResourceState(model)
+                .build();
 
 
         when(proxyClient.client().describeEndpointAccess(any(DescribeEndpointAccessRequest.class))).thenReturn(
                 DescribeEndpointAccessResponse.builder().build()
         );
 
-        try (MockedStatic<Translator> mockedTranslator = Mockito.mockStatic(Translator.class)) {
-            // Mock interactions with the translators
-            DescribeEndpointAccessRequest describeRequest = DescribeEndpointAccessRequest.builder().build();
-            mockedTranslator.when(() -> Translator.translateToReadRequest(model)).thenReturn(describeRequest);
-            mockedTranslator.when(() -> Translator.translateFromReadResponse(any(DescribeEndpointAccessResponse.class)))
-                    .thenReturn(model);
+        try (MockedStatic<Validator> mockedValidator = Mockito.mockStatic(Validator.class)) {
+            try (MockedStatic<Translator> mockedTranslator = Mockito.mockStatic(Translator.class)) {
+                // Mock interactions with the translators
+                DescribeEndpointAccessRequest describeRequest = DescribeEndpointAccessRequest.builder().build();
+                mockedTranslator.when(() -> Translator.translateToReadRequest(model)).thenReturn(describeRequest);
+                mockedTranslator.when(() -> Translator.translateFromReadResponse(any(DescribeEndpointAccessResponse.class)))
+                        .thenReturn(model);
 
-            final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(
-                    proxy, request, new CallbackContext(), proxyClient, logger
-            );
+                final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(
+                        proxy, request, new CallbackContext(), proxyClient, logger
+                );
 
-            assertThat(response).isNotNull();
-            assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-            assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-            assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-            assertThat(response.getResourceModels()).isNull();
-            assertThat(response.getMessage()).isNull();
-            assertThat(response.getErrorCode()).isNull();
+                assertThat(response).isNotNull();
+                assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+                assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+                assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+                assertThat(response.getResourceModels()).isNull();
+                assertThat(response.getMessage()).isNull();
+                assertThat(response.getErrorCode()).isNull();
+            }
         }
     }
 }

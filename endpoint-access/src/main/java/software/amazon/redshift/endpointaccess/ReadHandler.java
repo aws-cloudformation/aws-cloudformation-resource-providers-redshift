@@ -26,7 +26,7 @@ public class ReadHandler extends BaseHandlerStd {
 
         ResourceModel resourceModel = request.getDesiredResourceState();
 
-        Validator.validateReadRequest(resourceModel);
+        Validator.validateReadRequest(resourceModel, logger);
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> proxy.initiate("AWS-Redshift-EndpointAccess::DescribeEndpointAccess",
@@ -44,6 +44,7 @@ public class ReadHandler extends BaseHandlerStd {
             final ProxyClient<RedshiftClient> proxyClient) {
         DescribeEndpointAccessResponse response = null;
 
+        logAPICall(request, "DescribeEndpointAccess", logger);
         try {
             response = proxyClient.injectCredentialsAndInvokeV2(request, proxyClient.client()::describeEndpointAccess);
         } catch (EndpointNotFoundException e){

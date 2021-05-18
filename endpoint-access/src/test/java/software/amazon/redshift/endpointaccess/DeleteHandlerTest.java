@@ -61,30 +61,32 @@ public class DeleteHandlerTest extends AbstractTestBase {
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
             .build();
-        try (MockedStatic<Translator> mockedTranslator = Mockito.mockStatic(Translator.class)) {
-            DeleteEndpointAccessRequest deleteRequest = DeleteEndpointAccessRequest.builder().build();
-            mockedTranslator.when(() -> Translator.translateToDeleteRequest(model)).thenReturn(deleteRequest);
+        try (MockedStatic<Validator> mockedValidator = Mockito.mockStatic(Validator.class)) {
+            try (MockedStatic<Translator> mockedTranslator = Mockito.mockStatic(Translator.class)) {
+                DeleteEndpointAccessRequest deleteRequest = DeleteEndpointAccessRequest.builder().build();
+                mockedTranslator.when(() -> Translator.translateToDeleteRequest(model)).thenReturn(deleteRequest);
 
-            try (MockedStatic<EndpointAccessStabilizers> mockedStabilizers =
-                         Mockito.mockStatic(EndpointAccessStabilizers.class)) {
+                try (MockedStatic<EndpointAccessStabilizers> mockedStabilizers =
+                             Mockito.mockStatic(EndpointAccessStabilizers.class)) {
 
-                mockedStabilizers.when(() -> EndpointAccessStabilizers.isEndpointDeleted(any(), any(), any()))
-                        .thenReturn(true);
+                    mockedStabilizers.when(() -> EndpointAccessStabilizers.isEndpointDeleted(any(), any(), any()))
+                            .thenReturn(true);
 
-                when(proxyClient.client().deleteEndpointAccess(any(DeleteEndpointAccessRequest.class)))
-                        .thenReturn(DeleteEndpointAccessResponse.builder().build());
+                    when(proxyClient.client().deleteEndpointAccess(any(DeleteEndpointAccessRequest.class)))
+                            .thenReturn(DeleteEndpointAccessResponse.builder().build());
 
-                final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(
-                        proxy, request, new CallbackContext(), proxyClient, logger
-                );
+                    final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(
+                            proxy, request, new CallbackContext(), proxyClient, logger
+                    );
 
-                assertThat(response).isNotNull();
-                assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-                assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-                assertThat(response.getResourceModel()).isNull();
-                assertThat(response.getResourceModels()).isNull();
-                assertThat(response.getMessage()).isNull();
-                assertThat(response.getErrorCode()).isNull();
+                    assertThat(response).isNotNull();
+                    assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+                    assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+                    assertThat(response.getResourceModel()).isNull();
+                    assertThat(response.getResourceModels()).isNull();
+                    assertThat(response.getMessage()).isNull();
+                    assertThat(response.getErrorCode()).isNull();
+                }
             }
         }
     }
