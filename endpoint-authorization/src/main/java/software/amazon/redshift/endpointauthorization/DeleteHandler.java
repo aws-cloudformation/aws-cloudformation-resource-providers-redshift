@@ -48,12 +48,13 @@ public class DeleteHandler extends BaseHandlerStd {
             final RevokeEndpointAccessRequest request,
             final ProxyClient<RedshiftClient> proxyClient) {
         RevokeEndpointAccessResponse response;
-        // TODO catch more errors
 
         // Validate that the account is not null
-        if (doesNotExist(request.account())) {
+        if (!Validator.doesExist(request.account())) {
             throw new CfnInvalidRequestException(request.toString());
         }
+
+        logAPICall(request, "RevokeEndpointAccess", logger);
 
         try {
             response = proxyClient.injectCredentialsAndInvokeV2(

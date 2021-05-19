@@ -1,18 +1,23 @@
 package software.amazon.redshift.endpointauthorization;
 
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.redshift.model.DescribeEndpointAuthorizationResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 
 @ExtendWith(MockitoExtension.class)
 public class ListHandlerTest {
@@ -37,18 +42,25 @@ public class ListHandlerTest {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(model)
+            .nextToken("token")
             .build();
 
-        final ProgressEvent<ResourceModel, CallbackContext> response =
-            handler.handleRequest(proxy, request, null, logger);
+        try (MockedStatic<Translator> mockedTranslator = mockStatic(Translator.class)) {
+            DescribeEndpointAuthorizationResponse describeResponse = DescribeEndpointAuthorizationResponse.builder().build();
 
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
-        assertThat(response.getCallbackContext()).isNull();
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModel()).isNull();
-        assertThat(response.getResourceModels()).isNotNull();
-        assertThat(response.getMessage()).isNull();
-        assertThat(response.getErrorCode()).isNull();
+            doReturn(describeResponse).when(proxy).injectCredentialsAndInvokeV2(any(), any());
+
+            final ProgressEvent<ResourceModel, CallbackContext> response =
+                    handler.handleRequest(proxy, request, new CallbackContext(), logger);
+
+            assertThat(response).isNotNull();
+            assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+            assertThat(response.getCallbackContext()).isNull();
+            assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+            assertThat(response.getResourceModel()).isNull();
+            assertThat(response.getResourceModels()).isNotNull();
+            assertThat(response.getMessage()).isNull();
+            assertThat(response.getErrorCode()).isNull();
+        }
     }
 }

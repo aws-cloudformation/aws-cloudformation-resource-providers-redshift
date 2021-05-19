@@ -35,17 +35,16 @@ public class ReadHandler extends BaseHandlerStd {
                         .makeServiceCall(this::readEndpointAuthorization)
                         .done(this::constructResourceModelFromResponse)
                 );
-
     }
-
 
     @VisibleForTesting
     DescribeEndpointAuthorizationResponse readEndpointAuthorization(
             final DescribeEndpointAuthorizationRequest request,
             final ProxyClient<RedshiftClient> proxyClient) {
         DescribeEndpointAuthorizationResponse response = null;
-        // TODO catch and throw more detailed errors
+
         try {
+            logAPICall(request, "DescribeEndpointAuthorization", logger);
             response = proxyClient.injectCredentialsAndInvokeV2(
                     request, proxyClient.client()::describeEndpointAuthorization
             );
@@ -60,14 +59,7 @@ public class ReadHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
 
-        if (response.endpointAuthorizationList().isEmpty()) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME,
-                    String.format("account%s-clusteridentifier%s-auth",
-                            request.account(),
-                            request.clusterIdentifier())
-            );
-        }
-
+        Validator.validateReadReturnedAuthorization(request, response);
 
         return response;
     }

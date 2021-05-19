@@ -8,14 +8,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AuthorizeEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.AuthorizeEndpointAccessResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAuthorizationRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAuthorizationResponse;
-import software.amazon.awssdk.services.redshift.model.RedshiftException;
-import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
+import software.amazon.awssdk.services.redshift.model.EndpointAuthorization;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -23,10 +23,9 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.time.Duration;
+import java.util.Arrays;
 
-import static junit.framework.Assert.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -53,39 +52,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         proxyClient = MOCK_PROXY(proxy, sdkClient);
     }
 
-
-    @Nested
-    @DisplayName("CreateEndpointAuthorizationSdkCallTest")
-    class CreateEndpointAuthorizationSdkCallTest {
-        AuthorizeEndpointAccessRequest request;
-        CreateHandler handler;
-
-        @BeforeEach
-        public void setup() {
-            request = AuthorizeEndpointAccessRequest.builder().build();
-            handler = new CreateHandler();
-        }
-
-        @Test
-        public void testHappyResponse() {
-            AuthorizeEndpointAccessResponse response = AuthorizeEndpointAccessResponse.builder().build();
-
-            when(proxyClient.client().authorizeEndpointAccess(any(AuthorizeEndpointAccessRequest.class)))
-                    .thenReturn(response);
-            assertEquals(response, handler.createEndpointAuthorization(request, proxyClient));
-        }
-
-        @Test
-        public void testErrorHandling() {
-            when(proxyClient.client().authorizeEndpointAccess(any(AuthorizeEndpointAccessRequest.class)))
-                    .thenThrow(RedshiftException.class);
-            assertThrows(
-                    CfnGeneralServiceException.class,
-                    () -> handler.createEndpointAuthorization(request, proxyClient)
-            );
-        }
-    }
-
     @Nested
     @DisplayName("CreateEndpointAuthorization:Handler")
     class CreateEndpointAuthorizationTest {
@@ -106,20 +72,21 @@ public class CreateHandlerTest extends AbstractTestBase {
                     .build();
 
             try (MockedStatic<Translator> mockedTranslator = mockStatic(Translator.class)) {
-                AuthorizeEndpointAccessRequest createRequest = AuthorizeEndpointAccessRequest.builder().build();
-                DescribeEndpointAuthorizationRequest describeRequest = DescribeEndpointAuthorizationRequest.builder().build();
-                mockedTranslator.when(() -> Translator.translateToCreateRequest(model)).thenReturn(createRequest);
-                mockedTranslator.when(() -> Translator.translateToReadRequest(model)).thenReturn(describeRequest);
-                mockedTranslator.when(() -> Translator.translateFromReadResponse(any(DescribeEndpointAuthorizationResponse.class)))
-                        .thenReturn(model);
-
-                try (MockedStatic<Stabilizers> mockedStabilizers = mockStatic(Stabilizers.class)) {
-                    mockedStabilizers.when(() -> Stabilizers.isAuthorized(any(), any(), any())).thenReturn(true);
+                try (MockedStatic<Validator> mockedValidator = Mockito.mockStatic(Validator.class)) {
+                    mockedValidator.when(() -> Validator.doesExist(any())).thenReturn(true);
+                    AuthorizeEndpointAccessRequest createRequest = AuthorizeEndpointAccessRequest.builder().build();
+                    DescribeEndpointAuthorizationRequest describeRequest = DescribeEndpointAuthorizationRequest.builder().build();
+                    mockedTranslator.when(() -> Translator.translateToCreateRequest(any())).thenReturn(createRequest);
+                    mockedTranslator.when(() -> Translator.translateToReadRequest(any())).thenReturn(describeRequest);
+                    mockedTranslator.when(() -> Translator.translateFromReadResponse(any(DescribeEndpointAuthorizationResponse.class)))
+                            .thenReturn(model);
 
                     when(proxyClient.client().authorizeEndpointAccess(any(AuthorizeEndpointAccessRequest.class)))
                             .thenReturn(AuthorizeEndpointAccessResponse.builder().build());
                     when(proxyClient.client().describeEndpointAuthorization(any(DescribeEndpointAuthorizationRequest.class)))
-                            .thenReturn(DescribeEndpointAuthorizationResponse.builder().build());
+                            .thenReturn(DescribeEndpointAuthorizationResponse.builder()
+                                    .endpointAuthorizationList(Arrays.asList(EndpointAuthorization.builder().build()))
+                                    .build());
 
                     final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(
                             proxy, request, new CallbackContext(), proxyClient, logger);

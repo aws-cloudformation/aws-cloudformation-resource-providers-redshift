@@ -39,41 +39,6 @@ public class CreateHandler extends BaseHandlerStd {
         ResourceModel resourceModel = request.getDesiredResourceState();
         parseResourceModel(resourceModel);
 
-        // Resets the callback delay
-//        ProgressEvent<ResourceModel, CallbackContext> prog = ProgressEvent.progress(resourceModel, callbackContext);
-//
-//        try {
-//            logger.log("VALIDATING");
-//            validateAuthNotExists(Translator.translateToCreateRequest(resourceModel), proxyClient);
-//        } catch (Exception e) {
-//            logger.log("INSIDE THE CATCH");
-//            return ProgressEvent.progress(resourceModel, callbackContext)
-//                    .then(progress ->
-//                            getReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger)
-//                    );
-//        }
-        // its null for the first invocation, not null otherwise
-//        if (callbackContext. == null) {
-//            logger.log("NULL CALLBACK CTC");
-//        }
-//        if (callbackContext != null) {
-//            logger.log(callbackContext.toString());
-//            return prog.then(progress ->
-//                            getReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger)
-//                    );
-//        }
-
-//        return prog.then(progress ->
-//                        proxy.initiate("AWS-Redshift-EndpointAuthorization::Create",
-//                                proxyClient,
-//                                progress.getResourceModel(),
-//                                progress.getCallbackContext())
-//                                .translateToServiceRequest(Translator::translateToCreateRequest)
-//                                .makeServiceCall(this::createEndpointAuthorization)
-//                                .progress(120)); // this pause happens when we return from this handler
-        // it will wait 1 minute until it calls the handler again
-
-//         AWS-Redshift- EndpointAuthorization::Create
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-EndpointAuthorization::Create",
@@ -82,12 +47,9 @@ public class CreateHandler extends BaseHandlerStd {
                                 progress.getCallbackContext())
                                 .translateToServiceRequest(Translator::translateToCreateRequest)
                                 .makeServiceCall(this::createEndpointAuthorization)
-                                .progress()) // since the callback delay is not 0, we do not
-                // chain to the next step, and instead return ourselves. This return output is fed
-                // into the input of another handler, but since we memoized the call to the service
-                // nothing happens?
+                                .progress())
         .then(progress ->
-                getReadHandler().handleRequest(proxy, request, progress.getCallbackContext(), proxyClient, logger)
+                new ReadHandler().handleRequest(proxy, request, progress.getCallbackContext(), proxyClient, logger)
         );
     }
 
@@ -97,15 +59,17 @@ public class CreateHandler extends BaseHandlerStd {
             final ProxyClient<RedshiftClient> proxyClient) {
         AuthorizeEndpointAccessResponse response = null;
 
-        // Validate the auth doesn't exist. If it does, this throws the CfnAlreadyExistsException
-        validateAuthNotExists(request, proxyClient);
-
         // Validate that the account is not null
-        if (doesNotExist(request.account())) {
+        if (!Validator.doesExist(request.account())) {
             throw new CfnInvalidRequestException(request.toString());
         }
 
         try {
+            // Validate the auth doesn't exist. If it does, this throws the CfnAlreadyExistsException
+            Validator.validateAuthNotExists(request, proxyClient);
+
+            logAPICall(request, "AuthorizeEndpointAccess", logger);
+
             response = proxyClient.injectCredentialsAndInvokeV2(
                     request, proxyClient.client()::authorizeEndpointAccess
             );
@@ -127,9 +91,8 @@ public class CreateHandler extends BaseHandlerStd {
     void parseResourceModel(ResourceModel resourceModel) {
         // If the Create handler receives a model that does not contain the account parameter,
         // we should derive the account from the grantee parameter.
-        if (doesNotExist(resourceModel.getAccount())) {
+        if (!Validator.doesExist(resourceModel.getAccount())) {
             resourceModel.setAccount(resourceModel.getGrantee());
         }
     }
-
 }
