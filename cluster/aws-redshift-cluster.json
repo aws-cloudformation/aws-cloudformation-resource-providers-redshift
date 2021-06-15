@@ -142,6 +142,7 @@
             "description": "A list of AWS Identity and Access Management (IAM) roles that can be used by the cluster to access other AWS services. You must supply the IAM roles in their Amazon Resource Name (ARN) format. You can supply up to 10 IAM roles in a single request",
             "type": "array",
             "maxItems": 10,
+            "uniqueItems": true,
             "items": {
                 "type": "string"
             }
@@ -207,7 +208,17 @@
         "/properties/Endpoint/Address"
     ],
     "createOnlyProperties": [
-        "/properties/ClusterIdentifier"
+        "/properties/ClusterIdentifier",
+        "/properties/KmsKeyId",
+        "/properties/OwnerAccount",
+        "/properties/SnapshotIdentifier",
+        "/properties/Encrypted",
+        "/properties/Port",
+        "/properties/DBName",
+        "/properties/SnapshotClusterIdentifier",
+        "/properties/AvailabilityZone",
+        "/properties/ClusterSubnetGroupName",
+        "/properties/ElasticIp"
     ],
     "writeOnlyProperties": [
         "/properties/MasterUserPassword"
