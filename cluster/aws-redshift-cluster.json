@@ -134,6 +134,7 @@
         "ClusterSecurityGroups": {
             "description": "A list of security groups to be associated with this cluster.",
             "type": "array",
+            "uniqueItems": false,
             "items": {
                 "type": "string"
             }
@@ -151,6 +152,7 @@
             "description": "The list of tags for the cluster parameter group.",
             "type": "array",
             "maxItems": 50,
+            "uniqueItems": false,
             "items": {
                 "$ref": "#/definitions/Tag"
             }
@@ -158,6 +160,7 @@
         "VpcSecurityGroupIds": {
             "description": "A list of Virtual Private Cloud (VPC) security groups to be associated with the cluster.",
             "type": "array",
+            "uniqueItems": false,
             "items": {
                 "type": "string"
             }
@@ -218,7 +221,8 @@
         "/properties/SnapshotClusterIdentifier",
         "/properties/AvailabilityZone",
         "/properties/ClusterSubnetGroupName",
-        "/properties/ElasticIp"
+        "/properties/ElasticIp",
+        "/properties/MasterUsername"
     ],
     "writeOnlyProperties": [
         "/properties/MasterUserPassword"
