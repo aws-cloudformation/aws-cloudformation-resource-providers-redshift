@@ -46,6 +46,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
 
+  protected static final Constant CREATE_BACKOFF_STRATEGY = Constant.of().
+          timeout(Duration.ofMinutes(60L)).delay(Duration.ofSeconds(5L)).build();
+
   @Override
   public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
     final AmazonWebServicesClientProxy proxy,

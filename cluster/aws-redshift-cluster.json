@@ -40,6 +40,17 @@
             "required": [
                 "BucketName"
             ]
+        },
+        "Endpoint": {
+            "type": "object",
+            "properties": {
+                "Port": {
+                    "type": "string"
+                },
+                "Address": {
+                    "type": "string"
+                }
+            }
         }
     },
     "properties": {
@@ -173,17 +184,6 @@
             "description": "The name of the snapshot from which to create the new cluster. This parameter isn't case sensitive.",
             "type": "string"
         },
-        "Endpoint": {
-            "type": "object",
-            "properties": {
-                "Port": {
-                    "type": "string"
-                },
-                "Address": {
-                    "type": "string"
-                }
-            }
-        },
         "Id": {
             "type": "string"
         },
@@ -192,6 +192,9 @@
         },
         "LoggingProperties": {
             "$ref": "#/definitions/LoggingProperties"
+        },
+        "Endpoint": {
+            "$ref": "#/definitions/Endpoint"
         }
     },
     "additionalProperties": false,

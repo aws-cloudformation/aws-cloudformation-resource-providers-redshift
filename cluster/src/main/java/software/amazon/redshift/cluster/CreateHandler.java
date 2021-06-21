@@ -86,6 +86,7 @@ public class CreateHandler extends BaseHandlerStd {
                     if (!StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier())) {
                         return proxy.initiate("AWS-Redshift-Cluster::restoreFromClusterSnapshot", proxyClient, resourceModel, callbackContext)
                                 .translateToServiceRequest(Translator::translateToRestoreFromClusterSnapshotRequest)
+                                .backoffDelay(CREATE_BACKOFF_STRATEGY)
                                 .makeServiceCall(this::restoreFromClusterSnapshot)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
@@ -96,6 +97,7 @@ public class CreateHandler extends BaseHandlerStd {
                     if (StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier()) && !invalidCreateClusterRequest(resourceModel)) {
                         return proxy.initiate("AWS-Redshift-Cluster::createCluster", proxyClient, resourceModel, callbackContext)
                                 .translateToServiceRequest(Translator::translateToCreateRequest)
+                                .backoffDelay(CREATE_BACKOFF_STRATEGY)
                                 .makeServiceCall(this::createClusterResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
