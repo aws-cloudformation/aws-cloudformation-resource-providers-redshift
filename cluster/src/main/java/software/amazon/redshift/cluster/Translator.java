@@ -409,6 +409,7 @@ public class Translator {
     } else if ((model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE) || prevModel.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE))
             && (!model.getNumberOfNodes().equals(prevModel.getNumberOfNodes()))) {
       numberOfNodes = model.getNumberOfNodes();
+      nodeType = model.getNodeType();
     }
 
     ModifyClusterRequest modifyClusterRequest =  ModifyClusterRequest.builder()
