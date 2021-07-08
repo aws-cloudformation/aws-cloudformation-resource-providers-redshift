@@ -7,7 +7,7 @@ Resources:
   ExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      MaxSessionDuration: 8400
+      MaxSessionDuration: 43200
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -23,37 +23,18 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                - "redshift:CancelResize"
                 - "redshift:CreateCluster"
                 - "redshift:CreateTags"
-                - "redshift:CreateUsageLimit"
                 - "redshift:DeleteCluster"
                 - "redshift:DeleteTags"
-                - "redshift:DeleteUsageLimit"
-                - "redshift:DescribeClusterDbRevisions"
                 - "redshift:DescribeClusters"
                 - "redshift:DescribeLoggingStatus"
-                - "redshift:DescribeResize"
-                - "redshift:DescribeTableRestoreStatus"
-                - "redshift:DescribeTags"
-                - "redshift:DescribeUsageLimits"
                 - "redshift:DisableLogging"
-                - "redshift:DisableSnapshotCopy"
                 - "redshift:EnableLogging"
-                - "redshift:EnableSnapshotCopy"
                 - "redshift:ModifyCluster"
-                - "redshift:ModifyClusterDbRevision"
                 - "redshift:ModifyClusterIamRoles"
-                - "redshift:ModifyClusterMaintenance"
-                - "redshift:ModifySnapshotCopyRetentionPeriod"
-                - "redshift:ModifyUsageLimit"
-                - "redshift:PauseCluster"
                 - "redshift:RebootCluster"
-                - "redshift:ResizeCluster"
-                - "redshift:RestoreFromClusterSnapshotRequest"
-                - "redshift:RestoreTableFromClusterSnapshotRequest"
-                - "redshift:ResumeCluster"
-                - "redshift:RotateEncryptionKey"
+                - "redshift:RestoreFromClusterSnapshot"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

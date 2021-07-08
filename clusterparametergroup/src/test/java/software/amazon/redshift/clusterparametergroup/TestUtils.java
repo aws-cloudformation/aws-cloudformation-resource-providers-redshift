@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import software.amazon.awssdk.services.redshift.model.*;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +16,8 @@ public class TestUtils {
     final static String AWS_ACCOUNT_ID ="1111";
 
     final static String AWS_REGION = "us-east-1";
+    final static String AWS_REGION_CN = "cn-north-1";
+    final static String AWS_REGION_GOV = "us-gov-west-1";
 
     final static Map<String, String> DESIRED_RESOURCE_TAGS = ImmutableMap.of("key1", "val1", "key2", "val2", "key3", "val3");
 

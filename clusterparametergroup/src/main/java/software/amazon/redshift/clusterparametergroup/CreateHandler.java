@@ -14,11 +14,13 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
+import java.util.Random;
 import java.util.UUID;
 
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
     private static final int MAX_PARAMETER_GROUP_NAME_LENGTH = 255;
+    Random random = new Random();
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -69,6 +71,7 @@ public class CreateHandler extends BaseHandlerStd {
             // make sure it starts with an alphabet as some resources require ID start with a letter
             String logicalResourceIdentifier = StringUtils.isNullOrEmpty(request.getLogicalResourceIdentifier())
                     ? UUID.randomUUID().toString() : request.getLogicalResourceIdentifier();
+            logicalResourceIdentifier = (char)(random.nextInt(26) + 'a') + logicalResourceIdentifier;
             model.setParameterGroupName(
                     IdentifierUtils.generateResourceIdentifier(
                             logicalResourceIdentifier,
