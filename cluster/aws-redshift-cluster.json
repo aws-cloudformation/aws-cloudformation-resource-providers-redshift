@@ -195,6 +195,10 @@
         },
         "Endpoint": {
             "$ref": "#/definitions/Endpoint"
+        },
+        "RedshiftCommand": {
+            "description": "The Redshift API command",
+            "type": "string"
         }
     },
     "additionalProperties": false,

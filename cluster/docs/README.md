@@ -41,7 +41,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>" : <i>String</i>,
         "<a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>" : <i>String</i>,
         "<a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>" : <i><a href="loggingproperties.md">LoggingProperties</a></i>,
-        "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i><a href="endpoint.md">Endpoint</a></i>
+        "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i><a href="endpoint.md">Endpoint</a></i>,
+        "<a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>" : <i>String</i>
     }
 }
 </pre>
@@ -85,6 +86,7 @@ Properties:
     <a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>: <i>String</i>
     <a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>: <i><a href="loggingproperties.md">LoggingProperties</a></i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i><a href="endpoint.md">Endpoint</a></i>
+    <a href="#redshiftcommand" title="RedshiftCommand">RedshiftCommand</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -388,6 +390,16 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 _Required_: No
 
 _Type_: <a href="endpoint.md">Endpoint</a>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RedshiftCommand
+
+The Redshift API command
+
+_Required_: No
+
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

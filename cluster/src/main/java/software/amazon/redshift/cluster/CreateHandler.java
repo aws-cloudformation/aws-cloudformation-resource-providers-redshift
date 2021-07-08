@@ -83,7 +83,8 @@ public class CreateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> {
-                    if (!StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier())) {
+                    if ((!StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier())) ||
+                            (resourceModel.getRedshiftCommand() != null && resourceModel.getRedshiftCommand().equals("restore-from-cluster-snapshot"))) {
                         return proxy.initiate("AWS-Redshift-Cluster::restoreFromClusterSnapshot", proxyClient, resourceModel, callbackContext)
                                 .translateToServiceRequest(Translator::translateToRestoreFromClusterSnapshotRequest)
                                 .backoffDelay(CREATE_BACKOFF_STRATEGY)
@@ -94,7 +95,8 @@ public class CreateHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
-                    if (StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier()) && !invalidCreateClusterRequest(resourceModel)) {
+                    if ((StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier()) && !invalidCreateClusterRequest(resourceModel)) ||
+                            (resourceModel.getRedshiftCommand() != null && resourceModel.getRedshiftCommand().equals("create-cluster") && !invalidCreateClusterRequest(resourceModel))) {
                         return proxy.initiate("AWS-Redshift-Cluster::createCluster", proxyClient, resourceModel, callbackContext)
                                 .translateToServiceRequest(Translator::translateToCreateRequest)
                                 .backoffDelay(CREATE_BACKOFF_STRATEGY)
@@ -105,7 +107,7 @@ public class CreateHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
-                    if (resourceModel.getLoggingProperties() != null) {
+                    if ((resourceModel.getLoggingProperties() != null) || (resourceModel.getRedshiftCommand() != null && resourceModel.getRedshiftCommand().equals("enable-logging"))) {
                         return proxy.initiate("AWS-Redshift-Cluster::enableLogging", proxyClient, resourceModel, callbackContext)
                                 .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
                                 .makeServiceCall(this::enableLogging)

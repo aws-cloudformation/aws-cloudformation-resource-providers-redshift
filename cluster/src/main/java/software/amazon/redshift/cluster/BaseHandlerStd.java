@@ -42,6 +42,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
   protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
   protected final String CLUSTER_STATUS_AVAILABLE = "available";
+  protected final String CLUSTER_STATUS_PAUSED = "paused";
   protected final int CALLBACK_DELAY_SECONDS = 30;
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
@@ -81,6 +82,19 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     List<Cluster> clusters = awsResponse.clusters();
     if(!CollectionUtils.isNullOrEmpty(clusters)) {
       return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus());
+    }
+    return false;
+  }
+
+  protected boolean isClusterPaused (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = awsResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      return CLUSTER_STATUS_PAUSED.equals(awsResponse.clusters().get(0).clusterStatus());
     }
     return false;
   }

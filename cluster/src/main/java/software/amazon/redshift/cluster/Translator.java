@@ -24,8 +24,10 @@ import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
+import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
+import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -478,6 +480,28 @@ public class Translator {
    */
   static RebootClusterRequest translateToRebootClusterRequest(ResourceModel model) {
     return RebootClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Pause Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to pause Redshift Cluster
+   */
+  static PauseClusterRequest translateToPauseClusterRequest(final ResourceModel model) {
+    return PauseClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Resume cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to resume Redshift Cluster
+   */
+  static ResumeClusterRequest translateToResumeClusterRequest(final ResourceModel model) {
+    return ResumeClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .build();
   }
