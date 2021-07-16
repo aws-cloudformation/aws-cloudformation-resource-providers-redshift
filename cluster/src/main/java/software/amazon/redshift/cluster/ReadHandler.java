@@ -90,6 +90,8 @@ public class ReadHandler extends BaseHandlerStd {
             final ProxyClient<RedshiftClient> proxyClient) {
         DescribeClustersResponse awsResponse = null;
         try {
+            logger.log(String.format("%s %s describeClusters.", ResourceModel.TYPE_NAME,
+                    awsRequest.clusterIdentifier()));
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
         } catch (final ClusterNotFoundException e) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
