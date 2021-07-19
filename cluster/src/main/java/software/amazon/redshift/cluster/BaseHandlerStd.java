@@ -10,12 +10,17 @@ import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsResponse;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.SnapshotCopyGrantNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -162,6 +167,11 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds());
   }
 
+  protected boolean issueModifySnapshotCopyRetentionPeriod(ResourceModel prevModel, ResourceModel model) {
+    return ObjectUtils.notEqual(prevModel.getRetentionPeriod(), model.getRetentionPeriod()) ||
+            ObjectUtils.notEqual(prevModel.getManual(), model.getManual());
+  }
+
   protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {
     List<List<String>> iamRolesForUpdate = new LinkedList<>();
     existingIamRoles = CollectionUtils.isNullOrEmpty(existingIamRoles) ? new LinkedList<String>() : existingIamRoles;
@@ -201,6 +211,51 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             proxyClient.client()::describeLoggingStatus);
     if(ObjectUtils.allNotNull(describeLoggingStatusResponse)) {
       return describeLoggingStatusResponse.loggingEnabled() != null && describeLoggingStatusResponse.loggingEnabled();
+    }
+    return false;
+  }
+
+  protected boolean isCrossRegionCopyEnabled(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+    DescribeClustersResponse describeClustersResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToDescribeClusterRequest(model),
+            proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = describeClustersResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      Cluster cluster = describeClustersResponse.clusters().get(0);
+      ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = cluster.clusterSnapshotCopyStatus();
+      if (ObjectUtils.anyNotNull(clusterSnapshotCopyStatus)) {
+        return !StringUtils.isNullOrEmpty(clusterSnapshotCopyStatus.destinationRegion());
+      }
+    }
+    return false;
+  }
+
+  protected String destinationRegionForCrossRegionCopy(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+    DescribeClustersResponse describeClustersResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToDescribeClusterRequest(model),
+            proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = describeClustersResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      Cluster cluster = describeClustersResponse.clusters().get(0);
+      ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = cluster.clusterSnapshotCopyStatus();
+      if (ObjectUtils.anyNotNull(clusterSnapshotCopyStatus)) {
+        return clusterSnapshotCopyStatus.destinationRegion();
+      }
+    }
+    return null;
+  }
+
+  protected boolean isSnapshotCopyGrantAvailable(ProxyClient<RedshiftClient> proxyClient, ResourceModel model, ResourceHandlerRequest<ResourceModel> request) {
+    try {
+      DescribeSnapshotCopyGrantsResponse describeSnapshotCopyGrantsResponse = proxyClient.injectCredentialsAndInvokeV2(
+            Translator.translateToDescribeSnapshotCopyGrantsRequest(model), proxyClient.client()::describeSnapshotCopyGrants);
+      if (!ObjectUtils.allNotNull(describeSnapshotCopyGrantsResponse)) {
+        return false;
+      } else if(describeSnapshotCopyGrantsResponse.hasSnapshotCopyGrants()) {
+        return true;
+      }
+    } catch (SnapshotCopyGrantNotFoundException | InvalidTagException e) {
+      return false;
     }
     return false;
   }

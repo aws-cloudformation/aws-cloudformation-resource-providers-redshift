@@ -41,7 +41,12 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#snapshotidentifier" title="SnapshotIdentifier">SnapshotIdentifier</a>" : <i>String</i>,
         "<a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>" : <i>String</i>,
         "<a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>" : <i><a href="loggingproperties.md">LoggingProperties</a></i>,
-        "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i><a href="endpoint.md">Endpoint</a></i>
+        "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i><a href="endpoint.md">Endpoint</a></i>,
+        "<a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>" : <i>String</i>,
+        "<a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>" : <i>Integer</i>,
+        "<a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>" : <i>String</i>,
+        "<a href="#manualsnapshotretentionperiod" title="ManualSnapshotRetentionPeriod">ManualSnapshotRetentionPeriod</a>" : <i>Integer</i>,
+        "<a href="#manual" title="Manual">Manual</a>" : <i>Boolean</i>
     }
 }
 </pre>
@@ -85,6 +90,11 @@ Properties:
     <a href="#owneraccount" title="OwnerAccount">OwnerAccount</a>: <i>String</i>
     <a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>: <i><a href="loggingproperties.md">LoggingProperties</a></i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i><a href="endpoint.md">Endpoint</a></i>
+    <a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>: <i>String</i>
+    <a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>: <i>Integer</i>
+    <a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>: <i>String</i>
+    <a href="#manualsnapshotretentionperiod" title="ManualSnapshotRetentionPeriod">ManualSnapshotRetentionPeriod</a>: <i>Integer</i>
+    <a href="#manual" title="Manual">Manual</a>: <i>Boolean</i>
 </pre>
 
 ## Properties
@@ -388,6 +398,62 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 _Required_: No
 
 _Type_: <a href="endpoint.md">Endpoint</a>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DestinationRegion
+
+The destination AWS Region that you want to copy snapshots to. Constraints: Must be the name of a valid AWS Region. For more information, see Regions and Endpoints in the Amazon Web Services [https://docs.aws.amazon.com/general/latest/gr/rande.html#redshift_region] General Reference
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RetentionPeriod
+
+The number of days to retain automated snapshots in the destination region after they are copied from the source region.
+
+ Default is 7.
+
+ Constraints: Must be at least 1 and no more than 35.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### SnapshotCopyGrantName
+
+The name of the snapshot copy grant to use when snapshots of an AWS KMS-encrypted cluster are copied to the destination region.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ManualSnapshotRetentionPeriod
+
+The number of days to retain newly copied snapshots in the destination AWS Region after they are copied from the source AWS Region. If the value is -1, the manual snapshot is retained indefinitely.
+
+The value must be either -1 or an integer between 1 and 3,653.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### Manual
+
+Indicates whether to apply the snapshot retention period to newly copied manual snapshots instead of automated snapshots.
+
+_Required_: No
+
+_Type_: Boolean
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
