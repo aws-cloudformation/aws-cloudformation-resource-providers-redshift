@@ -164,7 +164,9 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getPreferredMaintenanceWindow(), model.getPreferredMaintenanceWindow()) ||
             ObjectUtils.notEqual(prevModel.getPubliclyAccessible(), model.getPubliclyAccessible()) ||
             ObjectUtils.notEqual(prevModel.getClusterSecurityGroups(), model.getClusterSecurityGroups()) ||
-            ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds());
+            ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds()) ||
+            ObjectUtils.notEqual(prevModel.getAvailabilityZone(), model.getAvailabilityZone()) ||
+            ObjectUtils.notEqual(prevModel.getAvailabilityZoneRelocation(), model.getAvailabilityZoneRelocation());
   }
 
   protected boolean issueModifySnapshotCopyRetentionPeriod(ResourceModel prevModel, ResourceModel model) {

@@ -215,6 +215,14 @@
         "Manual": {
             "description": "Indicates whether to apply the snapshot retention period to newly copied manual snapshots instead of automated snapshots.",
             "type": "boolean"
+        },
+        "AvailabilityZoneRelocation": {
+            "description": "The option to enable relocation for an Amazon Redshift cluster between Availability Zones after the cluster modification is complete.",
+            "type": "boolean"
+        },
+        "AvailabilityZoneRelocationStatus": {
+            "description": "The availability zone relocation status of the cluster",
+            "type": "string"
         }
     },
     "additionalProperties": false,
@@ -242,7 +250,6 @@
         "/properties/Port",
         "/properties/DBName",
         "/properties/SnapshotClusterIdentifier",
-        "/properties/AvailabilityZone",
         "/properties/ClusterSubnetGroupName",
         "/properties/ElasticIp",
         "/properties/MasterUsername"

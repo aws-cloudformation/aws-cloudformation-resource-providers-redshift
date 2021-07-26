@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateSnapshotCopyGrantRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
@@ -90,6 +91,7 @@ public class Translator {
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
             .iamRoles(model.getIamRoles())
             .tags(translateTagsToSdk(model.getTags()))
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .build();
   }
 
@@ -412,6 +414,18 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSnapshotCopyStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String availabilityZoneRelocationStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZoneRelocationStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
     final String clusterType = numberOfNodes == null || numberOfNodes < 2 ? CLUSTER_TYPE_SINGLE_NODE : CLUSTER_TYPE_MULTI_NODE;
 
     return ResourceModel.builder()
@@ -441,6 +455,11 @@ public class Translator {
             .port(endpoint != null ? endpoint.port() : null)
             .endpoint(endpoint != null ? translateEndpointFromSdk(endpoint) : null)
             .tags(translateTagsFromSdk(tags))
+            .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion() == null ? null : clusterSnapshotCopyStatus.destinationRegion())
+            .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod() == null ? null : clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
+            .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
+            .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName() == null ? null : clusterSnapshotCopyStatus.snapshotCopyGrantName())
+            .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
             .build();
   }
 
@@ -524,6 +543,9 @@ public class Translator {
             .publiclyAccessible(model.getPubliclyAccessible() == null || model.getPubliclyAccessible().equals(prevModel.getPubliclyAccessible()) ? null : model.getPubliclyAccessible())
             .clusterSecurityGroups(model.getClusterSecurityGroups() == null || model.getClusterSecurityGroups().equals(prevModel.getClusterSecurityGroups()) ? null : model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds() == null || model.getVpcSecurityGroupIds().equals(prevModel.getVpcSecurityGroupIds()) ? null : model.getVpcSecurityGroupIds())
+            .availabilityZone(model.getAvailabilityZone() == null || model.getAvailabilityZone().equals(prevModel.getAvailabilityZone()) ? null : model.getAvailabilityZone())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation() == null || model.getAvailabilityZoneRelocation().
+                    equals(prevModel.getAvailabilityZoneRelocation()) ? null : model.getAvailabilityZoneRelocation())
             .build();
 
     return modifyClusterRequest;
@@ -639,6 +661,7 @@ public class Translator {
             .clusterParameterGroupName(model.getClusterParameterGroupName())
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .build();
   }
 
