@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
+import software.amazon.awssdk.services.redshift.model.ModifyAquaConfigurationRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
@@ -92,6 +93,7 @@ public class Translator {
             .iamRoles(model.getIamRoles())
             .tags(translateTagsToSdk(model.getTags()))
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .aquaConfigurationStatus(model.getAquaConfigurationStatus())
             .build();
   }
 
@@ -179,6 +181,18 @@ public class Translator {
             .clusterIdentifier(model.getClusterIdentifier())
             .retentionPeriod(model.getRetentionPeriod())
             .manual(model.getManual())
+            .build();
+  }
+
+  /**
+   * Request to Modify AQUA Configuration
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyAquaConfigurationRequest translateToModifyAquaConfigurationRequest(final ResourceModel model) {
+    return ModifyAquaConfigurationRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .aquaConfigurationStatus(model.getAquaConfigurationStatus())
             .build();
   }
 
@@ -662,6 +676,7 @@ public class Translator {
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .aquaConfigurationStatus(model.getAquaConfigurationStatus())
             .build();
   }
 

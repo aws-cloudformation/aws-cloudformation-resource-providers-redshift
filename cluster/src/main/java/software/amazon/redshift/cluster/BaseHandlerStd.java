@@ -7,6 +7,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
@@ -47,6 +48,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
   protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
   protected final String CLUSTER_STATUS_AVAILABLE = "available";
+  protected final String AQUA_STATUS_APPLYING = "applying";
   protected final int CALLBACK_DELAY_SECONDS = 30;
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
@@ -136,6 +138,22 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
               clusters.get(0).clusterParameterGroups().get(0).parameterApplyStatus();
       return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus())
               && PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(clusterParameterGroupApplyStatus);
+    }
+    return false;
+  }
+
+  protected boolean isAquaConfigurationStatusApplied (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = awsResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      AquaConfiguration aquaConfiguration = clusters.get(0).aquaConfiguration();
+      if (ObjectUtils.allNotNull(aquaConfiguration)) {
+        return !AQUA_STATUS_APPLYING.equals(aquaConfiguration.aquaStatusAsString());
+      }
     }
     return false;
   }

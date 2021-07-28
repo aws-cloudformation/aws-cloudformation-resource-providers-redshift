@@ -223,6 +223,10 @@
         "AvailabilityZoneRelocationStatus": {
             "description": "The availability zone relocation status of the cluster",
             "type": "string"
+        },
+        "AquaConfigurationStatus": {
+            "description": "The value represents how the cluster is configured to use AQUA (Advanced Query Accelerator) after the cluster is restored. Possible values include the following.\n\nenabled - Use AQUA if it is available for the current Region and Amazon Redshift node type.\ndisabled - Don't use AQUA.\nauto - Amazon Redshift determines whether to use AQUA.\n",
+            "type": "string"
         }
     },
     "additionalProperties": false,
@@ -287,8 +291,7 @@
                 "redshift:EnableSnapshotCopy",
                 "redshift:DisableSnapshotCopy",
                 "redshift:ModifySnapshotCopyRetentionPeriod",
-                "redshift:CreateSnapshotCopyGrant",
-                "redshift:DeleteSnapshotCopyGrant"
+                "redshift:ModifyAquaConfiguration"
             ],
             "timeoutInMinutes": 2160
         },

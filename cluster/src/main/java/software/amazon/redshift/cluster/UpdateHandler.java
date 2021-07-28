@@ -7,6 +7,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -152,6 +153,17 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
+                    if (model.getAquaConfigurationStatus() != null && !model.getAquaConfigurationStatus().equals(request.getPreviousResourceState().getAquaConfigurationStatus())) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyAQUAConfiguration", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator:: translateToModifyAquaConfigurationRequest)
+                                .makeServiceCall(this::modifyAquaConfiguration)
+                                .stabilize((_request, _response, _client, _model, _context) -> isAquaConfigurationStatusApplied(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
                     if (issueModifyClusterRequest(request.getPreviousResourceState(), model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateRequest(model, request.getPreviousResourceState()))
@@ -234,6 +246,28 @@ public class UpdateHandler extends BaseHandlerStd {
                 modifyRequest.clusterIdentifier()));
 
         return awsResponse;
+    }
+
+    private ModifyAquaConfigurationResponse modifyAquaConfiguration(
+            final ModifyAquaConfigurationRequest modifyAquaConfigurationRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ModifyAquaConfigurationResponse modifyAquaConfigurationResponse = null;
+        try {
+            logger.log(String.format("%s %s modifyAquaConfiguration.", ResourceModel.TYPE_NAME,
+                    modifyAquaConfigurationRequest.clusterIdentifier()));
+            modifyAquaConfigurationResponse = proxyClient.injectCredentialsAndInvokeV2(modifyAquaConfigurationRequest, proxyClient.client()::modifyAquaConfiguration);
+        } catch (final InvalidClusterStateException | UnsupportedOperationException e) {
+            throw new CfnInvalidRequestException(e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyAquaConfigurationRequest.clusterIdentifier(), e);
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(e);
+        }
+
+        logger.log(String.format("%s %s modifyAquaConfiguration.", ResourceModel.TYPE_NAME,
+                modifyAquaConfigurationRequest.clusterIdentifier()));
+
+        return modifyAquaConfigurationResponse;
     }
 
     private CreateTagsResponse createTags(

@@ -48,7 +48,8 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#manualsnapshotretentionperiod" title="ManualSnapshotRetentionPeriod">ManualSnapshotRetentionPeriod</a>" : <i>Integer</i>,
         "<a href="#manual" title="Manual">Manual</a>" : <i>Boolean</i>,
         "<a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>" : <i>Boolean</i>,
-        "<a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>" : <i>String</i>
+        "<a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>" : <i>String</i>,
+        "<a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>" : <i>String</i>
     }
 }
 </pre>
@@ -99,6 +100,7 @@ Properties:
     <a href="#manual" title="Manual">Manual</a>: <i>Boolean</i>
     <a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>: <i>Boolean</i>
     <a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>: <i>String</i>
+    <a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -474,6 +476,21 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### AvailabilityZoneRelocationStatus
 
 The availability zone relocation status of the cluster
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### AquaConfigurationStatus
+
+The value represents how the cluster is configured to use AQUA (Advanced Query Accelerator) after the cluster is restored. Possible values include the following.
+
+enabled - Use AQUA if it is available for the current Region and Amazon Redshift node type.
+disabled - Don't use AQUA.
+auto - Amazon Redshift determines whether to use AQUA.
+
 
 _Required_: No
 

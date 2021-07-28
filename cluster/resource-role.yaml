@@ -24,10 +24,8 @@ Resources:
               - Effect: Allow
                 Action:
                 - "redshift:CreateCluster"
-                - "redshift:CreateSnapshotCopyGrant"
                 - "redshift:CreateTags"
                 - "redshift:DeleteCluster"
-                - "redshift:DeleteSnapshotCopyGrant"
                 - "redshift:DeleteTags"
                 - "redshift:DescribeClusters"
                 - "redshift:DescribeLoggingStatus"
@@ -36,6 +34,7 @@ Resources:
                 - "redshift:DisableSnapshotCopy"
                 - "redshift:EnableLogging"
                 - "redshift:EnableSnapshotCopy"
+                - "redshift:ModifyAquaConfiguration"
                 - "redshift:ModifyCluster"
                 - "redshift:ModifyClusterIamRoles"
                 - "redshift:ModifySnapshotCopyRetentionPeriod"
