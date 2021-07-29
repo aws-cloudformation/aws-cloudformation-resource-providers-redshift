@@ -265,21 +265,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return null;
   }
 
-  protected boolean isSnapshotCopyGrantAvailable(ProxyClient<RedshiftClient> proxyClient, ResourceModel model, ResourceHandlerRequest<ResourceModel> request) {
-    try {
-      DescribeSnapshotCopyGrantsResponse describeSnapshotCopyGrantsResponse = proxyClient.injectCredentialsAndInvokeV2(
-            Translator.translateToDescribeSnapshotCopyGrantsRequest(model), proxyClient.client()::describeSnapshotCopyGrants);
-      if (!ObjectUtils.allNotNull(describeSnapshotCopyGrantsResponse)) {
-        return false;
-      } else if(describeSnapshotCopyGrantsResponse.hasSnapshotCopyGrants()) {
-        return true;
-      }
-    } catch (SnapshotCopyGrantNotFoundException | InvalidTagException e) {
-      return false;
-    }
-    return false;
-  }
-
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
     List<Cluster> clusters = proxyClient.injectCredentialsAndInvokeV2(
             Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)

@@ -4,6 +4,7 @@ import com.amazonaws.util.StringUtils;
 import com.google.common.collect.MapDifference;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
@@ -440,6 +441,12 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final AquaConfiguration aquaConfiguration = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::aquaConfiguration)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
     final String clusterType = numberOfNodes == null || numberOfNodes < 2 ? CLUSTER_TYPE_SINGLE_NODE : CLUSTER_TYPE_MULTI_NODE;
 
     return ResourceModel.builder()
@@ -474,6 +481,7 @@ public class Translator {
             .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
             .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName() == null ? null : clusterSnapshotCopyStatus.snapshotCopyGrantName())
             .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
+            .aquaConfigurationStatus(aquaConfiguration == null ? null : aquaConfiguration.aquaConfigurationStatusAsString())
             .build();
   }
 
