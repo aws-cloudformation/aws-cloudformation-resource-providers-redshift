@@ -7,15 +7,21 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsResponse;
+import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.SnapshotCopyGrantNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -42,6 +48,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
   protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
   protected final String CLUSTER_STATUS_AVAILABLE = "available";
+  protected final String AQUA_STATUS_APPLYING = "applying";
   protected final int CALLBACK_DELAY_SECONDS = 30;
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
@@ -135,6 +142,22 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return false;
   }
 
+  protected boolean isAquaConfigurationStatusApplied (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = awsResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      AquaConfiguration aquaConfiguration = clusters.get(0).aquaConfiguration();
+      if (ObjectUtils.allNotNull(aquaConfiguration)) {
+        return !AQUA_STATUS_APPLYING.equals(aquaConfiguration.aquaStatusAsString());
+      }
+    }
+    return false;
+  }
+
 
   // check for required parameters to not have null values
   protected boolean invalidCreateClusterRequest(ResourceModel model) {
@@ -159,7 +182,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getPreferredMaintenanceWindow(), model.getPreferredMaintenanceWindow()) ||
             ObjectUtils.notEqual(prevModel.getPubliclyAccessible(), model.getPubliclyAccessible()) ||
             ObjectUtils.notEqual(prevModel.getClusterSecurityGroups(), model.getClusterSecurityGroups()) ||
-            ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds());
+            ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds()) ||
+            ObjectUtils.notEqual(prevModel.getAvailabilityZone(), model.getAvailabilityZone()) ||
+            ObjectUtils.notEqual(prevModel.getAvailabilityZoneRelocation(), model.getAvailabilityZoneRelocation());
+  }
+
+  protected boolean issueModifySnapshotCopyRetentionPeriod(ResourceModel prevModel, ResourceModel model) {
+    return ObjectUtils.notEqual(prevModel.getRetentionPeriod(), model.getRetentionPeriod()) ||
+            ObjectUtils.notEqual(prevModel.getManual(), model.getManual());
   }
 
   protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {
@@ -203,6 +233,36 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       return describeLoggingStatusResponse.loggingEnabled() != null && describeLoggingStatusResponse.loggingEnabled();
     }
     return false;
+  }
+
+  protected boolean isCrossRegionCopyEnabled(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+    DescribeClustersResponse describeClustersResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToDescribeClusterRequest(model),
+            proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = describeClustersResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      Cluster cluster = describeClustersResponse.clusters().get(0);
+      ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = cluster.clusterSnapshotCopyStatus();
+      if (ObjectUtils.anyNotNull(clusterSnapshotCopyStatus)) {
+        return !StringUtils.isNullOrEmpty(clusterSnapshotCopyStatus.destinationRegion());
+      }
+    }
+    return false;
+  }
+
+  protected String destinationRegionForCrossRegionCopy(ProxyClient<RedshiftClient> proxyClient, ResourceModel model) {
+    DescribeClustersResponse describeClustersResponse = proxyClient.injectCredentialsAndInvokeV2(Translator.translateToDescribeClusterRequest(model),
+            proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = describeClustersResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      Cluster cluster = describeClustersResponse.clusters().get(0);
+      ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = cluster.clusterSnapshotCopyStatus();
+      if (ObjectUtils.anyNotNull(clusterSnapshotCopyStatus)) {
+        return clusterSnapshotCopyStatus.destinationRegion();
+      }
+    }
+    return null;
   }
 
   protected boolean isRebootRequired(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {

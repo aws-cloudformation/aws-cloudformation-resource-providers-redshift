@@ -1,54 +1,13 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;;
+import com.amazonaws.util.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.BucketNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterAlreadyExistsException;
-import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupNotFoundException;
-import software.amazon.awssdk.services.redshift.model.ClusterSubnetQuotaExceededException;
-import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
-import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
-import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
-import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingResponse;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
-import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
-import software.amazon.awssdk.services.redshift.model.HsmConfigurationNotFoundException;
-import software.amazon.awssdk.services.redshift.model.InsufficientClusterCapacityException;
-import software.amazon.awssdk.services.redshift.model.InsufficientS3BucketPolicyException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterSecurityGroupStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
-import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
-import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
-import software.amazon.awssdk.services.redshift.model.InvalidS3BucketNameException;
-import software.amazon.awssdk.services.redshift.model.InvalidS3KeyPrefixException;
-import software.amazon.awssdk.services.redshift.model.InvalidTagException;
-import software.amazon.awssdk.services.redshift.model.LimitExceededException;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
-import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
-import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
-import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RebootClusterResponse;
-import software.amazon.awssdk.services.redshift.model.RedshiftException;
-import software.amazon.awssdk.services.redshift.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.redshift.model.TableLimitExceededException;
-import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
-import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
-import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
+import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -155,6 +114,56 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
+                    if ((ObjectUtils.allNotNull(model.getRetentionPeriod()) && issueModifySnapshotCopyRetentionPeriod(request.getPreviousResourceState(), model)) &&
+                            isCrossRegionCopyEnabled(proxyClient, model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifySnapshotCopyRetentionPeriod", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToModifySnapshotCopyRetentionPeriodRequest)
+                                .makeServiceCall(this::modifySnapshotCopyRetentionPeriod)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if (model.getDestinationRegion() == null && isCrossRegionCopyEnabled(proxyClient, model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DisableSnapshotCopy", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDisableSnapshotRequest)
+                                .makeServiceCall(this::disableSnapshotCopy)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+
+                    } else if (model.getDestinationRegion() != null) {
+                        if (!isCrossRegionCopyEnabled(proxyClient, model)) {
+                            return proxy.initiate("AWS-Redshift-Cluster::EnableSnapshotCopy", proxyClient, model, callbackContext)
+                                    .translateToServiceRequest(Translator::translateToEnableSnapshotRequest)
+                                    .makeServiceCall(this::enableSnapshotCopy)
+                                    .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                    .progress();
+                        } else if (isCrossRegionCopyEnabled(proxyClient, model) &&
+                                !model.getDestinationRegion().equals(destinationRegionForCrossRegionCopy(proxyClient, model))) {
+                            return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                                    .status(OperationStatus.FAILED)
+                                    .errorCode(HandlerErrorCode.InvalidRequest)
+                                    .message(String.format("Snapshot Copy is already enabled on Cluster %s. Invalid Request  %s", model.getClusterIdentifier(),HandlerErrorCode.InvalidRequest.getMessage()))
+                                    .build();
+                        }
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if (model.getAquaConfigurationStatus() != null && !model.getAquaConfigurationStatus().equals(request.getPreviousResourceState().getAquaConfigurationStatus())) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyAQUAConfiguration", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator:: translateToModifyAquaConfigurationRequest)
+                                .makeServiceCall(this::modifyAquaConfiguration)
+                                .stabilize((_request, _response, _client, _model, _context) -> isAquaConfigurationStatusApplied(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
                     if (issueModifyClusterRequest(request.getPreviousResourceState(), model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateRequest(model, request.getPreviousResourceState()))
@@ -237,6 +246,28 @@ public class UpdateHandler extends BaseHandlerStd {
                 modifyRequest.clusterIdentifier()));
 
         return awsResponse;
+    }
+
+    private ModifyAquaConfigurationResponse modifyAquaConfiguration(
+            final ModifyAquaConfigurationRequest modifyAquaConfigurationRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ModifyAquaConfigurationResponse modifyAquaConfigurationResponse = null;
+        try {
+            logger.log(String.format("%s %s modifyAquaConfiguration.", ResourceModel.TYPE_NAME,
+                    modifyAquaConfigurationRequest.clusterIdentifier()));
+            modifyAquaConfigurationResponse = proxyClient.injectCredentialsAndInvokeV2(modifyAquaConfigurationRequest, proxyClient.client()::modifyAquaConfiguration);
+        } catch (final InvalidClusterStateException | UnsupportedOperationException e) {
+            throw new CfnInvalidRequestException(e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyAquaConfigurationRequest.clusterIdentifier(), e);
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(e);
+        }
+
+        logger.log(String.format("%s %s modifyAquaConfiguration.", ResourceModel.TYPE_NAME,
+                modifyAquaConfigurationRequest.clusterIdentifier()));
+
+        return modifyAquaConfigurationResponse;
     }
 
     private CreateTagsResponse createTags(
@@ -322,6 +353,71 @@ public class UpdateHandler extends BaseHandlerStd {
                 ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier()));
 
         return enableLoggingResponse;
+    }
+
+    private EnableSnapshotCopyResponse enableSnapshotCopy(
+            final EnableSnapshotCopyRequest enableSnapshotCopyRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        EnableSnapshotCopyResponse enableSnapshotCopyResponse = null;
+        try {
+            enableSnapshotCopyResponse = proxyClient.injectCredentialsAndInvokeV2(enableSnapshotCopyRequest, proxyClient.client()::enableSnapshotCopy);
+        } catch (final InvalidClusterStateException | IncompatibleOrderableOptionsException | CopyToRegionDisabledException
+                | SnapshotCopyAlreadyEnabledException | UnknownSnapshotCopyRegionException | UnauthorizedOperationException |
+                SnapshotCopyGrantNotFoundException | LimitExceededException | DependentServiceRequestThrottlingException
+                | InvalidRetentionPeriodException e ) {
+            throw new CfnInvalidRequestException(e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, enableSnapshotCopyRequest.clusterIdentifier());
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(e);
+        }
+
+        logger.log(String.format("Enable Cluster Snapshot Copy issued for %s %s in destination region %s.", ResourceModel.TYPE_NAME,
+                enableSnapshotCopyRequest.clusterIdentifier(), enableSnapshotCopyRequest.destinationRegion()));
+
+        return enableSnapshotCopyResponse;
+    }
+
+    private DisableSnapshotCopyResponse disableSnapshotCopy(
+            final DisableSnapshotCopyRequest disableSnapshotCopyRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DisableSnapshotCopyResponse disableSnapshotCopyResponse = null;
+
+        try {
+            disableSnapshotCopyResponse = proxyClient.injectCredentialsAndInvokeV2(disableSnapshotCopyRequest, proxyClient.client()::disableSnapshotCopy);
+        } catch (final InvalidClusterStateException | SnapshotCopyAlreadyDisabledException | UnauthorizedOperationException e ) {
+            throw new CfnInvalidRequestException(disableSnapshotCopyRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, disableSnapshotCopyRequest.clusterIdentifier());
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(disableSnapshotCopyRequest.toString(), e);
+        }
+
+        logger.log(String.format("Disable Cluster Snapshot Copy issued for %s %s .", ResourceModel.TYPE_NAME,
+                disableSnapshotCopyRequest.clusterIdentifier()));
+
+        return disableSnapshotCopyResponse;
+    }
+
+    private ModifySnapshotCopyRetentionPeriodResponse modifySnapshotCopyRetentionPeriod(
+            final ModifySnapshotCopyRetentionPeriodRequest modifySnapshotCopyRetentionPeriodRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ModifySnapshotCopyRetentionPeriodResponse modifySnapshotCopyRetentionPeriodResponse = null;
+
+        try {
+            modifySnapshotCopyRetentionPeriodResponse = proxyClient.injectCredentialsAndInvokeV2(modifySnapshotCopyRetentionPeriodRequest, proxyClient.client()::modifySnapshotCopyRetentionPeriod);
+        } catch (final InvalidClusterStateException | SnapshotCopyDisabledException | UnauthorizedOperationException | InvalidRetentionPeriodException e ) {
+            throw new CfnInvalidRequestException(modifySnapshotCopyRetentionPeriodRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifySnapshotCopyRetentionPeriodRequest.clusterIdentifier());
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(modifySnapshotCopyRetentionPeriodRequest.toString(), e);
+        }
+
+        logger.log(String.format("Modify Snapshot Copy Retention Period issued for %s %s .", ResourceModel.TYPE_NAME,
+                modifySnapshotCopyRetentionPeriodRequest.clusterIdentifier()));
+
+        return modifySnapshotCopyRetentionPeriodResponse;
     }
 
     private RebootClusterResponse rebootCluster (

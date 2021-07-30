@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
@@ -190,6 +191,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(iamRole, iamRoleRemove)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-remove").value("bar-remove").build())
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         Cluster modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled = Cluster.builder()
@@ -208,6 +210,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(iamRole)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         Cluster modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes = Cluster.builder()
@@ -227,6 +230,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
                 .clusterParameterGroups(ClusterParameterGroupStatus.builder().parameterApplyStatus("in-sync").build())
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
@@ -382,6 +386,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(iamRole)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
 
@@ -401,6 +406,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoles(iamRole, iamRole_add)
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         Cluster modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify = Cluster.builder()
@@ -420,6 +426,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
                 .clusterParameterGroups(ClusterParameterGroupStatus.builder().parameterApplyStatus("in-sync").build())
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
@@ -541,6 +548,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         Cluster modifiedCluster = Cluster.builder()
@@ -555,6 +563,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))

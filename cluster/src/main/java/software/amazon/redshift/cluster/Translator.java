@@ -4,26 +4,35 @@ import com.amazonaws.util.StringUtils;
 import com.google.common.collect.MapDifference;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
+import software.amazon.awssdk.services.redshift.model.CreateSnapshotCopyGrantRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteSnapshotCopyGrantRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
+import software.amazon.awssdk.services.redshift.model.ModifyAquaConfigurationRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
@@ -84,6 +93,8 @@ public class Translator {
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
             .iamRoles(model.getIamRoles())
             .tags(translateTagsToSdk(model.getTags()))
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .aquaConfigurationStatus(model.getAquaConfigurationStatus())
             .build();
   }
 
@@ -112,6 +123,81 @@ public class Translator {
   }
 
   /**
+   * Request to Create Snapshot Copy Grant
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static CreateSnapshotCopyGrantRequest translateToCreateSnapshotCopyGrant(final ResourceModel model) {
+    return CreateSnapshotCopyGrantRequest.builder()
+            .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
+            .kmsKeyId(model.getKmsKeyId())
+            .tags(translateTagsToSdk(model.getTags()))
+            .build();
+  }
+
+  /**
+   * Request to Delete Snapshot Copy Grant
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static DeleteSnapshotCopyGrantRequest translateToDeleteSnapshotCopyGrant(final ResourceModel model) {
+    return DeleteSnapshotCopyGrantRequest.builder()
+            .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
+            .build();
+  }
+
+  /**
+   * Request to enable Cross-region cluster Snapshot
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static EnableSnapshotCopyRequest translateToEnableSnapshotRequest(final ResourceModel model) {
+    return EnableSnapshotCopyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .destinationRegion(model.getDestinationRegion())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
+            .retentionPeriod(model.getRetentionPeriod())
+            .build();
+  }
+
+  /**
+   * Request to Disable Cluster Snapshot
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static DisableSnapshotCopyRequest translateToDisableSnapshotRequest(final ResourceModel model) {
+    return DisableSnapshotCopyRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Modify Snapshot Copy Retention Period
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifySnapshotCopyRetentionPeriodRequest translateToModifySnapshotCopyRetentionPeriodRequest(final ResourceModel model) {
+    return ModifySnapshotCopyRetentionPeriodRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .retentionPeriod(model.getRetentionPeriod())
+            .manual(model.getManual())
+            .build();
+  }
+
+  /**
+   * Request to Modify AQUA Configuration
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyAquaConfigurationRequest translateToModifyAquaConfigurationRequest(final ResourceModel model) {
+    return ModifyAquaConfigurationRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .aquaConfigurationStatus(model.getAquaConfigurationStatus())
+            .build();
+  }
+
+  /**
    * Request to describe logging properties
    * @param model resource model
    * @return awsRequest the aws service request to create a resource
@@ -135,6 +221,20 @@ public class Translator {
       return ResourceModel.builder()
             .loggingProperties(loggingProperties)
             .build();
+  }
+
+  static List<String> translateTagKeysToSdk(final List<software.amazon.redshift.cluster.Tag> tags) {
+     return Optional.ofNullable(tags).orElse(Collections.emptyList())
+            .stream()
+             .map(software.amazon.redshift.cluster.Tag ::getKey)
+             .collect(Collectors.toList());
+  }
+
+  static List<String> translateTagValuesToSdk(final List<software.amazon.redshift.cluster.Tag> tags) {
+    return Optional.ofNullable(tags).orElse(Collections.emptyList())
+            .stream()
+            .map(software.amazon.redshift.cluster.Tag ::getValue)
+            .collect(Collectors.toList());
   }
 
   static List<software.amazon.awssdk.services.redshift.model.Tag> translateTagsToSdk(final List<software.amazon.redshift.cluster.Tag> tags) {
@@ -169,6 +269,19 @@ public class Translator {
   static DescribeClustersRequest translateToDescribeClusterRequest(final ResourceModel model) {
     return DescribeClustersRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Describe Snapshot Copy Grant
+   * @param model resource model
+   * @return awsRequest the aws service request to describe a resource
+   */
+  static DescribeSnapshotCopyGrantsRequest translateToDescribeSnapshotCopyGrantsRequest(final ResourceModel model) {
+    return DescribeSnapshotCopyGrantsRequest.builder()
+            .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
+            .tagKeys(translateTagKeysToSdk(model.getTags()))
+            .tagValues(translateTagValuesToSdk(model.getTags()))
             .build();
   }
 
@@ -316,6 +429,24 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSnapshotCopyStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String availabilityZoneRelocationStatus = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZoneRelocationStatus)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final AquaConfiguration aquaConfiguration = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::aquaConfiguration)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
     final String clusterType = numberOfNodes == null || numberOfNodes < 2 ? CLUSTER_TYPE_SINGLE_NODE : CLUSTER_TYPE_MULTI_NODE;
 
     return ResourceModel.builder()
@@ -345,6 +476,12 @@ public class Translator {
             .port(endpoint != null ? endpoint.port() : null)
             .endpoint(endpoint != null ? translateEndpointFromSdk(endpoint) : null)
             .tags(translateTagsFromSdk(tags))
+            .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion() == null ? null : clusterSnapshotCopyStatus.destinationRegion())
+            .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod() == null ? null : clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
+            .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
+            .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName() == null ? null : clusterSnapshotCopyStatus.snapshotCopyGrantName())
+            .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
+            .aquaConfigurationStatus(aquaConfiguration == null ? null : aquaConfiguration.aquaConfigurationStatusAsString())
             .build();
   }
 
@@ -428,6 +565,9 @@ public class Translator {
             .publiclyAccessible(model.getPubliclyAccessible() == null || model.getPubliclyAccessible().equals(prevModel.getPubliclyAccessible()) ? null : model.getPubliclyAccessible())
             .clusterSecurityGroups(model.getClusterSecurityGroups() == null || model.getClusterSecurityGroups().equals(prevModel.getClusterSecurityGroups()) ? null : model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds() == null || model.getVpcSecurityGroupIds().equals(prevModel.getVpcSecurityGroupIds()) ? null : model.getVpcSecurityGroupIds())
+            .availabilityZone(model.getAvailabilityZone() == null || model.getAvailabilityZone().equals(prevModel.getAvailabilityZone()) ? null : model.getAvailabilityZone())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation() == null || model.getAvailabilityZoneRelocation().
+                    equals(prevModel.getAvailabilityZoneRelocation()) ? null : model.getAvailabilityZoneRelocation())
             .build();
 
     return modifyClusterRequest;
@@ -543,6 +683,8 @@ public class Translator {
             .clusterParameterGroupName(model.getClusterParameterGroupName())
             .clusterSecurityGroups(model.getClusterSecurityGroups())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
+            .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
+            .aquaConfigurationStatus(model.getAquaConfigurationStatus())
             .build();
   }
 
