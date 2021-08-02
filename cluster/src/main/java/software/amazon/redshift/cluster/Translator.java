@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesReque
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -182,6 +183,21 @@ public class Translator {
             .clusterIdentifier(model.getClusterIdentifier())
             .retentionPeriod(model.getRetentionPeriod())
             .manual(model.getManual())
+            .build();
+  }
+
+  /**
+   * Request to Resize Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ResizeClusterRequest translateToResizeClusterRequest(final ResourceModel model) {
+    return ResizeClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .clusterType(model.getClusterType())
+            .nodeType(model.getNodeType())
+            .numberOfNodes(model.getNumberOfNodes())
+            .classic(model.getClassic())
             .build();
   }
 
@@ -529,32 +545,9 @@ public class Translator {
    * @return awsRequest the aws service request to modify a resource
    */
   static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model, final ResourceModel prevModel) {
-    String nodeType = null; String clusterType = null;
-    Integer numberOfNodes = null;
-
-    if(!model.getClusterType().equals(prevModel.getClusterType())){
-      clusterType = model.getClusterType();
-      nodeType = model.getNodeType();
-      if (model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE)){
-        numberOfNodes = model.getNumberOfNodes();
-      }
-    } else if (!model.getNodeType().equals(prevModel.getNodeType())) {
-      nodeType = model.getNodeType();
-      numberOfNodes = model.getNumberOfNodes();
-      clusterType = model.getClusterType();
-
-    } else if ((model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE) || prevModel.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE))
-            && (!model.getNumberOfNodes().equals(prevModel.getNumberOfNodes()))) {
-      numberOfNodes = model.getNumberOfNodes();
-      nodeType = model.getNodeType();
-    }
-
     ModifyClusterRequest modifyClusterRequest =  ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUserPassword(model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
-            .nodeType(nodeType)
-            .clusterType(clusterType)
-            .numberOfNodes(numberOfNodes)
             .allowVersionUpgrade(model.getAllowVersionUpgrade() == null || model.getAllowVersionUpgrade().equals(prevModel.getAllowVersionUpgrade()) ? null : model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod() == null || model.getAutomatedSnapshotRetentionPeriod().equals(prevModel.getAutomatedSnapshotRetentionPeriod()) ? null : model.getAutomatedSnapshotRetentionPeriod())
             .clusterParameterGroupName(model.getClusterParameterGroupName() == null || model.getClusterParameterGroupName().equals(prevModel.getClusterParameterGroupName()) ? null : model.getClusterParameterGroupName())

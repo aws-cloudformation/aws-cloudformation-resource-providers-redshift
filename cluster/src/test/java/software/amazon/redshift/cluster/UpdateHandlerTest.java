@@ -30,6 +30,8 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesReque
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -240,12 +242,24 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled)
+                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes)
                         .build());
@@ -264,8 +278,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().disableLogging(any(DisableLoggingRequest.class)))
                 .thenReturn(DisableLoggingResponse.builder().build());
 
-        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
-                .thenReturn(ModifyClusterResponse.builder()
+        when(proxyClient.client().resizeCluster(any(ResizeClusterRequest.class)))
+                .thenReturn(ResizeClusterResponse.builder()
                         .cluster(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes)
                         .build());
 
@@ -436,12 +450,24 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster_tagAdded_iamRoleAdded)
+                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
@@ -461,11 +487,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
                 .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
 
-        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
-                .thenReturn(ModifyClusterResponse.builder()
+        when(proxyClient.client().resizeCluster(any(ResizeClusterRequest.class)))
+                .thenReturn(ResizeClusterResponse.builder()
                         .cluster(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
-
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -586,10 +611,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
-
-        //callback
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
     }
