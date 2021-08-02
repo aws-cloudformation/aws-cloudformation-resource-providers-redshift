@@ -156,6 +156,7 @@ public class UpdateHandler extends BaseHandlerStd {
                     if (issueResizeClusterRequest(request.getPreviousResourceState(), model, callbackContext, proxyClient)) {
                         return proxy.initiate("AWS-Redshift-Cluster::ResizeCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator:: translateToResizeClusterRequest)
+                                .backoffDelay(BACKOFF_STRATEGY)
                                 .makeServiceCall(this::resizeCluster)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .done((_request, _response, _client, _model, _context) -> {
