@@ -295,7 +295,8 @@
                 "redshift:EnableSnapshotCopy",
                 "redshift:DisableSnapshotCopy",
                 "redshift:ModifySnapshotCopyRetentionPeriod",
-                "redshift:ModifyAquaConfiguration"
+                "redshift:ModifyAquaConfiguration",
+                "redshift:ResizeCluster"
             ],
             "timeoutInMinutes": 2160
         },

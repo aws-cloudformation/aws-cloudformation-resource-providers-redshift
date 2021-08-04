@@ -39,6 +39,7 @@ Resources:
                 - "redshift:ModifyClusterIamRoles"
                 - "redshift:ModifySnapshotCopyRetentionPeriod"
                 - "redshift:RebootCluster"
+                - "redshift:ResizeCluster"
                 - "redshift:RestoreFromClusterSnapshot"
                 Resource: "*"
 Outputs:
