@@ -227,6 +227,10 @@
         "AquaConfigurationStatus": {
             "description": "The value represents how the cluster is configured to use AQUA (Advanced Query Accelerator) after the cluster is restored. Possible values include the following.\n\nenabled - Use AQUA if it is available for the current Region and Amazon Redshift node type.\ndisabled - Don't use AQUA.\nauto - Amazon Redshift determines whether to use AQUA.\n",
             "type": "string"
+        },
+        "Classic": {
+            "description": "A boolean value indicating whether the resize operation is using the classic resize process. If you don't provide this parameter or set the value to false , the resize type is elastic.",
+            "type": "boolean"
         }
     },
     "additionalProperties": false,
