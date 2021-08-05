@@ -153,6 +153,26 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
+                    if (issueResizeClusterRequest(request.getPreviousResourceState(), model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ResizeCluster", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator:: translateToResizeClusterRequest)
+                                .backoffDelay(BACKOFF_STRATEGY)
+                                .makeServiceCall(this::resizeCluster)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    logger.log(String.format("Resize Cluster complete. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
+                                    if(!callbackContext.getCallBackAfterResize()) {
+                                        callbackContext.setCallBackAfterResize(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Resize Cluster.");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
                     if (model.getAquaConfigurationStatus() != null && !model.getAquaConfigurationStatus().equals(request.getPreviousResourceState().getAquaConfigurationStatus())) {
                         return proxy.initiate("AWS-Redshift-Cluster::ModifyAQUAConfiguration", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator:: translateToModifyAquaConfigurationRequest)
@@ -171,10 +191,10 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .makeServiceCall(this::updateCluster)
                                 .stabilize((_request, _response, _client, _model, _context) -> stabilizeCluster(_client, _model, _context, request))
                                 .done((_request, _response, _client, _model, _context) -> {
-                                    logger.log(String.format("Update Cluster complete. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
+                                    logger.log(String.format("Modify Cluster complete. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
                                     if(!callbackContext.getCallBackForReboot()) {
                                         callbackContext.setCallBackForReboot(true);
-                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds");
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Modify Cluster.");
                                         return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
                                     }
                                     return ProgressEvent.progress(_model, callbackContext);
@@ -246,6 +266,32 @@ public class UpdateHandler extends BaseHandlerStd {
                 modifyRequest.clusterIdentifier()));
 
         return awsResponse;
+    }
+
+    private ResizeClusterResponse resizeCluster(
+            final ResizeClusterRequest resizeClusterRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ResizeClusterResponse resizeClusterResponse = null;
+
+        try {
+            logger.log(String.format("%s %s resizeCluster.", ResourceModel.TYPE_NAME,
+                    resizeClusterRequest.clusterIdentifier()));
+            resizeClusterResponse = proxyClient.injectCredentialsAndInvokeV2(resizeClusterRequest, proxyClient.client()::resizeCluster);
+        } catch (final InvalidClusterStateException | UnauthorizedOperationException |
+                UnsupportedOptionException | LimitExceededException | NumberOfNodesQuotaExceededException |
+                NumberOfNodesPerClusterLimitExceededException | InsufficientClusterCapacityException |
+                UnsupportedOperationException e ) {
+            throw new CfnInvalidRequestException(e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, resizeClusterRequest.clusterIdentifier(), e);
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(e);
+        }
+
+        logger.log(String.format("%s %s resize cluster issued.", ResourceModel.TYPE_NAME,
+                resizeClusterRequest.clusterIdentifier()));
+
+        return resizeClusterResponse;
     }
 
     private ModifyAquaConfigurationResponse modifyAquaConfiguration(

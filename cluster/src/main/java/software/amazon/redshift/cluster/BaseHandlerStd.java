@@ -158,6 +158,12 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     return false;
   }
 
+  protected boolean issueResizeClusterRequest(ResourceModel prevModel, ResourceModel model) {
+    return ObjectUtils.notEqual(prevModel.getNodeType(), model.getNodeType()) ||
+            ObjectUtils.notEqual(prevModel.getNumberOfNodes(), model.getNumberOfNodes()) ||
+            ObjectUtils.notEqual(prevModel.getClusterType(), model.getClusterType());
+  }
+
 
   // check for required parameters to not have null values
   protected boolean invalidCreateClusterRequest(ResourceModel model) {
@@ -166,13 +172,10 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean issueModifyClusterRequest(ResourceModel prevModel, ResourceModel model) {
-    return  ObjectUtils.notEqual(prevModel.getNodeType(), model.getNodeType()) ||
-            ObjectUtils.notEqual(prevModel.getNumberOfNodes(), model.getNumberOfNodes()) ||
-            ObjectUtils.notEqual(prevModel.getMasterUserPassword(), model.getMasterUserPassword()) ||
+    return  ObjectUtils.notEqual(prevModel.getMasterUserPassword(), model.getMasterUserPassword()) ||
             ObjectUtils.notEqual(prevModel.getAllowVersionUpgrade(), model.getAllowVersionUpgrade()) ||
             ObjectUtils.notEqual(prevModel.getAutomatedSnapshotRetentionPeriod(), model.getAutomatedSnapshotRetentionPeriod()) ||
             ObjectUtils.notEqual(prevModel.getClusterParameterGroupName(), model.getClusterParameterGroupName()) ||
-            ObjectUtils.notEqual(prevModel.getClusterType(), model.getClusterType()) ||
             ObjectUtils.notEqual(prevModel.getClusterVersion(), model.getClusterVersion()) ||
             ObjectUtils.notEqual(prevModel.getElasticIp(), model.getElasticIp()) ||
             ObjectUtils.notEqual(prevModel.getEncrypted(), model.getEncrypted()) ||
