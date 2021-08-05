@@ -50,7 +50,10 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>" : <i>Boolean</i>,
         "<a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>" : <i>String</i>,
         "<a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>" : <i>String</i>,
-        "<a href="#classic" title="Classic">Classic</a>" : <i>Boolean</i>
+        "<a href="#classic" title="Classic">Classic</a>" : <i>Boolean</i>,
+        "<a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>" : <i>Boolean</i>,
+        "<a href="#maintenancetrackname" title="MaintenanceTrackName">MaintenanceTrackName</a>" : <i>String</i>,
+        "<a href="#newclusteridentifier" title="NewClusterIdentifier">NewClusterIdentifier</a>" : <i>String</i>
     }
 }
 </pre>
@@ -103,6 +106,9 @@ Properties:
     <a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>: <i>String</i>
     <a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>: <i>String</i>
     <a href="#classic" title="Classic">Classic</a>: <i>Boolean</i>
+    <a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>: <i>Boolean</i>
+    <a href="#maintenancetrackname" title="MaintenanceTrackName">MaintenanceTrackName</a>: <i>String</i>
+    <a href="#newclusteridentifier" title="NewClusterIdentifier">NewClusterIdentifier</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -243,7 +249,7 @@ _Required_: No
 
 _Type_: String
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Encrypted
 
@@ -253,7 +259,7 @@ _Required_: No
 
 _Type_: Boolean
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### HsmClientCertificateIdentifier
 
@@ -283,7 +289,7 @@ _Required_: No
 
 _Type_: String
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### NumberOfNodes
 
@@ -303,7 +309,7 @@ _Required_: No
 
 _Type_: Integer
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### PreferredMaintenanceWindow
 
@@ -507,6 +513,49 @@ A boolean value indicating whether the resize operation is using the classic res
 _Required_: No
 
 _Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EnhancedVpcRouting
+
+An option that specifies whether to create the cluster with enhanced VPC routing enabled. To create a cluster that uses enhanced VPC routing, the cluster must be in a VPC. For more information, see Enhanced VPC Routing in the Amazon Redshift Cluster Management Guide.
+
+If this option is true , enhanced VPC routing is enabled.
+
+Default: false
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### MaintenanceTrackName
+
+The name for the maintenance track that you want to assign for the cluster. This name change is asynchronous. The new track name stays in the PendingModifiedValues for the cluster until the next maintenance window. When the maintenance track changes, the cluster is switched to the latest cluster release available for the maintenance track. At this point, the maintenance track name is applied.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### NewClusterIdentifier
+
+The new identifier for the cluster.
+
+Constraints:
+
+Must contain from 1 to 63 alphanumeric characters or hyphens.
+Alphabetic characters must be lowercase.
+First character must be a letter.
+Cannot end with a hyphen or contain two consecutive hyphens.
+Must be unique for all clusters within an Amazon Web Services account.
+Example: examplecluster
+
+_Required_: No
+
+_Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

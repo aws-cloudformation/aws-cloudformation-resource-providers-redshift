@@ -96,6 +96,9 @@ public class Translator {
             .tags(translateTagsToSdk(model.getTags()))
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .aquaConfigurationStatus(model.getAquaConfigurationStatus())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting())
+            .maintenanceTrackName(model.getMaintenanceTrackName())
             .build();
   }
 
@@ -343,6 +346,12 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final Integer manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::manualSnapshotRetentionPeriod)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
 
     final String availabilityZone = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZone)
@@ -465,6 +474,19 @@ public class Translator {
 
     final String clusterType = numberOfNodes == null || numberOfNodes < 2 ? CLUSTER_TYPE_SINGLE_NODE : CLUSTER_TYPE_MULTI_NODE;
 
+    final Boolean enhanceVpcRouting = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::enhancedVpcRouting)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String maintenanceTrackName = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::maintenanceTrackName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -493,11 +515,13 @@ public class Translator {
             .endpoint(endpoint != null ? translateEndpointFromSdk(endpoint) : null)
             .tags(translateTagsFromSdk(tags))
             .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion() == null ? null : clusterSnapshotCopyStatus.destinationRegion())
-            .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod() == null ? null : clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
+            .manualSnapshotRetentionPeriod(manualSnapshotRetentionPeriod)
             .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
             .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName() == null ? null : clusterSnapshotCopyStatus.snapshotCopyGrantName())
             .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
             .aquaConfigurationStatus(aquaConfiguration == null ? null : aquaConfiguration.aquaConfigurationStatusAsString())
+            .enhancedVpcRouting(enhanceVpcRouting == null ? null : enhanceVpcRouting.booleanValue())
+            .maintenanceTrackName(maintenanceTrackName)
             .build();
   }
 
@@ -561,6 +585,15 @@ public class Translator {
             .availabilityZone(model.getAvailabilityZone() == null || model.getAvailabilityZone().equals(prevModel.getAvailabilityZone()) ? null : model.getAvailabilityZone())
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation() == null || model.getAvailabilityZoneRelocation().
                     equals(prevModel.getAvailabilityZoneRelocation()) ? null : model.getAvailabilityZoneRelocation())
+            .encrypted(model.getEncrypted() == null || model.getEncrypted().equals(prevModel.getEncrypted()) ? null : model.getEncrypted())
+            .kmsKeyId(model.getKmsKeyId() == null || model.getKmsKeyId().equals(prevModel.getKmsKeyId()) ? null : model.getKmsKeyId())
+            .port(model.getPort() == null || model.getPort().equals(prevModel.getPort()) ? null : model.getPort())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod() == null || model.getManualSnapshotRetentionPeriod().equals(prevModel.getManualSnapshotRetentionPeriod()) ? null : model.getManualSnapshotRetentionPeriod())
+            .clusterVersion(model.getClusterVersion() == null || model.getClusterVersion().equals(prevModel.getClusterVersion()) ? null : model.getClusterVersion())
+            .elasticIp(model.getElasticIp() == null || model.getElasticIp().equals(prevModel.getElasticIp()) ? null : model.getElasticIp())
+            .maintenanceTrackName(model.getMaintenanceTrackName() == null || model.getMaintenanceTrackName().equals(prevModel.getMaintenanceTrackName()) ? null : model.getMaintenanceTrackName())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting() == null || model.getEnhancedVpcRouting().equals(prevModel.getEnhancedVpcRouting()) ? null : model.getEnhancedVpcRouting())
+            .newClusterIdentifier(model.getNewClusterIdentifier() == null || model.getNewClusterIdentifier().equals(prevModel.getNewClusterIdentifier()) ? null : model.getNewClusterIdentifier())
             .build();
 
     return modifyClusterRequest;
@@ -678,6 +711,14 @@ public class Translator {
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .aquaConfigurationStatus(model.getAquaConfigurationStatus())
+            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting())
+            .maintenanceTrackName(model.getMaintenanceTrackName())
+            .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow())
+            .kmsKeyId(model.getKmsKeyId())
+            .nodeType(model.getNodeType())
+            .numberOfNodes(model.getNumberOfNodes())
             .build();
   }
 

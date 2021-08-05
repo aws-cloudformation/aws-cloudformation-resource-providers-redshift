@@ -231,6 +231,18 @@
         "Classic": {
             "description": "A boolean value indicating whether the resize operation is using the classic resize process. If you don't provide this parameter or set the value to false , the resize type is elastic.",
             "type": "boolean"
+        },
+        "EnhancedVpcRouting": {
+            "description": "An option that specifies whether to create the cluster with enhanced VPC routing enabled. To create a cluster that uses enhanced VPC routing, the cluster must be in a VPC. For more information, see Enhanced VPC Routing in the Amazon Redshift Cluster Management Guide.\n\nIf this option is true , enhanced VPC routing is enabled.\n\nDefault: false",
+            "type": "boolean"
+        },
+        "MaintenanceTrackName": {
+            "description": "The name for the maintenance track that you want to assign for the cluster. This name change is asynchronous. The new track name stays in the PendingModifiedValues for the cluster until the next maintenance window. When the maintenance track changes, the cluster is switched to the latest cluster release available for the maintenance track. At this point, the maintenance track name is applied.",
+            "type": "string"
+        },
+        "NewClusterIdentifier": {
+            "description": "The new identifier for the cluster.\n\nConstraints:\n\nMust contain from 1 to 63 alphanumeric characters or hyphens.\nAlphabetic characters must be lowercase.\nFirst character must be a letter.\nCannot end with a hyphen or contain two consecutive hyphens.\nMust be unique for all clusters within an Amazon Web Services account.\nExample: examplecluster",
+            "type": "string"
         }
     },
     "additionalProperties": false,
@@ -251,15 +263,11 @@
     ],
     "createOnlyProperties": [
         "/properties/ClusterIdentifier",
-        "/properties/KmsKeyId",
         "/properties/OwnerAccount",
         "/properties/SnapshotIdentifier",
-        "/properties/Encrypted",
-        "/properties/Port",
         "/properties/DBName",
         "/properties/SnapshotClusterIdentifier",
         "/properties/ClusterSubnetGroupName",
-        "/properties/ElasticIp",
         "/properties/MasterUsername"
     ],
     "writeOnlyProperties": [
