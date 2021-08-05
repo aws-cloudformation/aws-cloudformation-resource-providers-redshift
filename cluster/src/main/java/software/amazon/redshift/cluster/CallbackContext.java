@@ -8,7 +8,6 @@ import software.amazon.cloudformation.proxy.StdCallbackContext;
 @lombok.EqualsAndHashCode(callSuper = true)
 public class CallbackContext extends StdCallbackContext {
     LoggingProperties loggingProperties;
-    boolean checkClusterConfigForResize = false;
     boolean callBackForReboot = false;
     boolean callBackForDelete = false;
     boolean callBackAfterResize = false;
@@ -40,8 +39,4 @@ public class CallbackContext extends StdCallbackContext {
     }
 
     public boolean getCallBackAfterResize() { return callBackAfterResize; }
-
-    public void setCheckClusterConfigForResize(boolean checkClusterConfigForResize) { this.checkClusterConfigForResize = checkClusterConfigForResize; }
-
-    public boolean getCheckClusterConfigForResize() { return checkClusterConfigForResize; }
 }

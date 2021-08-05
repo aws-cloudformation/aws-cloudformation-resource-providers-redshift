@@ -50,8 +50,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected final String CLUSTER_STATUS_AVAILABLE = "available";
   protected final String AQUA_STATUS_APPLYING = "applying";
   protected final int CALLBACK_DELAY_SECONDS = 30;
-  private static String CLUSTER_TYPE_SINGLE_NODE = "single-node";
-  private static String CLUSTER_TYPE_MULTI_NODE = "multi-node";
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
 
