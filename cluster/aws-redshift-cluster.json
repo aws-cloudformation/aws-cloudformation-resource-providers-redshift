@@ -239,10 +239,6 @@
         "MaintenanceTrackName": {
             "description": "The name for the maintenance track that you want to assign for the cluster. This name change is asynchronous. The new track name stays in the PendingModifiedValues for the cluster until the next maintenance window. When the maintenance track changes, the cluster is switched to the latest cluster release available for the maintenance track. At this point, the maintenance track name is applied.",
             "type": "string"
-        },
-        "NewClusterIdentifier": {
-            "description": "The new identifier for the cluster.\n\nConstraints:\n\nMust contain from 1 to 63 alphanumeric characters or hyphens.\nAlphabetic characters must be lowercase.\nFirst character must be a letter.\nCannot end with a hyphen or contain two consecutive hyphens.\nMust be unique for all clusters within an Amazon Web Services account.\nExample: examplecluster",
-            "type": "string"
         }
     },
     "additionalProperties": false,

@@ -593,7 +593,6 @@ public class Translator {
             .elasticIp(model.getElasticIp() == null || model.getElasticIp().equals(prevModel.getElasticIp()) ? null : model.getElasticIp())
             .maintenanceTrackName(model.getMaintenanceTrackName() == null || model.getMaintenanceTrackName().equals(prevModel.getMaintenanceTrackName()) ? null : model.getMaintenanceTrackName())
             .enhancedVpcRouting(model.getEnhancedVpcRouting() == null || model.getEnhancedVpcRouting().equals(prevModel.getEnhancedVpcRouting()) ? null : model.getEnhancedVpcRouting())
-            .newClusterIdentifier(model.getNewClusterIdentifier() == null || model.getNewClusterIdentifier().equals(prevModel.getNewClusterIdentifier()) ? null : model.getNewClusterIdentifier())
             .build();
 
     return modifyClusterRequest;
