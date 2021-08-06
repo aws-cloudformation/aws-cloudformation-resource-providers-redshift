@@ -161,7 +161,7 @@ public class Translator {
             .destinationRegion(model.getDestinationRegion())
             .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
             .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
-            .retentionPeriod(model.getRetentionPeriod())
+            .retentionPeriod(model.getSnapshotCopyRetentionPeriod())
             .build();
   }
 
@@ -184,8 +184,8 @@ public class Translator {
   static ModifySnapshotCopyRetentionPeriodRequest translateToModifySnapshotCopyRetentionPeriodRequest(final ResourceModel model) {
     return ModifySnapshotCopyRetentionPeriodRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            .retentionPeriod(model.getRetentionPeriod())
-            .manual(model.getManual())
+            .retentionPeriod(model.getSnapshotCopyRetentionPeriod())
+            .manual(model.getSnapshotCopyManual())
             .build();
   }
 
@@ -516,7 +516,7 @@ public class Translator {
             .tags(translateTagsFromSdk(tags))
             .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion() == null ? null : clusterSnapshotCopyStatus.destinationRegion())
             .manualSnapshotRetentionPeriod(manualSnapshotRetentionPeriod)
-            .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
+            .snapshotCopyRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
             .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName() == null ? null : clusterSnapshotCopyStatus.snapshotCopyGrantName())
             .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
             .aquaConfigurationStatus(aquaConfiguration == null ? null : aquaConfiguration.aquaConfigurationStatusAsString())
