@@ -43,10 +43,10 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>" : <i><a href="loggingproperties.md">LoggingProperties</a></i>,
         "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i><a href="endpoint.md">Endpoint</a></i>,
         "<a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>" : <i>String</i>,
-        "<a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>" : <i>Integer</i>,
+        "<a href="#snapshotcopyretentionperiod" title="SnapshotCopyRetentionPeriod">SnapshotCopyRetentionPeriod</a>" : <i>Integer</i>,
         "<a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>" : <i>String</i>,
         "<a href="#manualsnapshotretentionperiod" title="ManualSnapshotRetentionPeriod">ManualSnapshotRetentionPeriod</a>" : <i>Integer</i>,
-        "<a href="#manual" title="Manual">Manual</a>" : <i>Boolean</i>,
+        "<a href="#snapshotcopymanual" title="SnapshotCopyManual">SnapshotCopyManual</a>" : <i>Boolean</i>,
         "<a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>" : <i>Boolean</i>,
         "<a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>" : <i>String</i>,
         "<a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>" : <i>String</i>,
@@ -97,10 +97,10 @@ Properties:
     <a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>: <i><a href="loggingproperties.md">LoggingProperties</a></i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i><a href="endpoint.md">Endpoint</a></i>
     <a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>: <i>String</i>
-    <a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>: <i>Integer</i>
+    <a href="#snapshotcopyretentionperiod" title="SnapshotCopyRetentionPeriod">SnapshotCopyRetentionPeriod</a>: <i>Integer</i>
     <a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>: <i>String</i>
     <a href="#manualsnapshotretentionperiod" title="ManualSnapshotRetentionPeriod">ManualSnapshotRetentionPeriod</a>: <i>Integer</i>
-    <a href="#manual" title="Manual">Manual</a>: <i>Boolean</i>
+    <a href="#snapshotcopymanual" title="SnapshotCopyManual">SnapshotCopyManual</a>: <i>Boolean</i>
     <a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>: <i>Boolean</i>
     <a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>: <i>String</i>
     <a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>: <i>String</i>
@@ -423,7 +423,7 @@ _Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### RetentionPeriod
+#### SnapshotCopyRetentionPeriod
 
 The number of days to retain automated snapshots in the destination region after they are copied from the source region.
 
@@ -459,7 +459,7 @@ _Type_: Integer
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### Manual
+#### SnapshotCopyManual
 
 Indicates whether to apply the snapshot retention period to newly copied manual snapshots instead of automated snapshots.
 

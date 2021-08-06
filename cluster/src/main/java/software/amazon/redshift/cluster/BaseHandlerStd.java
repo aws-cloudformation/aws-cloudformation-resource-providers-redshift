@@ -199,8 +199,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean issueModifySnapshotCopyRetentionPeriod(ResourceModel prevModel, ResourceModel model) {
-    return ObjectUtils.notEqual(prevModel.getRetentionPeriod(), model.getRetentionPeriod()) ||
-            ObjectUtils.notEqual(prevModel.getManual(), model.getManual());
+    return ObjectUtils.notEqual(prevModel.getSnapshotCopyRetentionPeriod(), model.getSnapshotCopyRetentionPeriod()) ||
+            ObjectUtils.notEqual(prevModel.getSnapshotCopyManual(), model.getSnapshotCopyManual());
   }
 
   protected List<List<String>> iamRoleUpdate (List<String> existingIamRoles, List<String> newIamRoles) {

@@ -114,7 +114,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if ((ObjectUtils.allNotNull(model.getRetentionPeriod()) && issueModifySnapshotCopyRetentionPeriod(request.getPreviousResourceState(), model)) &&
+                    if ((ObjectUtils.allNotNull(model.getSnapshotCopyRetentionPeriod()) && issueModifySnapshotCopyRetentionPeriod(request.getPreviousResourceState(), model)) &&
                             isCrossRegionCopyEnabled(proxyClient, model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::ModifySnapshotCopyRetentionPeriod", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToModifySnapshotCopyRetentionPeriodRequest)
