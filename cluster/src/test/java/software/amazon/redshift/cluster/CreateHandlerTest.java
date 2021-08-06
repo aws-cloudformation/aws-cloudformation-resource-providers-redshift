@@ -112,6 +112,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(tags)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -198,6 +200,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(new LinkedList<Tag>())
                 .loggingProperties(loggingProperties)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()

@@ -187,7 +187,15 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getClusterSecurityGroups(), model.getClusterSecurityGroups()) ||
             ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds()) ||
             ObjectUtils.notEqual(prevModel.getAvailabilityZone(), model.getAvailabilityZone()) ||
-            ObjectUtils.notEqual(prevModel.getAvailabilityZoneRelocation(), model.getAvailabilityZoneRelocation());
+            ObjectUtils.notEqual(prevModel.getAvailabilityZoneRelocation(), model.getAvailabilityZoneRelocation()) ||
+            ObjectUtils.notEqual(prevModel.getEncrypted(), model.getEncrypted()) ||
+            ObjectUtils.notEqual(prevModel.getKmsKeyId(), model.getKmsKeyId()) ||
+            ObjectUtils.notEqual(prevModel.getPort(), model.getPort()) ||
+            ObjectUtils.notEqual(prevModel.getManualSnapshotRetentionPeriod(), model.getManualSnapshotRetentionPeriod()) ||
+            ObjectUtils.notEqual(prevModel.getClusterVersion(), model.getClusterVersion()) ||
+            ObjectUtils.notEqual(prevModel.getElasticIp(), model.getElasticIp()) ||
+            ObjectUtils.notEqual(prevModel.getMaintenanceTrackName(), model.getMaintenanceTrackName()) ||
+            ObjectUtils.notEqual(prevModel.getEnhancedVpcRouting(), model.getEnhancedVpcRouting());
   }
 
   protected boolean issueModifySnapshotCopyRetentionPeriod(ResourceModel prevModel, ResourceModel model) {

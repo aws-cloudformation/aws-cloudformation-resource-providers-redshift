@@ -139,6 +139,8 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .tags(new LinkedList<Tag>())
                 .endpoint(modelEndpoint)
                 .port(1234)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
