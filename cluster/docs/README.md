@@ -52,7 +52,14 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>" : <i>String</i>,
         "<a href="#classic" title="Classic">Classic</a>" : <i>Boolean</i>,
         "<a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>" : <i>Boolean</i>,
-        "<a href="#maintenancetrackname" title="MaintenanceTrackName">MaintenanceTrackName</a>" : <i>String</i>
+        "<a href="#maintenancetrackname" title="MaintenanceTrackName">MaintenanceTrackName</a>" : <i>String</i>,
+        "<a href="#defermaintenance" title="DeferMaintenance">DeferMaintenance</a>" : <i>Boolean</i>,
+        "<a href="#defermaintenanceidentifier" title="DeferMaintenanceIdentifier">DeferMaintenanceIdentifier</a>" : <i>String</i>,
+        "<a href="#defermaintenancestarttime" title="DeferMaintenanceStartTime">DeferMaintenanceStartTime</a>" : <i>String</i>,
+        "<a href="#defermaintenanceendtime" title="DeferMaintenanceEndTime">DeferMaintenanceEndTime</a>" : <i>String</i>,
+        "<a href="#defermaintenanceduration" title="DeferMaintenanceDuration">DeferMaintenanceDuration</a>" : <i>Integer</i>,
+        "<a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>" : <i>String</i>,
+        "<a href="#resourceaction" title="ResourceAction">ResourceAction</a>" : <i>String</i>
     }
 }
 </pre>
@@ -107,6 +114,13 @@ Properties:
     <a href="#classic" title="Classic">Classic</a>: <i>Boolean</i>
     <a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>: <i>Boolean</i>
     <a href="#maintenancetrackname" title="MaintenanceTrackName">MaintenanceTrackName</a>: <i>String</i>
+    <a href="#defermaintenance" title="DeferMaintenance">DeferMaintenance</a>: <i>Boolean</i>
+    <a href="#defermaintenanceidentifier" title="DeferMaintenanceIdentifier">DeferMaintenanceIdentifier</a>: <i>String</i>
+    <a href="#defermaintenancestarttime" title="DeferMaintenanceStartTime">DeferMaintenanceStartTime</a>: <i>String</i>
+    <a href="#defermaintenanceendtime" title="DeferMaintenanceEndTime">DeferMaintenanceEndTime</a>: <i>String</i>
+    <a href="#defermaintenanceduration" title="DeferMaintenanceDuration">DeferMaintenanceDuration</a>: <i>Integer</i>
+    <a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>: <i>String</i>
+    <a href="#resourceaction" title="ResourceAction">ResourceAction</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -531,6 +545,76 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 #### MaintenanceTrackName
 
 The name for the maintenance track that you want to assign for the cluster. This name change is asynchronous. The new track name stays in the PendingModifiedValues for the cluster until the next maintenance window. When the maintenance track changes, the cluster is switched to the latest cluster release available for the maintenance track. At this point, the maintenance track name is applied.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenance
+
+A boolean indicating whether to enable the deferred maintenance window.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenanceIdentifier
+
+A unique identifier for the deferred maintenance window.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenanceStartTime
+
+A timestamp indicating the start time for the deferred maintenance window.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenanceEndTime
+
+A timestamp indicating end time for the deferred maintenance window. If you specify an end time, you can't specify a duration.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenanceDuration
+
+An integer indicating the duration of the maintenance window in days. If you specify a duration, you can't specify an end time. The duration must be 45 days or less.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RevisionTarget
+
+The identifier of the database revision. You can retrieve this value from the response to the DescribeClusterDbRevisions request.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ResourceAction
+
+The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster, rotate-encryption-keys APIs
 
 _Required_: No
 
