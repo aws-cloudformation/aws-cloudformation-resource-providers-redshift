@@ -265,8 +265,12 @@
             "type": "string"
         },
         "ResourceAction": {
-            "description": "The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster, rotate-encryption-keys APIs",
+            "description": "The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster APIs",
             "type": "string"
+        },
+        "RotateEncryptionKey": {
+            "description": "A boolean indicating if we want to rotate Encryption Keys.",
+            "type": "boolean"
         }
     },
     "additionalProperties": false,

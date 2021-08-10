@@ -187,17 +187,17 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean issueResizeClusterRequest(ResourceModel prevModel, ResourceModel model) {
-    return ObjectUtils.notEqual(prevModel.getNodeType(), model.getNodeType()) ||
+    return  ObjectUtils.notEqual(prevModel.getNodeType(), model.getNodeType()) ||
             ObjectUtils.notEqual(prevModel.getNumberOfNodes(), model.getNumberOfNodes()) ||
             ObjectUtils.notEqual(prevModel.getClusterType(), model.getClusterType());
   }
 
   protected boolean issueModifyClusterMaintenanceRequest(ResourceModel prevModel, ResourceModel model) {
-    return ObjectUtils.allNotNull(model.getDeferMaintenance()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceDuration()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceStartTime()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceEndTime()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceIdentifier());
+    return  ObjectUtils.notEqual(model.getDeferMaintenance(), prevModel.getDeferMaintenance()) ||
+            ObjectUtils.notEqual(model.getDeferMaintenanceDuration(), prevModel.getDeferMaintenanceDuration()) ||
+            ObjectUtils.notEqual(model.getDeferMaintenanceStartTime(), prevModel.getDeferMaintenanceStartTime()) ||
+            ObjectUtils.notEqual(model.getDeferMaintenanceEndTime(), prevModel.getDeferMaintenanceEndTime()) ||
+            ObjectUtils.notEqual(model.getDeferMaintenanceIdentifier(), prevModel.getDeferMaintenanceIdentifier());
   }
 
   // check for required parameters to not have null values

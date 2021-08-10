@@ -59,7 +59,8 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
-                    if (model.getResourceAction() != null && RESUME_CLUSTER.equals(model.getResourceAction()) && isClusterPaused(proxyClient, model, callbackContext)) {
+                    if (model.getResourceAction() != null && RESUME_CLUSTER.equals(model.getResourceAction()) &&
+                            PAUSE_CLUSTER.equals(request.getPreviousResourceState().getResourceAction())) {
                         return proxy.initiate("AWS-Redshift-Cluster::ResumeCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToResumeClusterRequest)
                                 .makeServiceCall(this::resumeCluster)
@@ -206,7 +207,7 @@ public class UpdateHandler extends BaseHandlerStd {
 
                 .then(progress -> {
                     if(ObjectUtils.allNotNull(model.getRevisionTarget()) && !request.getPreviousResourceState().getRevisionTarget().equals(model.getRevisionTarget())) {
-                        return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster-ModifyClusterDbRevision", proxyClient, model, callbackContext)
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterDbRevision", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToModifyClusterDbRevisionRequest)
                                 .makeServiceCall(this::modifyClusterDbRevision)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterPatched(_client, _model, _context))
@@ -247,8 +248,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if(model.getResourceAction() != null && ROTATE_ENCRYPTION_KEY.equals(model.getResourceAction()) &&
-                            !model.getResourceAction().equals(request.getPreviousResourceState().getResourceAction())) {
+                    if(model.getRotateEncryptionKey() != null && model.getRotateEncryptionKey()) {
                         return proxy.initiate("AWS-Redshift-Cluster::RotateEncryptionKey", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToRotateEncryptionKeyRequest)
                                 .makeServiceCall(this::rotateEncryptionKey)
