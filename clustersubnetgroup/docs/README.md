@@ -67,7 +67,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 ### Ref
 
-When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the SubnetGroupName.
+When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the ClusterSubnetGroupName.
 
 ### Fn::GetAtt
 
@@ -75,6 +75,6 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### SubnetGroupName
+#### ClusterSubnetGroupName
 
 This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be "Default".

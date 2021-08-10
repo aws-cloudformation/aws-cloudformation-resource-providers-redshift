@@ -65,7 +65,7 @@ public class TestUtils {
 
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
             .description(DESCRIPTION)
-            .subnetGroupName(SUBNET_GROUP_NAME)
+            .clusterSubnetGroupName(SUBNET_GROUP_NAME)
             .subnetIds(SUBNET_IDS)
             .tags(TAGS)
             .build();
