@@ -54,7 +54,7 @@ public class UpdateHandler extends BaseHandlerStd {
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
                         .makeServiceCall((modifyRequest, proxyInvocation) -> {
                             //Base on contract_update_non_existent_resource contract test
-                            if (StringUtils.isNullOrEmpty(model.getSubnetGroupName())){
+                            if (StringUtils.isNullOrEmpty(model.getClusterSubnetGroupName())){
                                 return ProgressEvent.defaultFailureHandler(
                                         new Exception("SubnetGroupName in update handler cannot be null"), HandlerErrorCode.NotFound);
                             }
@@ -100,7 +100,7 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (final InvalidTagException | TagLimitExceededException e) {
             throw new CfnGeneralServiceException("updateTagging", e);
         } catch (final ResourceNotFoundException e) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getSubnetGroupName());
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, request.getDesiredResourceState().getClusterSubnetGroupName());
         }
         return progress;
     }
