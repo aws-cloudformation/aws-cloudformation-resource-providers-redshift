@@ -164,21 +164,12 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if (issueResizeClusterRequest(request.getPreviousResourceState(), model)) {
-                        return proxy.initiate("AWS-Redshift-Cluster::ResizeCluster", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator:: translateToResizeClusterRequest)
-                                .backoffDelay(BACKOFF_STRATEGY)
-                                .makeServiceCall(this::resizeCluster)
+                    if (issueModifyClusterMaintenanceRequest(request.getPreviousResourceState(), model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterMaintenance", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator:: translateToModifyClusterMaintenanceRequest)
+                                .makeServiceCall(this::modifyClusterMaintenance)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                .done((_request, _response, _client, _model, _context) -> {
-                                    logger.log(String.format("Resize Cluster complete. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
-                                    if(!callbackContext.getCallBackAfterResize()) {
-                                        callbackContext.setCallBackAfterResize(true);
-                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Resize Cluster.");
-                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
-                                    }
-                                    return ProgressEvent.progress(_model, callbackContext);
-                                });
+                                .progress();
                     }
                     return progress;
                 })
@@ -195,23 +186,32 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if (issueModifyClusterMaintenanceRequest(request.getPreviousResourceState(), model)) {
-                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterMaintenance", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator:: translateToModifyClusterMaintenanceRequest)
-                                .makeServiceCall(this::modifyClusterMaintenance)
-                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                .progress();
-                    }
-                    return progress;
-                })
-
-                .then(progress -> {
                     if(ObjectUtils.allNotNull(model.getRevisionTarget()) && !request.getPreviousResourceState().getRevisionTarget().equals(model.getRevisionTarget())) {
                         return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterDbRevision", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToModifyClusterDbRevisionRequest)
                                 .makeServiceCall(this::modifyClusterDbRevision)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterPatched(_client, _model, _context))
                                 .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if (issueResizeClusterRequest(request.getPreviousResourceState(), model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ResizeCluster", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator:: translateToResizeClusterRequest)
+                                .backoffDelay(BACKOFF_STRATEGY)
+                                .makeServiceCall(this::resizeCluster)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    logger.log(String.format("Resize Cluster complete. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
+                                    if(!callbackContext.getCallBackAfterResize()) {
+                                        callbackContext.setCallBackAfterResize(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Resize Cluster.");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
                     }
                     return progress;
                 })
