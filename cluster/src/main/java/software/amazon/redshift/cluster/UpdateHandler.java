@@ -35,14 +35,16 @@ public class UpdateHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
-
-        boolean clusterExists = doesClusterExist(proxyClient, model, model.getClusterIdentifier());
-        if(!clusterExists) {
-            return ProgressEvent.<ResourceModel, CallbackContext>builder()
-                    .status(OperationStatus.FAILED)
-                    .errorCode(HandlerErrorCode.NotFound)
-                    .message(String.format("Cluster %s Not Found %s", model.getClusterIdentifier(),HandlerErrorCode.NotFound.getMessage()))
-                    .build();
+        if (!callbackContext.getClusterExistsCheck()) {
+            boolean clusterExists = doesClusterExist(proxyClient, model, model.getClusterIdentifier());
+            callbackContext.setClusterExistsCheck(true);
+                if(!clusterExists) {
+                    return ProgressEvent.<ResourceModel, CallbackContext>builder()
+                            .status(OperationStatus.FAILED)
+                            .errorCode(HandlerErrorCode.NotFound)
+                            .message(String.format("Cluster %s Not Found %s", model.getClusterIdentifier(),HandlerErrorCode.NotFound.getMessage()))
+                            .build();
+            }
         }
 
         //Redshift is Driftable
@@ -137,7 +139,8 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if (model.getDestinationRegion() == null && isCrossRegionCopyEnabled(proxyClient, model)) {
+                    if (model.getDestinationRegion() == null && ObjectUtils.anyNotNull(request.getPreviousResourceState().getDestinationRegion())
+                            && isCrossRegionCopyEnabled(proxyClient, model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::DisableSnapshotCopy", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToDisableSnapshotRequest)
                                 .makeServiceCall(this::disableSnapshotCopy)
@@ -180,18 +183,15 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(Translator:: translateToModifyAquaConfigurationRequest)
                                 .makeServiceCall(this::modifyAquaConfiguration)
                                 .stabilize((_request, _response, _client, _model, _context) -> isAquaConfigurationStatusApplied(_client, _model, _context))
-                                .progress();
-                    }
-                    return progress;
-                })
-
-                .then(progress -> {
-                    if(ObjectUtils.allNotNull(model.getRevisionTarget()) && !request.getPreviousResourceState().getRevisionTarget().equals(model.getRevisionTarget())) {
-                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterDbRevision", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator::translateToModifyClusterDbRevisionRequest)
-                                .makeServiceCall(this::modifyClusterDbRevision)
-                                .stabilize((_request, _response, _client, _model, _context) -> isClusterPatched(_client, _model, _context))
-                                .progress();
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    if(!callbackContext.getCallbackAfterAquaModify()) {
+                                        logger.log(String.format("Update Aqua Configuration done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
+                                        callbackContext.setCallbackAfterAquaModify(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Modify Aqua Configuration.");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
                     }
                     return progress;
                 })
@@ -237,7 +237,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if (issueModifyClusterRequest(request.getPreviousResourceState(), model) && isRebootRequired(model, proxyClient)) {
+                    if ((issueModifyClusterRequest(request.getPreviousResourceState(), model) && isRebootRequired(model, proxyClient)) || isAQUAStatusApplying(model, proxyClient)){
                         return proxy.initiate("AWS-Redshift-Cluster::RebootCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator::translateToRebootClusterRequest)
                                 .makeServiceCall(this::rebootCluster)

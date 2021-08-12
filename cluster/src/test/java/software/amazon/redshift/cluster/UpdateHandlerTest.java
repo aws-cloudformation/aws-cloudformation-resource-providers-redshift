@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
@@ -254,9 +255,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
+//                .thenReturn(DescribeClustersResponse.builder()
+//                        .clusters(existingCluster)
+//                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled)
                         .build())
