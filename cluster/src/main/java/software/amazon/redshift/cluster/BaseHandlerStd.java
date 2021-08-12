@@ -48,10 +48,18 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected  final String PARAMETER_GROUP_STATUS_PENDING_REBOOT = "pending-reboot";
   protected final String PARAMETER_GROUP_STATUS_IN_SYNC = "in-sync";
   protected final String CLUSTER_STATUS_AVAILABLE = "available";
+  protected final String CLUSTER_STATUS_PAUSED = "paused";
+  protected final String CLUSTER_STATUS_RESUME = "resume";
   protected final String AQUA_STATUS_APPLYING = "applying";
   protected final int CALLBACK_DELAY_SECONDS = 30;
+  private static boolean IS_CLUSTER_PATCHED = false;
+  private final static int MAX_RETRIES_FOR_AQUA_CHECK = 6;
+
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
+  protected static final String PAUSE_CLUSTER = "pause-cluster";
+  protected static final String RESUME_CLUSTER = "resume-cluster";
+  protected static final String ROTATE_ENCRYPTION_KEY = "rotate-encryption-key";
 
   protected static final Constant CREATE_BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofMinutes(60L)).delay(Duration.ofSeconds(5L)).build();
@@ -143,27 +151,46 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean isAquaConfigurationStatusApplied (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-    DescribeClustersRequest awsRequest =
-            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
-    DescribeClustersResponse awsResponse =
-            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+    DescribeClustersRequest awsRequest = null;
+    DescribeClustersResponse awsResponse = null;
+    if (cxt.getRetryForAquaStabilize() < MAX_RETRIES_FOR_AQUA_CHECK) {
+      cxt.setRetryForAquaStabilize(cxt.getRetryForAquaStabilize() + 1);
+      return false;
+    }
+    try {
+      awsRequest = DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+      awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
-    List<Cluster> clusters = awsResponse.clusters();
-    if(!CollectionUtils.isNullOrEmpty(clusters)) {
-      AquaConfiguration aquaConfiguration = clusters.get(0).aquaConfiguration();
-      if (ObjectUtils.allNotNull(aquaConfiguration)) {
-        return !AQUA_STATUS_APPLYING.equals(aquaConfiguration.aquaStatusAsString());
+      List<Cluster> clusters = awsResponse.clusters();
+      if(!CollectionUtils.isNullOrEmpty(clusters)) {
+        AquaConfiguration aquaConfiguration = clusters.get(0).aquaConfiguration();
+
+        if (ObjectUtils.allNotNull(aquaConfiguration)) {
+          return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus());
+        }
       }
+    }
+    catch (final RedshiftException e) {
+      if (e.awsErrorDetails().errorCode().equals("InternalFailure") ||
+              e.awsErrorDetails().errorMessage().contains("An internal error has occurred"))
+        return false;
     }
     return false;
   }
 
   protected boolean issueResizeClusterRequest(ResourceModel prevModel, ResourceModel model) {
-    return ObjectUtils.notEqual(prevModel.getNodeType(), model.getNodeType()) ||
+    return  ObjectUtils.notEqual(prevModel.getNodeType(), model.getNodeType()) ||
             ObjectUtils.notEqual(prevModel.getNumberOfNodes(), model.getNumberOfNodes()) ||
             ObjectUtils.notEqual(prevModel.getClusterType(), model.getClusterType());
   }
 
+  protected boolean issueModifyClusterMaintenanceRequest(ResourceModel prevModel, ResourceModel model) {
+    return ObjectUtils.allNotNull(model.getDeferMaintenance()) ||
+            ObjectUtils.allNotNull(model.getDeferMaintenanceDuration()) ||
+            ObjectUtils.allNotNull(model.getDeferMaintenanceStartTime()) ||
+            ObjectUtils.allNotNull(model.getDeferMaintenanceEndTime()) ||
+            ObjectUtils.allNotNull(model.getDeferMaintenanceIdentifier());
+  }
 
   // check for required parameters to not have null values
   protected boolean invalidCreateClusterRequest(ResourceModel model) {
@@ -285,6 +312,32 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(clusters.get(0).clusterParameterGroups().get(0)
                 .parameterApplyStatus());
       }
+    }
+    return false;
+  }
+
+  protected boolean isAQUAStatusApplying(ResourceModel model, ProxyClient<RedshiftClient> proxyClient) {
+    List<Cluster> clusters = proxyClient.injectCredentialsAndInvokeV2(
+            Translator.translateToDescribeClusterRequest(model), proxyClient.client()::describeClusters)
+            .clusters();
+    if (!CollectionUtils.isNullOrEmpty(clusters)) {
+      AquaConfiguration aquaConfiguration = clusters.get(0).aquaConfiguration();
+      if (ObjectUtils.allNotNull(aquaConfiguration)) {
+        return AQUA_STATUS_APPLYING.equals(aquaConfiguration.aquaStatusAsString());
+      }
+    }
+    return false;
+  }
+
+  protected boolean isClusterPaused (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    DescribeClustersRequest awsRequest =
+            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
+    DescribeClustersResponse awsResponse =
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+
+    List<Cluster> clusters = awsResponse.clusters();
+    if(!CollectionUtils.isNullOrEmpty(clusters)) {
+      return CLUSTER_STATUS_PAUSED.equals(awsResponse.clusters().get(0).clusterStatus());
     }
     return false;
   }

@@ -239,6 +239,38 @@
         "MaintenanceTrackName": {
             "description": "The name for the maintenance track that you want to assign for the cluster. This name change is asynchronous. The new track name stays in the PendingModifiedValues for the cluster until the next maintenance window. When the maintenance track changes, the cluster is switched to the latest cluster release available for the maintenance track. At this point, the maintenance track name is applied.",
             "type": "string"
+        },
+        "DeferMaintenance": {
+            "description": "A boolean indicating whether to enable the deferred maintenance window.",
+            "type": "boolean"
+        },
+        "DeferMaintenanceIdentifier": {
+            "description": "A unique identifier for the deferred maintenance window.",
+            "type": "string"
+        },
+        "DeferMaintenanceStartTime": {
+            "description": "A timestamp indicating the start time for the deferred maintenance window.",
+            "type": "string"
+        },
+        "DeferMaintenanceEndTime": {
+            "description": "A timestamp indicating end time for the deferred maintenance window. If you specify an end time, you can't specify a duration.",
+            "type": "string"
+        },
+        "DeferMaintenanceDuration": {
+            "description": "An integer indicating the duration of the maintenance window in days. If you specify a duration, you can't specify an end time. The duration must be 45 days or less.",
+            "type": "integer"
+        },
+        "RevisionTarget": {
+            "description": "The identifier of the database revision. You can retrieve this value from the response to the DescribeClusterDbRevisions request.",
+            "type": "string"
+        },
+        "ResourceAction": {
+            "description": "The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster APIs",
+            "type": "string"
+        },
+        "RotateEncryptionKey": {
+            "description": "A boolean indicating if we want to rotate Encryption Keys.",
+            "type": "boolean"
         }
     },
     "additionalProperties": false,
@@ -283,7 +315,8 @@
             "permissions": [
                 "redshift:DescribeClusters",
                 "redshift:DescribeLoggingStatus",
-                "redshift:DescribeSnapshotCopyGrant"
+                "redshift:DescribeSnapshotCopyGrant",
+                "redshift:DescribeClusterDbRevisions"
             ]
         },
         "update": {
@@ -300,7 +333,13 @@
                 "redshift:DisableSnapshotCopy",
                 "redshift:ModifySnapshotCopyRetentionPeriod",
                 "redshift:ModifyAquaConfiguration",
-                "redshift:ResizeCluster"
+                "redshift:ResizeCluster",
+                "redshift:ModifyClusterMaintenance",
+                "redshift:DescribeClusterDbRevisions",
+                "redshift:ModifyClusterDbRevisions",
+                "redshift:PauseCluster",
+                "redshift:ResumeCluster",
+                "redshift:RotateEncryptionKey"
             ],
             "timeoutInMinutes": 2160
         },
