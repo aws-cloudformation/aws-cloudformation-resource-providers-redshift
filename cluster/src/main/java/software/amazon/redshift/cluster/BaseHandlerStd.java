@@ -53,6 +53,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected final String AQUA_STATUS_APPLYING = "applying";
   protected final int CALLBACK_DELAY_SECONDS = 30;
   private static boolean IS_CLUSTER_PATCHED = false;
+  private final static int MAX_RETRIES_FOR_AQUA_CHECK = 6;
 
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
@@ -152,7 +153,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected boolean isAquaConfigurationStatusApplied (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
     DescribeClustersRequest awsRequest = null;
     DescribeClustersResponse awsResponse = null;
-    if (cxt.getRetryForAquaStabilize() < 5) {
+    if (cxt.getRetryForAquaStabilize() < MAX_RETRIES_FOR_AQUA_CHECK) {
       cxt.setRetryForAquaStabilize(cxt.getRetryForAquaStabilize() + 1);
       return false;
     }
@@ -173,27 +174,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       if (e.awsErrorDetails().errorCode().equals("InternalFailure") ||
               e.awsErrorDetails().errorMessage().contains("An internal error has occurred"))
         return false;
-    }
-    return false;
-  }
-
-  protected boolean isClusterPatched (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
-    DescribeClustersRequest awsRequest =
-            DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
-    DescribeClustersResponse awsResponse = proxyClient.injectCredentialsAndInvokeV2(
-            awsRequest, proxyClient.client()::describeClusters);
-    List<Cluster> clusters = awsResponse.clusters();
-    if(!CollectionUtils.isNullOrEmpty(clusters)) {
-      String clusterRevisionNumber = clusters.get(0).clusterRevisionNumber();
-      if(ObjectUtils.allNotNull(clusterRevisionNumber) && clusterRevisionNumber.equals(model.getRevisionTarget())) {
-        return true;
-      }
-      IS_CLUSTER_PATCHED = awsResponse.clusters().get(0).clusterStatus().equals("modifying");
-      if (!IS_CLUSTER_PATCHED) {
-        return false;
-      } else {
-        return isClusterActive(proxyClient, model, cxt);
-      }
     }
     return false;
   }
