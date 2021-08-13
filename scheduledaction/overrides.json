@@ -1,0 +1,14 @@
+{
+  "CREATE": {
+    "/Schedule": "cron(0 20 * * ? *)",
+    "/IamRole": "{{ContractTestRedshiftSchedulerRole}}",
+    "/StartTime": "2050-10-31T00:00:00Z",
+    "/EndTime": "2050-12-01T00:00:00Z"
+  },
+  "UPDATE": {
+    "/Schedule": "cron(0 20 * * ? *)",
+    "/IamRole": "{{ContractTestRedshiftSchedulerRole}}",
+    "/StartTime": "2050-10-31T00:00:00Z",
+    "/EndTime": "2050-12-01T00:00:00Z"
+  }
+}
