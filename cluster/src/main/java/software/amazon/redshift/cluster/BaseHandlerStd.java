@@ -54,6 +54,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected final int CALLBACK_DELAY_SECONDS = 30;
   private static boolean IS_CLUSTER_PATCHED = false;
   private final static int MAX_RETRIES_FOR_AQUA_CHECK = 6;
+  private final static int MAX_RETRIES_FOR_PATCHING_CHECK = 6;
 
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
@@ -176,6 +177,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
         return false;
     }
     return false;
+  }
+
+  protected boolean isClusterPatched(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+    if (cxt.getRetryForPatchingStabilize() < MAX_RETRIES_FOR_PATCHING_CHECK) {
+      cxt.setRetryForPatchingStabilize(cxt.getRetryForPatchingStabilize() + 1);
+      return false;
+    }
+    return isClusterActive(proxyClient,model, cxt);
   }
 
   protected boolean issueResizeClusterRequest(ResourceModel prevModel, ResourceModel model) {

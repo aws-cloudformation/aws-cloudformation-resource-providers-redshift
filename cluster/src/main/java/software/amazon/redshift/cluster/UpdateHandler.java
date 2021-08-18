@@ -178,6 +178,25 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
+                    if(model.getRevisionTarget() != null && !request.getPreviousResourceState().getRevisionTarget().equals(model.getRevisionTarget())) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterDbRevision", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToModifyClusterDbRevisionRequest)
+                                .makeServiceCall(this::modifyClusterDbRevision)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterPatched(_client, _model, _context))
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    if(!callbackContext.getCallbackAfterClusterMaintenance()) {
+                                        logger.log(String.format("Update Cluster Db Revision done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
+                                        callbackContext.setCallbackAfterAquaModify(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Modify Cluster DbRevision.");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
                     if (model.getAquaConfigurationStatus() != null && !model.getAquaConfigurationStatus().equals(request.getPreviousResourceState().getAquaConfigurationStatus())) {
                         return proxy.initiate("AWS-Redshift-Cluster::ModifyAQUAConfiguration", proxyClient, model, callbackContext)
                                 .translateToServiceRequest(Translator:: translateToModifyAquaConfigurationRequest)

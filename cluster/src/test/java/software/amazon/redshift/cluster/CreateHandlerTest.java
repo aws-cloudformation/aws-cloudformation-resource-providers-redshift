@@ -159,6 +159,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .clusters(clusterWithTags)
                         .build());
 
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
@@ -183,6 +186,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     public void testCreateClusterAndEnableLogging() {
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
+                .s3KeyPrefix("test")
                 .build();
         ResourceModel model = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)

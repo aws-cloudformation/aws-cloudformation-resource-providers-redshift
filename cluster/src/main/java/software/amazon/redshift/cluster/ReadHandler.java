@@ -51,8 +51,7 @@ public class ReadHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
-                    if(model.getLoggingProperties() != null) {
-                        return proxy.initiate("AWS-Redshift-Cluster::DescribeLogging", proxyClient, model, callbackContext)
+                        progress = proxy.initiate("AWS-Redshift-Cluster::DescribeLogging", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToDescribeStatusLoggingRequest)
                             .makeServiceCall(this::describeLoggingStatus)
                             .done(enableLoggingResponse -> {
@@ -64,7 +63,6 @@ public class ReadHandler extends BaseHandlerStd {
                                 model.setLoggingProperties(loggingProperties);
                                 return ProgressEvent.progress(model, callbackContext);
                             });
-                    }
                     return progress;
                 })
 
