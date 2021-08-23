@@ -186,7 +186,7 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .done((_request, _response, _client, _model, _context) -> {
                                     if(!callbackContext.getCallbackAfterClusterMaintenance()) {
                                         logger.log(String.format("Update Cluster Db Revision done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
-                                        callbackContext.setCallbackAfterAquaModify(true);
+                                        callbackContext.setCallbackAfterClusterMaintenance(true);
                                         logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Modify Cluster DbRevision.");
                                         return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
                                     }
