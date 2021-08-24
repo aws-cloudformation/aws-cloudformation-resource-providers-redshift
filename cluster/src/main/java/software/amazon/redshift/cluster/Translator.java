@@ -115,10 +115,13 @@ public class Translator {
    * @return awsRequest the aws service request to create a resource
    */
   static EnableLoggingRequest translateToEnableLoggingRequest(final ResourceModel model) {
+    String s3KeyPrefix = model.getLoggingProperties().getS3KeyPrefix().lastIndexOf("/")
+            == model.getLoggingProperties().getS3KeyPrefix().length() - 1 ? model.getLoggingProperties().getS3KeyPrefix()
+            : model.getLoggingProperties().getS3KeyPrefix() + "/";
     return EnableLoggingRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .bucketName(model.getLoggingProperties().getBucketName())
-            .s3KeyPrefix(model.getLoggingProperties().getS3KeyPrefix())
+            .s3KeyPrefix(s3KeyPrefix)
             .build();
   }
 
@@ -474,9 +477,10 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    List<String> clusterParameterGroupName = clusterParameterGroups.stream().map(
-            clusterParameterGroupStatus -> clusterParameterGroupStatus.parameterGroupName()).
-            collect(Collectors.toList());
+    List<String> clusterParameterGroupName = streamOfOrEmpty(clusterParameterGroups)
+            .map(ClusterParameterGroupStatus::parameterGroupName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
     final String clusterSubnetGroupName = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSubnetGroupName)
@@ -565,7 +569,7 @@ public class Translator {
             .iamRoles(translateIamRolesFromSdk(iamRoles))
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
             .clusterParameterGroupName(!CollectionUtils.isNullOrEmpty(clusterParameterGroupName)
-                    ? clusterParameterGroupName.toString() : null)
+                    ? clusterParameterGroupName.get(0) : null)
             .clusterSubnetGroupName(clusterSubnetGroupName)
             .dBName(dbName)
             .elasticIp(elasticIp != null ? elasticIp.elasticIp() : null)

@@ -116,6 +116,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
+                .s3KeyPrefix("test")
                 .build();
 
         ResourceModel previousModel = ResourceModel.builder()
@@ -274,7 +275,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
-                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).build());
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).build())
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
 
         when(proxyClient.client().disableLogging(any(DisableLoggingRequest.class)))
                 .thenReturn(DisableLoggingResponse.builder().build());
@@ -299,7 +301,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         assertThat(response.getResourceModel().getTags()).isEqualTo(request.getDesiredResourceState().getTags());
         assertThat(response.getResourceModel().getIamRoles()).isEqualTo(request.getDesiredResourceState().getIamRoles());
-        assertThat(response.getResourceModel().getLoggingProperties()).isNull();
+        assertThat(response.getResourceModel().getLoggingProperties().getBucketName()).isNull();
+        assertThat(response.getResourceModel().getLoggingProperties().getS3KeyPrefix()).isNull();
         assertThat(response.getResourceModel().getNumberOfNodes()).isEqualTo(previousModel.getNumberOfNodes()*2);
 
         assertThat(response.getResourceModels()).isNull();
@@ -350,6 +353,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
+                .s3KeyPrefix("test/")
                 .build();
 
         ResourceModel updateModel = ResourceModel.builder()
@@ -486,7 +490,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
         when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
-                .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
+                .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).s3KeyPrefix("test/").build());
 
         when(proxyClient.client().resizeCluster(any(ResizeClusterRequest.class)))
                 .thenReturn(ResizeClusterResponse.builder()
@@ -503,6 +507,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeLoggingStatusResponse.builder()
                         .loggingEnabled(true)
                         .bucketName(BUCKET_NAME)
+                        .s3KeyPrefix("test/")
                         .build());
         //call back
         response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);

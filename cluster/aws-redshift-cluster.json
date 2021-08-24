@@ -286,6 +286,7 @@
     ],
     "readOnlyProperties": [
         "/properties/Id",
+        "/properties/DeferMaintenanceIdentifier",
         "/properties/Endpoint/Port",
         "/properties/Endpoint/Address"
     ],
