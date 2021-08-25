@@ -59,7 +59,7 @@ public class Validator {
     }
 
     static boolean satisfiesEndpointConstraints(String endpointName) {
-        return endpointName.matches(ENDPOINT_NAME_REGEX) && endpointName.length() < 30;
+        return endpointName.matches(ENDPOINT_NAME_REGEX) && endpointName.length() <= 30;
     }
 
     static void validateDeleteRequest(@NonNull ResourceModel resourceModel, @NonNull Logger logger)
