@@ -14,7 +14,7 @@ The code uses [Lombok](https://projectlombok.org/), and [you may have to install
 3. Run the contract test in your local
    1. Initiate a SAM local virtual environment. Type in the following command to your terminal. Note: SAM local command will occupy the terminal window.
     ```bash
-    sam local start-lambda   
+    sam local start-lambda
     ```
    2. Perform the contract test
     ```bash

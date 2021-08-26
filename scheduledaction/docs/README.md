@@ -146,4 +146,3 @@ The state of the scheduled action.
 #### NextInvocations
 
 List of times when the scheduled action will run.
-

@@ -21,4 +21,3 @@ Resources:
       Handler: software.amazon.redshift.scheduledaction.HandlerWrapper::testEntrypoint
       Runtime: java8
       CodeUri: ./target/aws-redshift-scheduledaction-handler-1.0-SNAPSHOT.jar
-
