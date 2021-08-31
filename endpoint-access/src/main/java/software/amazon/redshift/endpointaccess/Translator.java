@@ -1,13 +1,5 @@
 package software.amazon.redshift.endpointaccess;
 
-import software.amazon.awssdk.services.redshift.model.CreateEndpointAccessRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteEndpointAccessRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessResponse;
-import software.amazon.awssdk.services.redshift.model.EndpointAccess;
-import software.amazon.awssdk.services.redshift.model.ModifyEndpointAccessRequest;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -16,6 +8,13 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import software.amazon.awssdk.services.redshift.model.CreateEndpointAccessRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteEndpointAccessRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessResponse;
+import software.amazon.awssdk.services.redshift.model.EndpointAccess;
+import software.amazon.awssdk.services.redshift.model.ModifyEndpointAccessRequest;
+import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 
 /**
  * This class is a centralized placeholder for
@@ -38,7 +37,7 @@ public class Translator {
                 .resourceOwner(model.getResourceOwner())
                 .endpointName(model.getEndpointName())
                 .subnetGroupName(model.getSubnetGroupName())
-                .vpcSecurityGroupIds(new ArrayList<>(model.getVpcSecurityGroupIds()))
+                .vpcSecurityGroupIds(copyList(model.getVpcSecurityGroupIds()))
                 .build();
     }
 
@@ -171,7 +170,7 @@ public class Translator {
     static ModifyEndpointAccessRequest translateToUpdateRequest(final ResourceModel model) {
         return ModifyEndpointAccessRequest.builder()
                 .endpointName(model.getEndpointName())
-                .vpcSecurityGroupIds(new ArrayList<>(model.getVpcSecurityGroupIds()))
+                .vpcSecurityGroupIds(copyList(model.getVpcSecurityGroupIds()))
                 .build();
     }
 
@@ -206,5 +205,13 @@ public class Translator {
         return Optional.ofNullable(collection)
                 .map(Collection::stream)
                 .orElseGet(Stream::empty);
+    }
+
+    private static List<String> copyList(List<String> originalList) {
+        if (originalList == null) {
+            return null;
+        }
+
+        return new ArrayList<>(originalList);
     }
 }
