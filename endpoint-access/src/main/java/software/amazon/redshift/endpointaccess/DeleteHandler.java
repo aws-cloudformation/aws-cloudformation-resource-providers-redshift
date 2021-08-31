@@ -68,9 +68,9 @@ public class DeleteHandler extends BaseHandlerStd {
                     e
             );
         } catch (ClusterNotFoundException e) {
-              throw new CfnInvalidRequestException(deleteRequest.toString(), e);
+              throw new CfnInvalidRequestException(e);
         } catch (Exception e) { // InvalidClusterSecurityGroupStateFault, InvalidClusterStateFault
-            throw new CfnGeneralServiceException(deleteRequest.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         return response;

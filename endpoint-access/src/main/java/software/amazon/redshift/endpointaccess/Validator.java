@@ -21,6 +21,7 @@ import java.util.Map;
 
 public class Validator {
     static String ENDPOINT_NAME_REGEX = "[a-z][a-z0-9]*(-[a-z0-9]+)*";
+    static String ENDPOINT_NAME_MISSING_MESSAGE = "EndpointName must be specified.";
 
     static void logFieldsCheck(List<String> requiredFields,
                                ResourceModel resourceModel,
@@ -44,11 +45,11 @@ public class Validator {
 
         // Required fields: EndpointName, SubnetGroupName
         if (isEmpty(endpointName)) {
-            throw new CfnInvalidRequestException(resourceModel.toString());
+            throw new CfnInvalidRequestException(ENDPOINT_NAME_MISSING_MESSAGE);
         }
 
         if (isEmpty(resourceModel.getSubnetGroupName())) {
-            throw new CfnInvalidRequestException(resourceModel.toString());
+            throw new CfnInvalidRequestException("SubnetGroupName must be specified.");
         }
 
         // Validate the endpoint name
@@ -67,7 +68,7 @@ public class Validator {
         logFieldsCheck(Arrays.asList("EndpointName"), resourceModel, "DELETE", logger);
 
         if (isEmpty(resourceModel.getEndpointName())) {
-            throw new CfnInvalidRequestException(resourceModel.toString());
+            throw new CfnInvalidRequestException(ENDPOINT_NAME_MISSING_MESSAGE);
         }
     }
 
@@ -75,7 +76,7 @@ public class Validator {
         logFieldsCheck(Arrays.asList("EndpointName"), resourceModel, "READ", logger);
 
         if (isEmpty(resourceModel.getEndpointName())) {
-            throw new CfnInvalidRequestException(resourceModel.toString());
+            throw new CfnInvalidRequestException(ENDPOINT_NAME_MISSING_MESSAGE);
         }
     }
 
@@ -100,7 +101,7 @@ public class Validator {
 
         String endpointName = resourceModel.getEndpointName();
         if (isEmpty(endpointName)) {
-            throw new CfnInvalidRequestException(resourceModel.toString());
+            throw new CfnInvalidRequestException(ENDPOINT_NAME_MISSING_MESSAGE);
         }
 
         DescribeEndpointAccessRequest describeEndpointAccessRequest = DescribeEndpointAccessRequest.builder()
