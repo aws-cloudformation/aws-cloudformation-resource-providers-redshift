@@ -29,7 +29,7 @@ public class ListHandler extends BaseHandler<CallbackContext> {
         this.logger = logger;
         DescribeScheduledActionsRequest awsRequest = Translator.translateToListRequest(request.getNextToken());
         DescribeScheduledActionsResponse awsResponse = listScheduledActions(awsRequest, proxy);
-        List<ResourceModel> models = Translator.translateFromListResponse(awsResponse);
+        List<ResourceModel> models = Translator.translateFromListRequest(awsResponse);
 
         return ProgressEvent.<ResourceModel, CallbackContext>builder()
                 .resourceModels(models)

@@ -61,8 +61,22 @@ public class Translator {
      * @return model resource model
      */
     static ResourceModel translateFromReadResponse(final DescribeScheduledActionsResponse awsResponse) {
-        return translateFromListResponse(awsResponse)
+        return awsResponse.scheduledActions()
                 .stream()
+                .map(scheduledAction -> ResourceModel.builder()
+                        .scheduledActionName(scheduledAction.scheduledActionName())
+                        .targetAction(translateToModelTargetAction(scheduledAction.targetAction()))
+                        .schedule(scheduledAction.schedule())
+                        .iamRole(scheduledAction.iamRole())
+                        .scheduledActionDescription(scheduledAction.scheduledActionDescription())
+                        .startTime(scheduledAction.startTime() == null ? null : scheduledAction.startTime().toString())
+                        .endTime(scheduledAction.endTime() == null ? null : scheduledAction.endTime().toString())
+                        .state(scheduledAction.state() == null ? null : scheduledAction.state().toString())
+                        .nextInvocations(scheduledAction.nextInvocations()
+                                .stream()
+                                .map(Instant::toString)
+                                .collect(Collectors.toList()))
+                        .build())
                 .findAny()
                 .orElse(ResourceModel.builder().build());
     }
@@ -116,22 +130,11 @@ public class Translator {
      * @param awsResponse the aws service describe resource response
      * @return list of resource models
      */
-    static List<ResourceModel> translateFromListResponse(final DescribeScheduledActionsResponse awsResponse) {
+    static List<ResourceModel> translateFromListRequest(final DescribeScheduledActionsResponse awsResponse) {
         return awsResponse.scheduledActions()
                 .stream()
                 .map(scheduledAction -> ResourceModel.builder()
                         .scheduledActionName(scheduledAction.scheduledActionName())
-                        .targetAction(translateToModelTargetAction(scheduledAction.targetAction()))
-                        .schedule(scheduledAction.schedule())
-                        .iamRole(scheduledAction.iamRole())
-                        .scheduledActionDescription(scheduledAction.scheduledActionDescription())
-                        .startTime(scheduledAction.startTime() == null ? null : scheduledAction.startTime().toString())
-                        .endTime(scheduledAction.endTime() == null ? null : scheduledAction.endTime().toString())
-                        .state(scheduledAction.state() == null ? null : scheduledAction.state().toString())
-                        .nextInvocations(scheduledAction.nextInvocations()
-                                .stream()
-                                .map(Instant::toString)
-                                .collect(Collectors.toList()))
                         .build())
                 .collect(Collectors.toList());
     }

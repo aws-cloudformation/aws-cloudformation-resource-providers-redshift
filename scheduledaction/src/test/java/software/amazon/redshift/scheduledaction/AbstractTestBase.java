@@ -216,6 +216,8 @@ public class AbstractTestBase {
     }
 
     public static List<ResourceModel> getListResponsesResourceModel() {
-        return Collections.singletonList(getReadResponseResourceModel());
+        return Collections.singletonList(ResourceModel.builder()
+                .scheduledActionName(SCHEDULED_ACTION_NAME)
+                .build());
     }
 }
