@@ -28,7 +28,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 
 Describes a pause cluster operation. For example, a scheduled action to run the `ResizeCluster` API operation.
 
-_Required_: Yes
+_Required_: No
 
 _Type_: <a href="resizeclustermessage.md">ResizeClusterMessage</a>
 
@@ -38,7 +38,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 Describes a resize cluster operation. For example, a scheduled action to run the `PauseCluster` API operation.
 
-_Required_: Yes
+_Required_: No
 
 _Type_: <a href="pauseclustermessage.md">PauseClusterMessage</a>
 
@@ -48,7 +48,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 Describes a resume cluster operation. For example, a scheduled action to run the `ResumeCluster` API operation.
 
-_Required_: Yes
+_Required_: No
 
 _Type_: <a href="resumeclustermessage.md">ResumeClusterMessage</a>
 

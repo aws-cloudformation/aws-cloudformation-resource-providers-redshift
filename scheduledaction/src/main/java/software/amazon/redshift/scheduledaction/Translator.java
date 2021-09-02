@@ -7,6 +7,7 @@ import software.amazon.awssdk.services.redshift.model.DeleteScheduledActionReque
 import software.amazon.awssdk.services.redshift.model.DescribeScheduledActionsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeScheduledActionsResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyScheduledActionRequest;
+import software.amazon.awssdk.services.redshift.model.ScheduledActionState;
 import software.amazon.awssdk.services.redshift.model.ScheduledActionType;
 
 import java.time.Instant;
@@ -71,6 +72,7 @@ public class Translator {
                         .scheduledActionDescription(scheduledAction.scheduledActionDescription())
                         .startTime(scheduledAction.startTime() == null ? null : scheduledAction.startTime().toString())
                         .endTime(scheduledAction.endTime() == null ? null : scheduledAction.endTime().toString())
+                        .enable(scheduledAction.state() == ScheduledActionState.ACTIVE)
                         .state(scheduledAction.state() == null ? null : scheduledAction.state().toString())
                         .nextInvocations(scheduledAction.nextInvocations()
                                 .stream()

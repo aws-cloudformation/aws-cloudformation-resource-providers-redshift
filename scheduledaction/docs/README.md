@@ -19,7 +19,7 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#scheduledactiondescription" title="ScheduledActionDescription">ScheduledActionDescription</a>" : <i>String</i>,
         "<a href="#starttime" title="StartTime">StartTime</a>" : <i>String</i>,
         "<a href="#endtime" title="EndTime">EndTime</a>" : <i>String</i>,
-        "<a href="#enable" title="Enable">Enable</a>" : <i>Boolean</i>
+        "<a href="#enable" title="Enable">Enable</a>" : <i>Boolean</i>,
     }
 }
 </pre>
@@ -69,8 +69,6 @@ _Required_: No
 
 _Type_: String
 
-_Pattern_: <code>^(at\((19[7-9][0-9]|2[0-1][0-9][0-9])\-(0[1-9]|1[0-2])\-(0[1-9]|[1-2][0-9]|3[0-1])T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])\)|(cron\(([0-9]|[1-5][0-9]|\*)([,|\-|\/]([0-9]|[1-5][0-9]))*\s+([0-9]|1[0-9]|2[0-3]|\*)([,|\-|\/]([0-9]|[1-5][0-9]))*\s+([1-9]|[1-2][0-9]|3[0-1]|\*|\?)(([,|\-|\/]([1-9]|[1-2][0-9]|3[0-1]))|(L|W))*\s+([1-9]|1[0-2]|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|\*)([,|\-|\/]([1-9]|1[0-2]|JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC))*\s+([1-7]|MON|TUE|WED|THU|FRI|SAT|SUN|\*|\?)(([,|\-|*|\/|#]([1-7]|MON|TUE|WED|THU|FRI|SAT|SUN|\*|\?))|L)*\s+(19[7-9][0-9]|2[0-1][0-9][0-9]|\*)([,|\-|\/](19[7-9][0-9]|2[0-1][0-9][0-9]))*\)))$</code>
-
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### IamRole
@@ -80,8 +78,6 @@ The IAM role to assume to run the target action.
 _Required_: No
 
 _Type_: String
-
-_Pattern_: <code>^.+:.+:.+::\d{12}:.+\/.+$</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -103,8 +99,6 @@ _Required_: No
 
 _Type_: String
 
-_Pattern_: <code>^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[1-2][0-9]|3[0-1])T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])Z$</code>
-
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### EndTime
@@ -112,8 +106,6 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 _Required_: No
 
 _Type_: String
-
-_Pattern_: <code>^\d{4}\-(0[1-9]|1[0-2])\-(0[1-9]|[1-2][0-9]|3[0-1])T(0[0-9]|1[0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])Z$</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 

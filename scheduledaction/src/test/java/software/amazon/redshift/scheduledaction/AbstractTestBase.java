@@ -136,7 +136,6 @@ public class AbstractTestBase {
         ResourceModel model = getCreateRequestResourceModel();
         model.setState(STATE.toString());
         model.setNextInvocations(NEXT_INVOCATIONS);
-        model.setEnable(null);
 
         return model;
     }
@@ -169,10 +168,11 @@ public class AbstractTestBase {
                 .schedule(SCHEDULE)
                 .iamRole(IAM_ROLE)
                 .scheduledActionDescription(SCHEDULED_ACTION_DESCRIPTION)
-                .state(STATE.toString())
-                .nextInvocations(NEXT_INVOCATIONS)
                 .startTime(START_TIME.toString())
                 .endTime(END_TIME.toString())
+                .enable(ENABLE)
+                .state(STATE.toString())
+                .nextInvocations(NEXT_INVOCATIONS)
                 .build();
     }
 
