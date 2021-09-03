@@ -1,6 +1,6 @@
 # AWS::Redshift::ScheduledAction ResizeClusterMessage
 
-Describes a pause cluster operation. For example, a scheduled action to run the `ResizeCluster` API operation.
+Describes a resize cluster operation. For example, a scheduled action to run the `ResizeCluster` API operation.
 
 ## Syntax
 
