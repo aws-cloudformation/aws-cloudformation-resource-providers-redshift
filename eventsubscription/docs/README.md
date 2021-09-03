@@ -1,6 +1,6 @@
 # AWS::Redshift::EventSubscription
 
-An example resource schema demonstrating some basic constructs and validation rules.
+The `AWS::Redshift::EventSubscription` resource creates an Amazon Redshift Event Subscription.
 
 ## Syntax
 
