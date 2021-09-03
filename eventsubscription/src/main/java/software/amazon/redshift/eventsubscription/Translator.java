@@ -71,10 +71,7 @@ public class Translator {
                         .eventCategories(eventSubscription.eventCategoriesList())
                         .severity(eventSubscription.severity())
                         .enabled(eventSubscription.enabled())
-                        .tags(eventSubscription.tags() == null ? null : eventSubscription.tags()
-                                .stream()
-                                .map(Translator::translateToModelTag)
-                                .collect(Collectors.toList()))
+                        .tags(translateToModelTags(eventSubscription.tags()))
                         .customerAwsId(eventSubscription.customerAwsId())
                         .custSubscriptionId(eventSubscription.custSubscriptionId())
                         .status(eventSubscription.status())
@@ -144,34 +141,30 @@ public class Translator {
     }
 
     /**
-     * Request to create tags for a resource
+     * Request to update tags for a resource
      *
-     * @param model resource model
-     * @return awsRequest the aws service request to create tags of a resource
+     * @param currentResourceState  the resource model request to update tags
+     * @param previousResourceState the resource model request to delete tags
+     * @return awsRequest the aws service request to update tags of a resource
      */
-    static CreateTagsRequest translateToCreateTagsRequest(final ResourceModel model, final String resourceName) {
-        return CreateTagsRequest.builder()
-                .tags(model == null || model.getTags() == null ? null : model.getTags()
-                        .stream()
-                        .map(Translator::translateToSdkTag)
-                        .collect(Collectors.toList()))
-                .resourceName(resourceName)
-                .build();
-    }
-
-    /**
-     * Request to delete tags for a resource
-     *
-     * @param model resource model
-     * @return awsRequest the aws service request to delete tags of a resource
-     */
-    static DeleteTagsRequest translateToDeleteTagsRequest(final ResourceModel model, final String resourceName) {
-        return DeleteTagsRequest.builder()
-                .tagKeys(model == null || model.getTags() == null ? null : model.getTags()
-                        .stream()
-                        .map(Tag::getKey)
-                        .collect(Collectors.toList()))
-                .resourceName(resourceName)
+    static ModifyTagsRequest translateToUpdateTagsRequest(final ResourceModel currentResourceState,
+                                                          final ResourceModel previousResourceState,
+                                                          final String resourceName) {
+        return ModifyTagsRequest.builder()
+                .createNewTagsRequest(currentResourceState == null || currentResourceState.getTags() == null ? null : CreateTagsRequest.builder()
+                        .tags(currentResourceState.getTags()
+                                .stream()
+                                .map(Translator::translateToSdkTag)
+                                .collect(Collectors.toList()))
+                        .resourceName(resourceName)
+                        .build())
+                .deleteOldTagsRequest(previousResourceState == null || previousResourceState.getTags() == null ? null : DeleteTagsRequest.builder()
+                        .tagKeys(previousResourceState.getTags()
+                                .stream()
+                                .map(Tag::getKey)
+                                .collect(Collectors.toList()))
+                        .resourceName(resourceName)
+                        .build())
                 .build();
     }
 
@@ -188,5 +181,12 @@ public class Translator {
 
     private static Tag translateToModelTag(software.amazon.awssdk.services.redshift.model.Tag tag) {
         return GSON.fromJson(GSON.toJson(tag), Tag.class);
+    }
+
+    private static List<Tag> translateToModelTags(List<software.amazon.awssdk.services.redshift.model.Tag> tags) {
+        return tags == null ? null : tags
+                .stream()
+                .map(Translator::translateToModelTag)
+                .collect(Collectors.toList());
     }
 }

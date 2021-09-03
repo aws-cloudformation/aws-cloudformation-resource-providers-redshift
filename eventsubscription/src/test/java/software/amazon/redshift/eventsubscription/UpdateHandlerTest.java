@@ -59,6 +59,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(requestResourceModel)
+                .previousResourceState(requestResourceModel)
                 .build();
 
         when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class))).thenReturn(null);

@@ -1,10 +1,7 @@
 package software.amazon.redshift.eventsubscription;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
-import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidSubscriptionStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
@@ -41,19 +38,10 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
-                        proxy.initiate("AWS-Redshift-EventSubscription::Update::DeleteTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                                .translateToServiceRequest(resourceModel -> Translator.translateToDeleteTagsRequest(request.getPreviousResourceState(), resourceName))
-                                .makeServiceCall(this::deleteTags)
-                                .handleError(this::deleteTagsErrorHandler)
-                                .progress())
-
-                .then(progress ->
-                        proxy.initiate("AWS-Redshift-EventSubscription::Update::CreateTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                                .translateToServiceRequest(resourceModel -> Translator.translateToCreateTagsRequest(
-                                        resourceModel.getTags() == null ? request.getPreviousResourceState() : resourceModel,
-                                        resourceName))
-                                .makeServiceCall(this::createTags)
-                                .handleError(this::createTagsErrorHandler)
+                        proxy.initiate("AWS-Redshift-EventSubscription::Update::UpdateTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                                .translateToServiceRequest(resourceModel -> Translator.translateToUpdateTagsRequest(resourceModel, request.getPreviousResourceState(), resourceName))
+                                .makeServiceCall(this::updateTags)
+                                .handleError(this::updateTagsErrorHandler)
                                 .progress())
 
                 .then(progress ->
@@ -66,41 +54,29 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
-    private DeleteTagsResponse deleteTags(final DeleteTagsRequest awsRequest,
+    private CreateTagsResponse updateTags(final ModifyTagsRequest awsRequest,
                                           final ProxyClient<RedshiftClient> proxyClient) {
-        DeleteTagsResponse awsResponse;
-        awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::deleteTags);
+        CreateTagsResponse awsResponse = null;
 
-        logger.log(String.format("Delete tags for the resource: %s.", ResourceModel.TYPE_NAME));
-        return awsResponse;
-    }
+        if (awsRequest.getCreateNewTagsRequest() == null) {
+            logger.log(String.format("No tags would be updated for the resource: %s.", ResourceModel.TYPE_NAME));
 
-    private ProgressEvent<ResourceModel, CallbackContext> deleteTagsErrorHandler(final DeleteTagsRequest awsRequest,
-                                                                                 final Exception exception,
-                                                                                 final ProxyClient<RedshiftClient> client,
-                                                                                 final ResourceModel model,
-                                                                                 final CallbackContext context) {
-        if (exception instanceof ResourceNotFoundException) {
-            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
+        } else if (awsRequest.getDeleteOldTagsRequest() == null) {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest.getCreateNewTagsRequest(), proxyClient.client()::createTags);
 
-        } else if (exception instanceof InvalidTagException) {
-            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.InvalidRequest);
+            logger.log(String.format("Create tags for the resource: %s.", ResourceModel.TYPE_NAME));
 
         } else {
-            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.GeneralServiceException);
+            proxyClient.injectCredentialsAndInvokeV2(awsRequest.getDeleteOldTagsRequest(), proxyClient.client()::deleteTags);
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest.getCreateNewTagsRequest(), proxyClient.client()::createTags);
+
+            logger.log(String.format("Update tags for the resource: %s.", ResourceModel.TYPE_NAME));
         }
-    }
 
-    private CreateTagsResponse createTags(final CreateTagsRequest awsRequest,
-                                          final ProxyClient<RedshiftClient> proxyClient) {
-        CreateTagsResponse awsResponse;
-        awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::createTags);
-
-        logger.log(String.format("Create tags for the resource: %s.", ResourceModel.TYPE_NAME));
         return awsResponse;
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> createTagsErrorHandler(final CreateTagsRequest awsRequest,
+    private ProgressEvent<ResourceModel, CallbackContext> updateTagsErrorHandler(final ModifyTagsRequest awsRequest,
                                                                                  final Exception exception,
                                                                                  final ProxyClient<RedshiftClient> client,
                                                                                  final ResourceModel model,
