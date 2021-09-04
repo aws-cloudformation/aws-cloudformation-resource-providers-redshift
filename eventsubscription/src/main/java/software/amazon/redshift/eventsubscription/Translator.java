@@ -8,8 +8,12 @@ import software.amazon.awssdk.services.redshift.model.DeleteEventSubscriptionReq
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEventSubscriptionsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEventSubscriptionsResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyEventSubscriptionRequest;
+import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,7 +42,7 @@ public class Translator {
                 .eventCategories(model.getEventCategories())
                 .severity(model.getSeverity())
                 .enabled(model.getEnabled())
-                .tags(translateToSdkTags(model))
+                .tags(translateToSdkTags(model.getTags()))
                 .build();
     }
 
@@ -141,25 +145,60 @@ public class Translator {
     }
 
     /**
-     * Request to update tags for a resource
+     * Request to read tags for a resource
      *
-     * @param currentResourceState  the resource model request to update tags
-     * @param previousResourceState the resource model request to delete tags
+     * @param resourceName the arn of the requested resource
      * @return awsRequest the aws service request to update tags of a resource
      */
-    static ModifyTagsRequest translateToUpdateTagsRequest(final ResourceModel currentResourceState,
-                                                          final ResourceModel previousResourceState,
+    static DescribeTagsRequest translateToReadTagsRequest(final String resourceName) {
+        return DescribeTagsRequest.builder()
+                .resourceName(resourceName)
+                .build();
+    }
+
+    /**
+     * Translates resource object from sdk into a resource model
+     *
+     * @param awsResponse the aws service describe resource response
+     * @return awsRequest the aws service request to update tags of a resource
+     */
+    static ResourceModel translateFromReadTagsResponse(final DescribeTagsResponse awsResponse) {
+        return ResourceModel.builder()
+                .tags(translateToModelTags(awsResponse.taggedResources()
+                        .stream()
+                        .map(TaggedResource::tag)
+                        .collect(Collectors.toList())))
+                .build();
+    }
+
+    /**
+     * Request to update tags for a resource
+     *
+     * @param desiredResourceState the resource model request to update tags
+     * @param currentResourceState the resource model request to delete tags
+     * @param resourceName         the arn of the requested resource
+     * @return awsRequest the aws service request to update tags of a resource
+     */
+    static ModifyTagsRequest translateToUpdateTagsRequest(final ResourceModel desiredResourceState,
+                                                          final ResourceModel currentResourceState,
                                                           final String resourceName) {
+        List<Tag> newTags = desiredResourceState.getTags() == null ? Collections.emptyList() : desiredResourceState.getTags()
+                .stream()
+                .filter(tag -> currentResourceState.getTags() == null || !currentResourceState.getTags().contains(tag))
+                .collect(Collectors.toList());
+
+        List<Tag> oldTags = currentResourceState.getTags() == null ? Collections.emptyList() : currentResourceState.getTags()
+                .stream()
+                .filter(tag -> desiredResourceState.getTags() == null || !desiredResourceState.getTags().contains(tag))
+                .collect(Collectors.toList());
+
         return ModifyTagsRequest.builder()
-                .createNewTagsRequest(currentResourceState == null || currentResourceState.getTags() == null ? null : CreateTagsRequest.builder()
-                        .tags(currentResourceState.getTags()
-                                .stream()
-                                .map(Translator::translateToSdkTag)
-                                .collect(Collectors.toList()))
+                .createNewTagsRequest(CreateTagsRequest.builder()
+                        .tags(translateToSdkTags(newTags))
                         .resourceName(resourceName)
                         .build())
-                .deleteOldTagsRequest(previousResourceState == null || previousResourceState.getTags() == null ? null : DeleteTagsRequest.builder()
-                        .tagKeys(previousResourceState.getTags()
+                .deleteOldTagsRequest(DeleteTagsRequest.builder()
+                        .tagKeys(oldTags
                                 .stream()
                                 .map(Tag::getKey)
                                 .collect(Collectors.toList()))
@@ -172,8 +211,8 @@ public class Translator {
         return GSON.fromJson(GSON.toJson(tag), software.amazon.awssdk.services.redshift.model.Tag.class);
     }
 
-    public static List<software.amazon.awssdk.services.redshift.model.Tag> translateToSdkTags(final ResourceModel model) {
-        return model.getTags() == null ? null : model.getTags()
+    public static List<software.amazon.awssdk.services.redshift.model.Tag> translateToSdkTags(List<Tag> tags) {
+        return tags == null ? null : tags
                 .stream()
                 .map(Translator::translateToSdkTag)
                 .collect(Collectors.toList());

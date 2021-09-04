@@ -2,6 +2,8 @@ package software.amazon.redshift.eventsubscription;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidSubscriptionStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
@@ -19,6 +21,7 @@ import software.amazon.awssdk.services.redshift.model.SubscriptionSeverityNotFou
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
+import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -38,11 +41,28 @@ public class UpdateHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
+                        proxy.initiate("AWS-Redshift-EventSubscription::Update::ReadTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                                .translateToServiceRequest(resourceModel -> Translator.translateToReadTagsRequest(resourceName))
+                                .makeServiceCall(this::readTags)
+                                .handleError(this::operateTagsErrorHandler)
+                                .done((tagsRequest, tagsResponse, client, model, context) -> ProgressEvent.<ResourceModel, CallbackContext>builder()
+                                        .callbackContext(callbackContext)
+                                        .callbackDelaySeconds(0)
+                                        .resourceModel(Translator.translateFromReadTagsResponse(tagsResponse))
+                                        .status(OperationStatus.IN_PROGRESS)
+                                        .build()))
+
+                .then(progress ->
                         proxy.initiate("AWS-Redshift-EventSubscription::Update::UpdateTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                                .translateToServiceRequest(resourceModel -> Translator.translateToUpdateTagsRequest(resourceModel, request.getPreviousResourceState(), resourceName))
+                                .translateToServiceRequest(resourceModel -> Translator.translateToUpdateTagsRequest(request.getDesiredResourceState(), resourceModel, resourceName))
                                 .makeServiceCall(this::updateTags)
-                                .handleError(this::updateTagsErrorHandler)
-                                .progress())
+                                .handleError(this::operateTagsErrorHandler)
+                                .done((tagsRequest, tagsResponse, client, model, context) -> ProgressEvent.<ResourceModel, CallbackContext>builder()
+                                        .callbackContext(callbackContext)
+                                        .callbackDelaySeconds(0)
+                                        .resourceModel(request.getDesiredResourceState())
+                                        .status(OperationStatus.IN_PROGRESS)
+                                        .build()))
 
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-EventSubscription::Update::UpdateInstance", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
@@ -54,14 +74,23 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
+    private DescribeTagsResponse readTags(final DescribeTagsRequest awsRequest,
+                                          final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeTagsResponse awsResponse;
+        awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeTags);
+
+        logger.log(String.format("%s's tags have successfully been read.", ResourceModel.TYPE_NAME));
+        return awsResponse;
+    }
+
     private CreateTagsResponse updateTags(final ModifyTagsRequest awsRequest,
                                           final ProxyClient<RedshiftClient> proxyClient) {
         CreateTagsResponse awsResponse = null;
 
-        if (awsRequest.getCreateNewTagsRequest() == null) {
+        if (awsRequest.getCreateNewTagsRequest().tags().isEmpty()) {
             logger.log(String.format("No tags would be updated for the resource: %s.", ResourceModel.TYPE_NAME));
 
-        } else if (awsRequest.getDeleteOldTagsRequest() == null) {
+        } else if (awsRequest.getDeleteOldTagsRequest().tagKeys().isEmpty()) {
             awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest.getCreateNewTagsRequest(), proxyClient.client()::createTags);
 
             logger.log(String.format("Create tags for the resource: %s.", ResourceModel.TYPE_NAME));
@@ -76,11 +105,11 @@ public class UpdateHandler extends BaseHandlerStd {
         return awsResponse;
     }
 
-    private ProgressEvent<ResourceModel, CallbackContext> updateTagsErrorHandler(final ModifyTagsRequest awsRequest,
-                                                                                 final Exception exception,
-                                                                                 final ProxyClient<RedshiftClient> client,
-                                                                                 final ResourceModel model,
-                                                                                 final CallbackContext context) {
+    private ProgressEvent<ResourceModel, CallbackContext> operateTagsErrorHandler(final Object awsRequest,
+                                                                                  final Exception exception,
+                                                                                  final ProxyClient<RedshiftClient> client,
+                                                                                  final ResourceModel model,
+                                                                                  final CallbackContext context) {
         if (exception instanceof ResourceNotFoundException) {
             return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
 

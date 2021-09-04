@@ -8,8 +8,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
+import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeEventSubscriptionsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyEventSubscriptionRequest;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -62,8 +64,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .previousResourceState(requestResourceModel)
                 .build();
 
-        when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class))).thenReturn(null);
-        when(proxyClient.client().createTags(any(CreateTagsRequest.class))).thenReturn(null);
+        when(proxyClient.client().describeTags(any(DescribeTagsRequest.class))).thenReturn(DescribeTagsResponse.builder().build());
+        when(proxyClient.client().createTags(any(CreateTagsRequest.class))).thenReturn(CreateTagsResponse.builder().build());
         when(proxyClient.client().modifyEventSubscription(any(ModifyEventSubscriptionRequest.class))).thenReturn(getUpdateResponseSdk());
         when(proxyClient.client().describeEventSubscriptions(any(DescribeEventSubscriptionsRequest.class))).thenReturn(getReadResponseSdk());
 

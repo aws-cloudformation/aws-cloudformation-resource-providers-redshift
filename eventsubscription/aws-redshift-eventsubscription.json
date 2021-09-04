@@ -164,6 +164,7 @@
             "permissions": [
                 "redshift:ModifyEventSubscription",
                 "redshift:CreateTags",
+                "redshift:DescribeTags",
                 "redshift:DeleteTags"
             ]
         },
