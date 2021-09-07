@@ -112,6 +112,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .iamRoles(new LinkedList<String>())
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(tags)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
@@ -157,6 +159,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .clusters(clusterWithTags)
                         .build());
 
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
@@ -181,6 +186,7 @@ public class CreateHandlerTest extends AbstractTestBase {
     public void testCreateClusterAndEnableLogging() {
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
+                .s3KeyPrefix("test")
                 .build();
         ResourceModel model = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -198,6 +204,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(new LinkedList<Tag>())
                 .loggingProperties(loggingProperties)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()

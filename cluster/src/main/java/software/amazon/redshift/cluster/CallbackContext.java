@@ -8,9 +8,14 @@ import software.amazon.cloudformation.proxy.StdCallbackContext;
 @lombok.EqualsAndHashCode(callSuper = true)
 public class CallbackContext extends StdCallbackContext {
     LoggingProperties loggingProperties;
-    int retryCount = 0;
     boolean callBackForReboot = false;
     boolean callBackForDelete = false;
+    boolean callBackAfterResize = false;
+    boolean clusterExistsCheck = false;
+    int retryForAquaStabilize = 0;
+    int retryForPatchingStabilize = 0;
+    boolean callbackAfterAquaModify = false;
+    boolean callbackAfterClusterMaintenance = false;
 
     public void setLoggingProperties(LoggingProperties loggingProperties) {
         this.loggingProperties = loggingProperties;
@@ -24,9 +29,7 @@ public class CallbackContext extends StdCallbackContext {
         this.callBackForReboot = callBackForReboot;
     }
 
-    public boolean getCallBackForReboot() {
-        return callBackForReboot;
-    }
+    public boolean getCallBackForReboot() { return callBackForReboot; }
 
     public void setCallBackForDelete(boolean callBackForDelete) {
         this.callBackForDelete = callBackForDelete;
@@ -35,4 +38,30 @@ public class CallbackContext extends StdCallbackContext {
     public boolean getCallBackForDelete() {
         return callBackForDelete;
     }
+
+    public void setCallBackAfterResize(boolean callBackAfterResize) {
+        this.callBackAfterResize = callBackAfterResize;
+    }
+
+    public boolean getCallBackAfterResize() { return callBackAfterResize; }
+
+    public boolean getClusterExistsCheck() { return this.clusterExistsCheck; }
+
+    public void setClusterExistsCheck(boolean clusterExistsCheck) { this.clusterExistsCheck = clusterExistsCheck; }
+
+    public int getRetryForAquaStabilize() { return this.retryForAquaStabilize; }
+
+    public void setRetryForAquaStabilize(int retryForAquaStabilize) { this.retryForAquaStabilize = retryForAquaStabilize; }
+
+    public boolean getCallbackAfterAquaModify() { return this.callbackAfterAquaModify; }
+
+    public void setCallbackAfterAquaModify(boolean callbackAfterAquaModify) { this.callbackAfterAquaModify = callbackAfterAquaModify; }
+
+    public int getRetryForPatchingStabilize() { return this.retryForPatchingStabilize; }
+
+    public void setRetryForPatchingStabilize(int retryForPatchingStabilize) { this.retryForPatchingStabilize = retryForPatchingStabilize; }
+
+    public boolean getCallbackAfterClusterMaintenance() { return this.callbackAfterClusterMaintenance; }
+
+    public void setCallbackAfterClusterMaintenance(boolean callbackAfterClusterMaintenance) { this.callbackAfterClusterMaintenance = callbackAfterClusterMaintenance; }
 }

@@ -11,6 +11,8 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroup
 import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -70,6 +72,9 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(BASIC_CLUSTER)
                         .build());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
             .desiredResourceState(BASIC_MODEL)
@@ -116,6 +121,9 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(BASIC_CLUSTER)
                         .build());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+
 
         software.amazon.redshift.cluster.Endpoint modelEndpoint = software.amazon.redshift.cluster.Endpoint.builder()
                 .port("1234")
@@ -139,6 +147,8 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .tags(new LinkedList<Tag>())
                 .endpoint(modelEndpoint)
                 .port(1234)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
                 .build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()

@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateSnapshotCopyGrantRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteSnapshotCopyGrantRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
@@ -30,16 +31,23 @@ import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
 import software.amazon.awssdk.services.redshift.model.ModifyAquaConfigurationRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
+import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
+import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -95,6 +103,9 @@ public class Translator {
             .tags(translateTagsToSdk(model.getTags()))
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .aquaConfigurationStatus(model.getAquaConfigurationStatus())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting())
+            .maintenanceTrackName(model.getMaintenanceTrackName())
             .build();
   }
 
@@ -104,10 +115,13 @@ public class Translator {
    * @return awsRequest the aws service request to create a resource
    */
   static EnableLoggingRequest translateToEnableLoggingRequest(final ResourceModel model) {
+    String s3KeyPrefix = model.getLoggingProperties().getS3KeyPrefix().lastIndexOf("/")
+            == model.getLoggingProperties().getS3KeyPrefix().length() - 1 ? model.getLoggingProperties().getS3KeyPrefix()
+            : model.getLoggingProperties().getS3KeyPrefix() + "/";
     return EnableLoggingRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .bucketName(model.getLoggingProperties().getBucketName())
-            .s3KeyPrefix(model.getLoggingProperties().getS3KeyPrefix())
+            .s3KeyPrefix(s3KeyPrefix)
             .build();
   }
 
@@ -157,7 +171,7 @@ public class Translator {
             .destinationRegion(model.getDestinationRegion())
             .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
             .snapshotCopyGrantName(model.getSnapshotCopyGrantName())
-            .retentionPeriod(model.getRetentionPeriod())
+            .retentionPeriod(model.getSnapshotCopyRetentionPeriod())
             .build();
   }
 
@@ -180,8 +194,23 @@ public class Translator {
   static ModifySnapshotCopyRetentionPeriodRequest translateToModifySnapshotCopyRetentionPeriodRequest(final ResourceModel model) {
     return ModifySnapshotCopyRetentionPeriodRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            .retentionPeriod(model.getRetentionPeriod())
-            .manual(model.getManual())
+            .retentionPeriod(model.getSnapshotCopyRetentionPeriod())
+            .manual(model.getSnapshotCopyManual())
+            .build();
+  }
+
+  /**
+   * Request to Resize Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ResizeClusterRequest translateToResizeClusterRequest(final ResourceModel model) {
+    return ResizeClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .clusterType(model.getClusterType())
+            .nodeType(model.getNodeType())
+            .numberOfNodes(model.getNumberOfNodes())
+            .classic(model.getClassic())
             .build();
   }
 
@@ -194,6 +223,34 @@ public class Translator {
     return ModifyAquaConfigurationRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .aquaConfigurationStatus(model.getAquaConfigurationStatus())
+            .build();
+  }
+
+  /**
+   * Request to Modify Cluster Maintenance
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterMaintenanceRequest translateToModifyClusterMaintenanceRequest(final ResourceModel model) {
+    return ModifyClusterMaintenanceRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .deferMaintenance(model.getDeferMaintenance())
+            .deferMaintenanceDuration(model.getDeferMaintenanceDuration())
+            .deferMaintenanceIdentifier(model.getDeferMaintenanceIdentifier())
+            .deferMaintenanceStartTime(model.getDeferMaintenanceStartTime() == null ? null : Instant.parse(model.getDeferMaintenanceStartTime()))
+            .deferMaintenanceEndTime(model.getDeferMaintenanceEndTime() == null ? null : Instant.parse(model.getDeferMaintenanceEndTime()))
+            .build();
+  }
+
+  /**
+   * Request to Modify Cluster Db Revision
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ModifyClusterDbRevisionRequest translateToModifyClusterDbRevisionRequest(final ResourceModel model) {
+    return ModifyClusterDbRevisionRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .revisionTarget(model.getRevisionTarget())
             .build();
   }
 
@@ -261,6 +318,25 @@ public class Translator {
             .build();
   }
 
+  static String translateDeferMaintenanceIdentifierFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    String deferMaintenanceIdentifier= deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceIdentifier).collect(Collectors.joining());
+
+    return StringUtils.isNullOrEmpty(deferMaintenanceIdentifier) ? null : deferMaintenanceIdentifier;
+  }
+
+  static String translateDeferMaintenanceStartTimeFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    final Instant deferMaintenanceStartTime = deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceStartTime).filter(Objects::nonNull).findAny().orElse(null);
+    return deferMaintenanceStartTime == null ? null : deferMaintenanceStartTime.toString();
+  }
+
+  static String translateDeferMaintenanceEndTimeFromSdk (List<DeferredMaintenanceWindow> deferMaintenanceWindows) {
+    final Instant deferMaintenanceEndTime = deferMaintenanceWindows.stream().map(
+            DeferredMaintenanceWindow::deferMaintenanceEndTime).filter(Objects::nonNull).findAny().orElse(null);
+    return deferMaintenanceEndTime == null ? null : deferMaintenanceEndTime.toString();
+  }
+
   /**
    * Request to read a resource
    * @param model resource model
@@ -323,6 +399,12 @@ public class Translator {
 
     final Integer automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final Integer manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::manualSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
@@ -395,9 +477,10 @@ public class Translator {
             .findAny()
             .orElse(null);
 
-    List<String> clusterParameterGroupName = clusterParameterGroups.stream().map(
-            clusterParameterGroupStatus -> clusterParameterGroupStatus.parameterGroupName()).
-            collect(Collectors.toList());
+    List<String> clusterParameterGroupName = streamOfOrEmpty(clusterParameterGroups)
+            .map(ClusterParameterGroupStatus::parameterGroupName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
     final String clusterSubnetGroupName = streamOfOrEmpty(awsResponse.clusters())
             .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSubnetGroupName)
@@ -449,6 +532,25 @@ public class Translator {
 
     final String clusterType = numberOfNodes == null || numberOfNodes < 2 ? CLUSTER_TYPE_SINGLE_NODE : CLUSTER_TYPE_MULTI_NODE;
 
+    final Boolean enhanceVpcRouting = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::enhancedVpcRouting)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String maintenanceTrackName = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::maintenanceTrackName)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final List<DeferredMaintenanceWindow> deferMaintenanceWindows = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::deferredMaintenanceWindows)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
             .masterUsername(masterUsername)
@@ -467,7 +569,7 @@ public class Translator {
             .iamRoles(translateIamRolesFromSdk(iamRoles))
             .vpcSecurityGroupIds(translateVpcSecurityGroupIdsFromSdk(vpcSecurityGroupIds))
             .clusterParameterGroupName(!CollectionUtils.isNullOrEmpty(clusterParameterGroupName)
-                    ? clusterParameterGroupName.toString() : null)
+                    ? clusterParameterGroupName.get(0) : null)
             .clusterSubnetGroupName(clusterSubnetGroupName)
             .dBName(dbName)
             .elasticIp(elasticIp != null ? elasticIp.elasticIp() : null)
@@ -477,11 +579,16 @@ public class Translator {
             .endpoint(endpoint != null ? translateEndpointFromSdk(endpoint) : null)
             .tags(translateTagsFromSdk(tags))
             .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion() == null ? null : clusterSnapshotCopyStatus.destinationRegion())
-            .manualSnapshotRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod() == null ? null : clusterSnapshotCopyStatus.manualSnapshotRetentionPeriod())
-            .retentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
+            .manualSnapshotRetentionPeriod(manualSnapshotRetentionPeriod)
+            .snapshotCopyRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
             .snapshotCopyGrantName(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.snapshotCopyGrantName() == null ? null : clusterSnapshotCopyStatus.snapshotCopyGrantName())
             .availabilityZoneRelocationStatus(availabilityZoneRelocationStatus)
             .aquaConfigurationStatus(aquaConfiguration == null ? null : aquaConfiguration.aquaConfigurationStatusAsString())
+            .enhancedVpcRouting(enhanceVpcRouting == null ? null : enhanceVpcRouting.booleanValue())
+            .maintenanceTrackName(maintenanceTrackName)
+            .deferMaintenanceIdentifier(translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows))
+            .deferMaintenanceStartTime(translateDeferMaintenanceStartTimeFromSdk(deferMaintenanceWindows))
+            .deferMaintenanceEndTime(translateDeferMaintenanceEndTimeFromSdk(deferMaintenanceWindows))
             .build();
   }
 
@@ -529,32 +636,9 @@ public class Translator {
    * @return awsRequest the aws service request to modify a resource
    */
   static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model, final ResourceModel prevModel) {
-    String nodeType = null; String clusterType = null;
-    Integer numberOfNodes = null;
-
-    if(!model.getClusterType().equals(prevModel.getClusterType())){
-      clusterType = model.getClusterType();
-      nodeType = model.getNodeType();
-      if (model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE)){
-        numberOfNodes = model.getNumberOfNodes();
-      }
-    } else if (!model.getNodeType().equals(prevModel.getNodeType())) {
-      nodeType = model.getNodeType();
-      numberOfNodes = model.getNumberOfNodes();
-      clusterType = model.getClusterType();
-
-    } else if ((model.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE) || prevModel.getClusterType().equals(CLUSTER_TYPE_MULTI_NODE))
-            && (!model.getNumberOfNodes().equals(prevModel.getNumberOfNodes()))) {
-      numberOfNodes = model.getNumberOfNodes();
-      nodeType = model.getNodeType();
-    }
-
     ModifyClusterRequest modifyClusterRequest =  ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUserPassword(model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
-            .nodeType(nodeType)
-            .clusterType(clusterType)
-            .numberOfNodes(numberOfNodes)
             .allowVersionUpgrade(model.getAllowVersionUpgrade() == null || model.getAllowVersionUpgrade().equals(prevModel.getAllowVersionUpgrade()) ? null : model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod() == null || model.getAutomatedSnapshotRetentionPeriod().equals(prevModel.getAutomatedSnapshotRetentionPeriod()) ? null : model.getAutomatedSnapshotRetentionPeriod())
             .clusterParameterGroupName(model.getClusterParameterGroupName() == null || model.getClusterParameterGroupName().equals(prevModel.getClusterParameterGroupName()) ? null : model.getClusterParameterGroupName())
@@ -568,6 +652,14 @@ public class Translator {
             .availabilityZone(model.getAvailabilityZone() == null || model.getAvailabilityZone().equals(prevModel.getAvailabilityZone()) ? null : model.getAvailabilityZone())
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation() == null || model.getAvailabilityZoneRelocation().
                     equals(prevModel.getAvailabilityZoneRelocation()) ? null : model.getAvailabilityZoneRelocation())
+            .encrypted(model.getEncrypted() == null || model.getEncrypted().equals(prevModel.getEncrypted()) ? null : model.getEncrypted())
+            .kmsKeyId(model.getKmsKeyId() == null || model.getKmsKeyId().equals(prevModel.getKmsKeyId()) ? null : model.getKmsKeyId())
+            .port(model.getPort() == null || model.getPort().equals(prevModel.getPort()) ? null : model.getPort())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod() == null || model.getManualSnapshotRetentionPeriod().equals(prevModel.getManualSnapshotRetentionPeriod()) ? null : model.getManualSnapshotRetentionPeriod())
+            .clusterVersion(model.getClusterVersion() == null || model.getClusterVersion().equals(prevModel.getClusterVersion()) ? null : model.getClusterVersion())
+            .elasticIp(model.getElasticIp() == null || model.getElasticIp().equals(prevModel.getElasticIp()) ? null : model.getElasticIp())
+            .maintenanceTrackName(model.getMaintenanceTrackName() == null || model.getMaintenanceTrackName().equals(prevModel.getMaintenanceTrackName()) ? null : model.getMaintenanceTrackName())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting() == null || model.getEnhancedVpcRouting().equals(prevModel.getEnhancedVpcRouting()) ? null : model.getEnhancedVpcRouting())
             .build();
 
     return modifyClusterRequest;
@@ -618,6 +710,39 @@ public class Translator {
    */
   static RebootClusterRequest translateToRebootClusterRequest(ResourceModel model) {
     return RebootClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Resume Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static ResumeClusterRequest translateToResumeClusterRequest(ResourceModel model) {
+    return ResumeClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Pause Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static PauseClusterRequest translateToPauseClusterRequest(ResourceModel model) {
+    return PauseClusterRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
+            .build();
+  }
+
+  /**
+   * Request to Rotate Encryption Key for Cluster
+   * @param model resource model
+   * @return awsRequest the aws service request to modify a resource
+   */
+  static RotateEncryptionKeyRequest translateToRotateEncryptionKeyRequest(ResourceModel model) {
+    return RotateEncryptionKeyRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .build();
   }
@@ -685,6 +810,14 @@ public class Translator {
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .aquaConfigurationStatus(model.getAquaConfigurationStatus())
+            .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod())
+            .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
+            .enhancedVpcRouting(model.getEnhancedVpcRouting())
+            .maintenanceTrackName(model.getMaintenanceTrackName())
+            .preferredMaintenanceWindow(model.getPreferredMaintenanceWindow())
+            .kmsKeyId(model.getKmsKeyId())
+            .nodeType(model.getNodeType())
+            .numberOfNodes(model.getNumberOfNodes())
             .build();
   }
 

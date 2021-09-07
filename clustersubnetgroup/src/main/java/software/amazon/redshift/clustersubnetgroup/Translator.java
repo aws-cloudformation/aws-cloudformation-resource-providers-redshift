@@ -51,9 +51,9 @@ public class Translator {
                                                                   final Map<String, String> tags) {
     //Based on contract_read_without_create test
 
-    model.setSubnetGroupName(generateSubnetGroupName);
+    model.setClusterSubnetGroupName(generateSubnetGroupName);
     return CreateClusterSubnetGroupRequest.builder()
-            .clusterSubnetGroupName(model.getSubnetGroupName())
+            .clusterSubnetGroupName(model.getClusterSubnetGroupName())
             .subnetIds(model.getSubnetIds())
             .description(model.getDescription())
             .tags(translateTagsMapToTagCollection(tags))
@@ -74,11 +74,11 @@ public class Translator {
    */
   static DescribeClusterSubnetGroupsRequest translateToReadRequest(final ResourceModel model) {
     //Based on contract_read_without_create test
-    if (StringUtils.isNullOrEmpty(model.getSubnetGroupName())) {
+    if (StringUtils.isNullOrEmpty(model.getClusterSubnetGroupName())) {
       throw new CfnNotFoundException(ResourceModel.TYPE_NAME, null);
     }
     return DescribeClusterSubnetGroupsRequest.builder()
-            .clusterSubnetGroupName(model.getSubnetGroupName())
+            .clusterSubnetGroupName(model.getClusterSubnetGroupName())
             .build();
   }
 
@@ -115,7 +115,7 @@ public class Translator {
             .orElse(null);
 
     return ResourceModel.builder()
-            .subnetGroupName(subnetGroupName)
+            .clusterSubnetGroupName(subnetGroupName)
             .description(description)
             .subnetIds(translateSubnetIdsFromSdk(subnetIds))
             .tags(translateTagsFromSdk(tags))
@@ -139,7 +139,7 @@ public class Translator {
 
   static DeleteClusterSubnetGroupRequest translateToDeleteRequest(final ResourceModel model) {
     return DeleteClusterSubnetGroupRequest.builder()
-            .clusterSubnetGroupName(model.getSubnetGroupName())
+            .clusterSubnetGroupName(model.getClusterSubnetGroupName())
             .build();
   }
 
@@ -150,7 +150,7 @@ public class Translator {
    */
   static ModifyClusterSubnetGroupRequest translateToUpdateRequest(final ResourceModel model) {
     return ModifyClusterSubnetGroupRequest.builder()
-            .clusterSubnetGroupName(model.getSubnetGroupName())
+            .clusterSubnetGroupName(model.getClusterSubnetGroupName())
             .subnetIds(model.getSubnetIds())
             .description(model.getDescription())
             .build();
@@ -164,7 +164,7 @@ public class Translator {
   static List<ResourceModel> translateFromListResponse(final DescribeClusterSubnetGroupsResponse awsResponse) {
     return streamOfOrEmpty(awsResponse.clusterSubnetGroups())
         .map(clusterSubnetGroup -> ResourceModel.builder()
-                .subnetGroupName(clusterSubnetGroup.clusterSubnetGroupName())
+                .clusterSubnetGroupName(clusterSubnetGroup.clusterSubnetGroupName())
                 .build())
         .collect(Collectors.toList());
   }
@@ -194,7 +194,7 @@ public class Translator {
   }
 
   static String getArn(final ResourceHandlerRequest<ResourceModel> request) {
-    final String subnetGroupName = request.getDesiredResourceState().getSubnetGroupName();
+    final String subnetGroupName = request.getDesiredResourceState().getClusterSubnetGroupName();
     String partition = "aws";
     if (request.getRegion().indexOf("us-gov-") == 0) partition = partition.concat("-us-gov");
     if (request.getRegion().indexOf("cn-") == 0) partition = partition.concat("-cn");

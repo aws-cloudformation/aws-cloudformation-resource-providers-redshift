@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
@@ -30,6 +31,8 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesReque
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
+import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
@@ -113,6 +116,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
+                .s3KeyPrefix("test")
                 .build();
 
         ResourceModel previousModel = ResourceModel.builder()
@@ -240,12 +244,24 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
 //                .thenReturn(DescribeClustersResponse.builder()
 //                        .clusters(existingCluster)
 //                        .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled)
+                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes)
                         .build());
@@ -259,13 +275,14 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
-                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).build());
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(true).build())
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
 
         when(proxyClient.client().disableLogging(any(DisableLoggingRequest.class)))
                 .thenReturn(DisableLoggingResponse.builder().build());
 
-        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
-                .thenReturn(ModifyClusterResponse.builder()
+        when(proxyClient.client().resizeCluster(any(ResizeClusterRequest.class)))
+                .thenReturn(ResizeClusterResponse.builder()
                         .cluster(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes)
                         .build());
 
@@ -284,7 +301,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         assertThat(response.getResourceModel().getTags()).isEqualTo(request.getDesiredResourceState().getTags());
         assertThat(response.getResourceModel().getIamRoles()).isEqualTo(request.getDesiredResourceState().getIamRoles());
-        assertThat(response.getResourceModel().getLoggingProperties()).isNull();
+        assertThat(response.getResourceModel().getLoggingProperties().getBucketName()).isNull();
+        assertThat(response.getResourceModel().getLoggingProperties().getS3KeyPrefix()).isNull();
         assertThat(response.getResourceModel().getNumberOfNodes()).isEqualTo(previousModel.getNumberOfNodes()*2);
 
         assertThat(response.getResourceModels()).isNull();
@@ -335,6 +353,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
+                .s3KeyPrefix("test/")
                 .build();
 
         ResourceModel updateModel = ResourceModel.builder()
@@ -436,12 +455,24 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster_tagAdded_iamRoleAdded)
+                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
@@ -459,13 +490,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .build());
 
         when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
-                .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).build());
+                .thenReturn(EnableLoggingResponse.builder().loggingEnabled(true).bucketName(BUCKET_NAME).s3KeyPrefix("test/").build());
 
-        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
-                .thenReturn(ModifyClusterResponse.builder()
+        when(proxyClient.client().resizeCluster(any(ResizeClusterRequest.class)))
+                .thenReturn(ResizeClusterResponse.builder()
                         .cluster(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
-
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -477,6 +507,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeLoggingStatusResponse.builder()
                         .loggingEnabled(true)
                         .bucketName(BUCKET_NAME)
+                        .s3KeyPrefix("test/")
                         .build());
         //call back
         response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
@@ -587,9 +618,11 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        //callback
         response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
     }

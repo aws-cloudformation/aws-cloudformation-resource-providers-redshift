@@ -43,13 +43,23 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>" : <i><a href="loggingproperties.md">LoggingProperties</a></i>,
         "<a href="#endpoint" title="Endpoint">Endpoint</a>" : <i><a href="endpoint.md">Endpoint</a></i>,
         "<a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>" : <i>String</i>,
-        "<a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>" : <i>Integer</i>,
+        "<a href="#snapshotcopyretentionperiod" title="SnapshotCopyRetentionPeriod">SnapshotCopyRetentionPeriod</a>" : <i>Integer</i>,
         "<a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>" : <i>String</i>,
         "<a href="#manualsnapshotretentionperiod" title="ManualSnapshotRetentionPeriod">ManualSnapshotRetentionPeriod</a>" : <i>Integer</i>,
-        "<a href="#manual" title="Manual">Manual</a>" : <i>Boolean</i>,
+        "<a href="#snapshotcopymanual" title="SnapshotCopyManual">SnapshotCopyManual</a>" : <i>Boolean</i>,
         "<a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>" : <i>Boolean</i>,
         "<a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>" : <i>String</i>,
-        "<a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>" : <i>String</i>
+        "<a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>" : <i>String</i>,
+        "<a href="#classic" title="Classic">Classic</a>" : <i>Boolean</i>,
+        "<a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>" : <i>Boolean</i>,
+        "<a href="#maintenancetrackname" title="MaintenanceTrackName">MaintenanceTrackName</a>" : <i>String</i>,
+        "<a href="#defermaintenance" title="DeferMaintenance">DeferMaintenance</a>" : <i>Boolean</i>,
+        "<a href="#defermaintenancestarttime" title="DeferMaintenanceStartTime">DeferMaintenanceStartTime</a>" : <i>String</i>,
+        "<a href="#defermaintenanceendtime" title="DeferMaintenanceEndTime">DeferMaintenanceEndTime</a>" : <i>String</i>,
+        "<a href="#defermaintenanceduration" title="DeferMaintenanceDuration">DeferMaintenanceDuration</a>" : <i>Integer</i>,
+        "<a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>" : <i>String</i>,
+        "<a href="#resourceaction" title="ResourceAction">ResourceAction</a>" : <i>String</i>,
+        "<a href="#rotateencryptionkey" title="RotateEncryptionKey">RotateEncryptionKey</a>" : <i>Boolean</i>
     }
 }
 </pre>
@@ -94,13 +104,23 @@ Properties:
     <a href="#loggingproperties" title="LoggingProperties">LoggingProperties</a>: <i><a href="loggingproperties.md">LoggingProperties</a></i>
     <a href="#endpoint" title="Endpoint">Endpoint</a>: <i><a href="endpoint.md">Endpoint</a></i>
     <a href="#destinationregion" title="DestinationRegion">DestinationRegion</a>: <i>String</i>
-    <a href="#retentionperiod" title="RetentionPeriod">RetentionPeriod</a>: <i>Integer</i>
+    <a href="#snapshotcopyretentionperiod" title="SnapshotCopyRetentionPeriod">SnapshotCopyRetentionPeriod</a>: <i>Integer</i>
     <a href="#snapshotcopygrantname" title="SnapshotCopyGrantName">SnapshotCopyGrantName</a>: <i>String</i>
     <a href="#manualsnapshotretentionperiod" title="ManualSnapshotRetentionPeriod">ManualSnapshotRetentionPeriod</a>: <i>Integer</i>
-    <a href="#manual" title="Manual">Manual</a>: <i>Boolean</i>
+    <a href="#snapshotcopymanual" title="SnapshotCopyManual">SnapshotCopyManual</a>: <i>Boolean</i>
     <a href="#availabilityzonerelocation" title="AvailabilityZoneRelocation">AvailabilityZoneRelocation</a>: <i>Boolean</i>
     <a href="#availabilityzonerelocationstatus" title="AvailabilityZoneRelocationStatus">AvailabilityZoneRelocationStatus</a>: <i>String</i>
     <a href="#aquaconfigurationstatus" title="AquaConfigurationStatus">AquaConfigurationStatus</a>: <i>String</i>
+    <a href="#classic" title="Classic">Classic</a>: <i>Boolean</i>
+    <a href="#enhancedvpcrouting" title="EnhancedVpcRouting">EnhancedVpcRouting</a>: <i>Boolean</i>
+    <a href="#maintenancetrackname" title="MaintenanceTrackName">MaintenanceTrackName</a>: <i>String</i>
+    <a href="#defermaintenance" title="DeferMaintenance">DeferMaintenance</a>: <i>Boolean</i>
+    <a href="#defermaintenancestarttime" title="DeferMaintenanceStartTime">DeferMaintenanceStartTime</a>: <i>String</i>
+    <a href="#defermaintenanceendtime" title="DeferMaintenanceEndTime">DeferMaintenanceEndTime</a>: <i>String</i>
+    <a href="#defermaintenanceduration" title="DeferMaintenanceDuration">DeferMaintenanceDuration</a>: <i>Integer</i>
+    <a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>: <i>String</i>
+    <a href="#resourceaction" title="ResourceAction">ResourceAction</a>: <i>String</i>
+    <a href="#rotateencryptionkey" title="RotateEncryptionKey">RotateEncryptionKey</a>: <i>Boolean</i>
 </pre>
 
 ## Properties
@@ -241,7 +261,7 @@ _Required_: No
 
 _Type_: String
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Encrypted
 
@@ -251,7 +271,7 @@ _Required_: No
 
 _Type_: Boolean
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### HsmClientCertificateIdentifier
 
@@ -281,7 +301,7 @@ _Required_: No
 
 _Type_: String
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### NumberOfNodes
 
@@ -301,7 +321,7 @@ _Required_: No
 
 _Type_: Integer
 
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### PreferredMaintenanceWindow
 
@@ -417,7 +437,7 @@ _Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### RetentionPeriod
+#### SnapshotCopyRetentionPeriod
 
 The number of days to retain automated snapshots in the destination region after they are copied from the source region.
 
@@ -453,7 +473,7 @@ _Type_: Integer
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### Manual
+#### SnapshotCopyManual
 
 Indicates whether to apply the snapshot retention period to newly copied manual snapshots instead of automated snapshots.
 
@@ -498,6 +518,110 @@ _Type_: String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### Classic
+
+A boolean value indicating whether the resize operation is using the classic resize process. If you don't provide this parameter or set the value to false , the resize type is elastic.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### EnhancedVpcRouting
+
+An option that specifies whether to create the cluster with enhanced VPC routing enabled. To create a cluster that uses enhanced VPC routing, the cluster must be in a VPC. For more information, see Enhanced VPC Routing in the Amazon Redshift Cluster Management Guide.
+
+If this option is true , enhanced VPC routing is enabled.
+
+Default: false
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### MaintenanceTrackName
+
+The name for the maintenance track that you want to assign for the cluster. This name change is asynchronous. The new track name stays in the PendingModifiedValues for the cluster until the next maintenance window. When the maintenance track changes, the cluster is switched to the latest cluster release available for the maintenance track. At this point, the maintenance track name is applied.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenance
+
+A boolean indicating whether to enable the deferred maintenance window.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenanceStartTime
+
+A timestamp indicating the start time for the deferred maintenance window.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenanceEndTime
+
+A timestamp indicating end time for the deferred maintenance window. If you specify an end time, you can't specify a duration.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### DeferMaintenanceDuration
+
+An integer indicating the duration of the maintenance window in days. If you specify a duration, you can't specify an end time. The duration must be 45 days or less.
+
+_Required_: No
+
+_Type_: Integer
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RevisionTarget
+
+The identifier of the database revision. You can retrieve this value from the response to the DescribeClusterDbRevisions request.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### ResourceAction
+
+The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster APIs
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### RotateEncryptionKey
+
+A boolean indicating if we want to rotate Encryption Keys.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 ## Return Values
 
 ### Ref
@@ -513,6 +637,10 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 #### Id
 
 Returns the <code>Id</code> value.
+
+#### DeferMaintenanceIdentifier
+
+A unique identifier for the deferred maintenance window.
 
 #### Port
 

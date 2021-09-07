@@ -47,7 +47,7 @@
                 "$ref": "#/definitions/Tag"
             }
         },
-        "SubnetGroupName": {
+        "ClusterSubnetGroupName": {
             "description": "This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be \"Default\". ",
             "type": "string",
             "maximum": 255
@@ -59,10 +59,10 @@
         "SubnetIds"
     ],
     "primaryIdentifier": [
-        "/properties/SubnetGroupName"
+        "/properties/ClusterSubnetGroupName"
     ],
     "readOnlyProperties": [
-        "/properties/SubnetGroupName"
+        "/properties/ClusterSubnetGroupName"
     ],
     "handlers": {
         "create": {
