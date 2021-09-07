@@ -182,23 +182,23 @@ public class Translator {
     static ModifyTagsRequest translateToUpdateTagsRequest(final ResourceModel desiredResourceState,
                                                           final ResourceModel currentResourceState,
                                                           final String resourceName) {
-        List<Tag> newTags = desiredResourceState.getTags() == null ? Collections.emptyList() : desiredResourceState.getTags()
+        List<Tag> toBeCreatedTags = desiredResourceState.getTags() == null ? Collections.emptyList() : desiredResourceState.getTags()
                 .stream()
                 .filter(tag -> currentResourceState.getTags() == null || !currentResourceState.getTags().contains(tag))
                 .collect(Collectors.toList());
 
-        List<Tag> oldTags = currentResourceState.getTags() == null ? Collections.emptyList() : currentResourceState.getTags()
+        List<Tag> toBeDeletedTags = currentResourceState.getTags() == null ? Collections.emptyList() : currentResourceState.getTags()
                 .stream()
                 .filter(tag -> desiredResourceState.getTags() == null || !desiredResourceState.getTags().contains(tag))
                 .collect(Collectors.toList());
 
         return ModifyTagsRequest.builder()
                 .createNewTagsRequest(CreateTagsRequest.builder()
-                        .tags(translateToSdkTags(newTags))
+                        .tags(translateToSdkTags(toBeCreatedTags))
                         .resourceName(resourceName)
                         .build())
                 .deleteOldTagsRequest(DeleteTagsRequest.builder()
-                        .tagKeys(oldTags
+                        .tagKeys(toBeDeletedTags
                                 .stream()
                                 .map(Tag::getKey)
                                 .collect(Collectors.toList()))

@@ -87,19 +87,20 @@ public class UpdateHandler extends BaseHandlerStd {
                                           final ProxyClient<RedshiftClient> proxyClient) {
         CreateTagsResponse awsResponse = null;
 
-        if (awsRequest.getCreateNewTagsRequest().tags().isEmpty()) {
-            logger.log(String.format("No tags would be updated for the resource: %s.", ResourceModel.TYPE_NAME));
-
-        } else if (awsRequest.getDeleteOldTagsRequest().tagKeys().isEmpty()) {
-            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest.getCreateNewTagsRequest(), proxyClient.client()::createTags);
-
-            logger.log(String.format("Create tags for the resource: %s.", ResourceModel.TYPE_NAME));
+        if (awsRequest.getDeleteOldTagsRequest().tagKeys().isEmpty()) {
+            logger.log(String.format("No tags would be deleted for the resource: %s.", ResourceModel.TYPE_NAME));
 
         } else {
             proxyClient.injectCredentialsAndInvokeV2(awsRequest.getDeleteOldTagsRequest(), proxyClient.client()::deleteTags);
-            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest.getCreateNewTagsRequest(), proxyClient.client()::createTags);
+            logger.log(String.format("Delete tags for the resource: %s.", ResourceModel.TYPE_NAME));
+        }
 
-            logger.log(String.format("Update tags for the resource: %s.", ResourceModel.TYPE_NAME));
+        if (awsRequest.getCreateNewTagsRequest().tags().isEmpty()) {
+            logger.log(String.format("No tags would be created for the resource: %s.", ResourceModel.TYPE_NAME));
+
+        } else {
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest.getCreateNewTagsRequest(), proxyClient.client()::createTags);
+            logger.log(String.format("Create tags for the resource: %s.", ResourceModel.TYPE_NAME));
         }
 
         return awsResponse;
