@@ -1,0 +1,118 @@
+{
+    "typeName": "AWS::Redshift::EndpointAuthorization",
+    "description": "Describes an endpoint authorization for authorizing Redshift-managed VPC endpoint access to a cluster across AWS accounts.",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {},
+    "properties": {
+        "Grantor": {
+            "description": "The AWS account ID of the cluster owner.",
+            "type": "string"
+        },
+        "Grantee": {
+            "description": "The AWS account ID of the grantee of the cluster.",
+            "type": "string"
+        },
+        "Account": {
+            "description": "The target AWS account ID to grant or revoke access for.",
+            "type": "string"
+        },
+        "VpcIds": {
+            "description": "The virtual private cloud (VPC) identifiers to grant or revoke access to.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "AsGrantee": {
+            "description": "Indicates whether to check authorization from a grantor or grantee point of view. If true, Amazon Redshift returns endpoint authorizations that you've been granted. If false (default), checks authorization from a grantor point of view.",
+            "type": "boolean"
+        },
+        "Force": {
+            "description": " Indicates whether to force the revoke action. If true, the Redshift-managed VPC endpoints associated with the endpoint authorization are also deleted.",
+            "type": "boolean"
+        },
+        "ClusterIdentifier": {
+            "description": "The cluster identifier.",
+            "type": "string"
+        },
+        "ClusterStatus": {
+            "description": "The status of the cluster.",
+            "type": "string"
+        },
+        "Status": {
+            "description": "The status of the authorization action.",
+            "type": "string"
+        },
+        "AllowedAllVPCs": {
+            "description": "Indicates whether all VPCs in the grantee account are allowed access to the cluster.",
+            "type": "boolean"
+        },
+        "AllowedVPCs": {
+            "description": "The VPCs allowed access to the cluster.",
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "EndpointCount": {
+            "description": "The number of Redshift-managed VPC endpoints created for the authorization.",
+            "type": "integer"
+        }
+    },
+    "additionalProperties": false,
+    "required": [
+        "ClusterIdentifier"
+    ],
+    "primaryIdentifier": [
+        "/properties/ClusterIdentifier",
+        "/properties/Grantor",
+        "/properties/Grantee"
+    ],
+    "createOnlyProperties": [
+        "/properties/ClusterIdentifier"
+    ],
+    "readOnlyProperties": [
+        "/properties/AllowedAllVPCs",
+        "/properties/Status",
+        "/properties/ClusterStatus",
+        "/properties/AuthorizeTime",
+        "/properties/EndpointCount",
+        "/properties/Grantor",
+        "/properties/Grantee"
+    ],
+    "writeOnlyProperties": [
+        "/properties/Account",
+        "/properties/VpcIds"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "redshift:AuthorizeEndpointAccess"
+            ],
+            "timeoutInMinutes": 60
+        },
+        "read": {
+            "permissions": [
+                "redshift:DescribeEndpointAuthorization"
+            ]
+        },
+        "update": {
+            "permissions": [
+                "redshift:AuthorizeEndpointAccess",
+                "redshift:RevokeEndpointAccess"
+            ],
+            "timeoutInMinutes": 60
+        },
+        "delete": {
+            "permissions": [
+                "redshift:RevokeEndpointAccess"
+            ],
+            "timeoutInMinutes": 60
+        },
+        "list": {
+            "permissions": [
+                "redshift:DescribeEndpointAuthorization"
+            ]
+        }
+    }
+}
