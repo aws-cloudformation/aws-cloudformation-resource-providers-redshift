@@ -66,9 +66,9 @@ public class DeleteHandler extends BaseHandlerStd {
                 | InvalidAuthorizationStateException
                 | InvalidEndpointStateException
                 | InvalidParameterValueException e) {
-            throw new CfnInvalidRequestException(request.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (RedshiftException e) {
-            throw new CfnGeneralServiceException(request.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         return response;

@@ -76,13 +76,13 @@ public class CreateHandler extends BaseHandlerStd {
         } catch (EndpointAuthorizationAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(e);
         } catch (ClusterNotFoundException | InvalidParameterValueException | UnsupportedOperationException e) {
-            throw new CfnInvalidRequestException(request.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (InvalidAuthorizationStateException e) {
             throw new CfnResourceConflictException(e);
         } catch (EndpointAuthorizationsPerClusterLimitExceededException e) {
             throw new CfnServiceLimitExceededException(e);
         } catch (RedshiftException | SdkClientException e) {
-            throw new CfnGeneralServiceException(request.toString(), e);
+            throw new CfnGeneralServiceException(e);
         }
 
         return response;

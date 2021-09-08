@@ -98,7 +98,7 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (EndpointAuthorizationAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(e);
         } catch (ClusterNotFoundException | InvalidParameterValueException | UnsupportedOperationException e) {
-            throw new CfnInvalidRequestException(request.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (InvalidAuthorizationStateException e) {
             throw new CfnResourceConflictException(e);
         } catch (EndpointAuthorizationsPerClusterLimitExceededException e) {
@@ -134,7 +134,7 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (EndpointAuthorizationAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(e);
         } catch (ClusterNotFoundException | InvalidParameterValueException | UnsupportedOperationException e) {
-            throw new CfnInvalidRequestException(request.toString(), e);
+            throw new CfnInvalidRequestException(e);
         } catch (InvalidAuthorizationStateException e) {
             throw new CfnResourceConflictException(e);
         } catch (EndpointAuthorizationsPerClusterLimitExceededException e) {

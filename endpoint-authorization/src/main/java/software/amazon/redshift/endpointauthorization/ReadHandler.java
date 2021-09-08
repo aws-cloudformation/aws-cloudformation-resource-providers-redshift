@@ -50,7 +50,7 @@ public class ReadHandler extends BaseHandlerStd {
             );
         } catch (ClusterNotFoundException e) {
             throw new CfnNotFoundException(
-                    request.toString(),
+                    ResourceModel.TYPE_NAME,
                     String.format("account%s-clusteridentifier%s-auth",
                             request.account(),
                             request.clusterIdentifier()),
