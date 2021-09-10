@@ -1,0 +1,11 @@
+Resources:
+  ContractTestSns:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: ContractTestSnsTopic
+
+Outputs:
+  ContractTestSnsArn:
+    Value: !Ref ContractTestSns
+    Export:
+      Name: ContractTestRedshiftEventSubscriptionSns

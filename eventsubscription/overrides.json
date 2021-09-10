@@ -1,0 +1,10 @@
+{
+    "CREATE": {
+        "/SnsTopicArn": "{{ContractTestRedshiftEventSubscriptionSns}}",
+        "/SourceIds": []
+    },
+    "UPDATE": {
+        "/SnsTopicArn": "{{ContractTestRedshiftEventSubscriptionSns}}",
+        "/SourceIds": []
+    }
+}
