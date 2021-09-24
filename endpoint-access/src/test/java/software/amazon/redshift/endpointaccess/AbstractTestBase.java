@@ -20,6 +20,7 @@ import java.util.function.Function;
 public class AbstractTestBase {
   protected static final Credentials MOCK_CREDENTIALS;
   protected static final LoggerProxy logger;
+  protected static final String AWS_REGION = "us-east-1";
 
   protected static final EndpointAccess ENDPOINT_ACCESS = EndpointAccess.builder()
           .clusterIdentifier("id")

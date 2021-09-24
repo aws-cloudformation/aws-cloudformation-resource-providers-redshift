@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -32,7 +33,7 @@ public class TranslatorTest {
     String address = "address";
     String vpcSecurityGroupId = "vpcSecurityGroupId";
     String vpcSecurityGroupStatus = "status";
-    List<VpcSecurityGroupMembership> securityGroupMemberships = Arrays.asList(VpcSecurityGroupMembership.builder()
+    List<VpcSecurityGroupMembership> securityGroupMemberships = Collections.singletonList(VpcSecurityGroupMembership.builder()
             .status(vpcSecurityGroupStatus)
             .vpcSecurityGroupId(vpcSecurityGroupId)
             .build()
@@ -43,7 +44,7 @@ public class TranslatorTest {
     String subnetId = "subnetId";
     String privateIdAddress = "privateIpAddress";
     String az = "az";
-    List<NetworkInterface> networkInterfaces = Arrays.asList(
+    List<NetworkInterface> networkInterfaces = Collections.singletonList(
             NetworkInterface.builder()
                     .subnetId(subnetId)
                     .networkInterfaceId(networkInterfaceId)
@@ -52,7 +53,7 @@ public class TranslatorTest {
                     .build()
     );
 
-    List<software.amazon.redshift.endpointaccess.NetworkInterface> resourceModelNetworkInterfaces = Arrays.asList(
+    List<software.amazon.redshift.endpointaccess.NetworkInterface> resourceModelNetworkInterfaces = Collections.singletonList(
             software.amazon.redshift.endpointaccess.NetworkInterface.builder()
                     .networkInterfaceId(networkInterfaceId)
                     .subnetId(subnetId)
@@ -74,7 +75,7 @@ public class TranslatorTest {
                      .networkInterfaces(resourceModelNetworkInterfaces)
                      .build();
 
-    List<String> vpcSecurityGroupIds = Arrays.asList("security-group-id");
+    List<String> vpcSecurityGroupIds = Collections.singletonList(vpcSecurityGroupId);
 
     EndpointAccess endpointAccess = EndpointAccess.builder()
             .clusterIdentifier(clusterIdentifier)
@@ -89,8 +90,8 @@ public class TranslatorTest {
             .vpcEndpoint(vpcEndpoint)
             .build();
 
-    List<EndpointAccess> endpointAccessList = Arrays.asList(endpointAccess);
-    List<VpcSecurityGroup> vpcSecurityGroups = Arrays.asList(
+    List<EndpointAccess> endpointAccessList = Collections.singletonList(endpointAccess);
+    List<VpcSecurityGroup> vpcSecurityGroups = Collections.singletonList(
             VpcSecurityGroup.builder()
                     .vpcSecurityGroupId(vpcSecurityGroupId)
                     .status(vpcSecurityGroupStatus)
@@ -137,16 +138,6 @@ public class TranslatorTest {
     }
 
     @Test
-    public void testTranslateToUpdateRequest() {
-        ModifyEndpointAccessRequest request = ModifyEndpointAccessRequest.builder()
-                .endpointName(endpointName)
-                .vpcSecurityGroupIds(new ArrayList<>(vpcSecurityGroupIds))
-                .build();
-
-        assertEquals(request, Translator.translateToUpdateRequest(resourceModel));
-    }
-
-    @Test
     public void testTranslateToListRequest() {
         String nextToken = "next token";
         DescribeEndpointAccessRequest request = DescribeEndpointAccessRequest.builder()
@@ -165,9 +156,10 @@ public class TranslatorTest {
         ResourceModel expectedResourceModel = ResourceModel.builder()
                 .clusterIdentifier(clusterIdentifier)
                 .resourceOwner(resourceOwner)
-                .subnetGroupName(subnetGroupName)
-                .endpointStatus(endpointStatus)
                 .endpointName(endpointName)
+                .subnetGroupName(subnetGroupName)
+                .vpcSecurityGroupIds(vpcSecurityGroupIds)
+                .endpointStatus(endpointStatus)
                 .endpointCreateTime(endpointCreateTime.toString())
                 .port(port)
                 .address(address)
@@ -181,7 +173,7 @@ public class TranslatorTest {
     @Test
     public void testTranslateFromEmptyReadResponse() {
         DescribeEndpointAccessResponse response = DescribeEndpointAccessResponse.builder()
-                .endpointAccessList(new ArrayList<EndpointAccess>())
+                .endpointAccessList(new ArrayList<>())
                 .build();
 
         assertEquals(ResourceModel.builder().build(), Translator.translateFromReadResponse(response));

@@ -14,6 +14,7 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -21,7 +22,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
-public class ListHandlerTest {
+public class ListHandlerTest extends AbstractTestBase {
 
     @Mock
     private AmazonWebServicesClientProxy proxy;
@@ -33,6 +34,7 @@ public class ListHandlerTest {
     public void setup() {
         proxy = mock(AmazonWebServicesClientProxy.class);
         logger = mock(Logger.class);
+        System.setProperty("aws.region", AWS_REGION);
     }
 
     @Test
@@ -46,7 +48,7 @@ public class ListHandlerTest {
             .build();
 
         DescribeEndpointAccessResponse describeResponse = DescribeEndpointAccessResponse.builder()
-                .endpointAccessList(Arrays.asList(EndpointAccess.builder().endpointName("endpoint-name").build()))
+                .endpointAccessList(Collections.singletonList(EndpointAccess.builder().endpointName("endpoint-name").build()))
                 .build();
 
         doReturn(describeResponse).when(proxy).injectCredentialsAndInvokeV2(any(), any());
