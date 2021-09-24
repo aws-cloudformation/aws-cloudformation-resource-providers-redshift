@@ -1,20 +1,16 @@
 package software.amazon.redshift.endpointaccess;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.services.redshift.model.CreateEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessResponse;
-import software.amazon.awssdk.services.redshift.model.EndpointAccess;
-import software.amazon.awssdk.services.redshift.model.ModifyEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class is a centralized placeholder for
@@ -37,7 +33,7 @@ public class Translator {
                 .resourceOwner(model.getResourceOwner())
                 .endpointName(model.getEndpointName())
                 .subnetGroupName(model.getSubnetGroupName())
-                .vpcSecurityGroupIds(copyList(model.getVpcSecurityGroupIds()))
+                .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
                 .build();
     }
 
@@ -60,93 +56,32 @@ public class Translator {
      * @return model resource model
      */
     static ResourceModel translateFromReadResponse(final DescribeEndpointAccessResponse response) {
-        List<EndpointAccess> endpointAccessList = response.endpointAccessList();
-        if (endpointAccessList.size() == 0) {
-            return ResourceModel.builder().build();
-        }
-
-        Function<Function<EndpointAccess, Object>, Object> producer = buildProducer(endpointAccessList);
-        Function<Function<EndpointAccess, List<VpcSecurityGroup>>, List<VpcSecurityGroup>> listProducer =
-                buildListProducer(endpointAccessList);
-
-        return ResourceModel.builder()
-                .clusterIdentifier((String) producer.apply(EndpointAccess::clusterIdentifier))
-                .resourceOwner((String) producer.apply(EndpointAccess::resourceOwner))
-                .subnetGroupName((String) producer.apply(EndpointAccess::subnetGroupName))
-                .endpointStatus((String) producer.apply(EndpointAccess::endpointStatus))
-                .endpointName((String) producer.apply(EndpointAccess::endpointName))
-                .endpointCreateTime(producer.apply(EndpointAccess::endpointCreateTime).toString())
-                .port((Integer) producer.apply(EndpointAccess::port))
-                .address((String) producer.apply(EndpointAccess::address))
-                .vpcSecurityGroups(listProducer.apply(Translator::buildSecurityGroupList))
-                .vpcEndpoint((VpcEndpoint) producer.apply(Translator::buildVpcEndpoint))
-                .build();
-    }
-
-    private static VpcEndpoint buildVpcEndpoint(EndpointAccess endpointAccess) {
-        software.amazon.awssdk.services.redshift.model.VpcEndpoint vpcEndpointSO = endpointAccess.vpcEndpoint();
-        return VpcEndpoint.builder()
-                .vpcId(vpcEndpointSO.vpcId())
-                .vpcEndpointId(vpcEndpointSO.vpcEndpointId())
-                .networkInterfaces(vpcEndpointSO.networkInterfaces()
-                        .stream()
-                        .map(Translator::buildNetworkInterface)
-                        .collect(Collectors.toList()))
-                .build();
-    }
-
-    private static NetworkInterface buildNetworkInterface(
-            software.amazon.awssdk.services.redshift.model.NetworkInterface networkInterfaceSO) {
-        return NetworkInterface.builder()
-                .availabilityZone(networkInterfaceSO.availabilityZone())
-                .networkInterfaceId(networkInterfaceSO.networkInterfaceId())
-                .privateIpAddress(networkInterfaceSO.privateIpAddress())
-                .subnetId(networkInterfaceSO.subnetId())
-                .build();
-    }
-
-    private static List<VpcSecurityGroup> buildSecurityGroupList(EndpointAccess endpointAccess) {
-        return endpointAccess.vpcSecurityGroups().stream()
-                .map(Translator::buildVpcSecurityGroup)
-                .collect(Collectors.toList());
-    }
-
-    private static VpcSecurityGroup buildVpcSecurityGroup(VpcSecurityGroupMembership membership) {
-        return VpcSecurityGroup.builder()
-                .vpcSecurityGroupId(membership.vpcSecurityGroupId())
-                .status(membership.status())
-                .build();
-    }
-
-    /*
-        Builds a function given the endpointAccessList, which you call with a single parameter - the resource's
-        getter method, and will return either that resource, or null.
-     */
-    private static Function<Function<EndpointAccess, Object>, Object> buildProducer(
-            final Collection<EndpointAccess> endpointAccessList) {
-        return (function) -> getResourceOptional(endpointAccessList, function).orElse(null);
-    }
-
-    private static <T> Function<Function<EndpointAccess, List<T>>, List<T>> buildListProducer(
-            final Collection<EndpointAccess> endpointAccessList) {
-        return (function) -> getResourceOptional(endpointAccessList, function).orElse(null);
-    }
-
-    /*
-        Our get API returns a list of objects regardless of whether we specified a single one or not.
-
-        This function:
-            - Takes in the list of objects (EndpointAccess')
-            - Builds a stream of single items from each EndpointAccess, getting that item using the getter method
-            - Returns any of these, if at least one exists (it should only contain one), otherwise returns null
-     */
-    private static <U, T> Optional<U> getResourceOptional(final Collection<T> resourceList,
-                                                          Function<? super T, ? extends U> resourceGetterMethod) {
-        return Optional.ofNullable(streamOfOrEmpty(resourceList)
-                .map(resourceGetterMethod)
-                .filter(Objects::nonNull)
+        return response.endpointAccessList()
+                .stream()
+                .map(endpointAccess -> ResourceModel.builder()
+                        .clusterIdentifier(endpointAccess.clusterIdentifier())
+                        .resourceOwner(endpointAccess.resourceOwner())
+                        .endpointName(endpointAccess.endpointName())
+                        .subnetGroupName(endpointAccess.subnetGroupName())
+                        .vpcSecurityGroupIds(endpointAccess.vpcSecurityGroups()
+                                .stream()
+                                .map(VpcSecurityGroupMembership::vpcSecurityGroupId)
+                                .collect(Collectors.toList()))
+                        .endpointStatus(endpointAccess.endpointStatus())
+                        .endpointCreateTime(endpointAccess.endpointCreateTime().toString())
+                        .port(endpointAccess.port())
+                        .address(endpointAccess.address())
+                        .vpcSecurityGroups(endpointAccess.vpcSecurityGroups()
+                                .stream()
+                                .map(vpcSecurityGroupMembership -> VpcSecurityGroup.builder()
+                                        .vpcSecurityGroupId(vpcSecurityGroupMembership.vpcSecurityGroupId())
+                                        .status(vpcSecurityGroupMembership.status())
+                                        .build())
+                                .collect(Collectors.toList()))
+                        .vpcEndpoint(translateToModelVpcEndpoint(endpointAccess.vpcEndpoint()))
+                        .build())
                 .findAny()
-                .orElse(null));
+                .orElse(ResourceModel.builder().build());
     }
 
     /**
@@ -158,19 +93,6 @@ public class Translator {
     static DeleteEndpointAccessRequest translateToDeleteRequest(final ResourceModel model) {
         return DeleteEndpointAccessRequest.builder()
                 .endpointName(model.getEndpointName())
-                .build();
-    }
-
-    /**
-     * Request to update properties of a previously created resource
-     *
-     * @param model resource model
-     * @return awsRequest the aws service request to modify a resource
-     */
-    static ModifyEndpointAccessRequest translateToUpdateRequest(final ResourceModel model) {
-        return ModifyEndpointAccessRequest.builder()
-                .endpointName(model.getEndpointName())
-                .vpcSecurityGroupIds(copyList(model.getVpcSecurityGroupIds()))
                 .build();
     }
 
@@ -207,11 +129,23 @@ public class Translator {
                 .orElseGet(Stream::empty);
     }
 
-    private static List<String> copyList(List<String> originalList) {
-        if (originalList == null) {
-            return null;
-        }
+    private static VpcEndpoint translateToModelVpcEndpoint(software.amazon.awssdk.services.redshift.model.VpcEndpoint vpcEndpoint) {
+        return VpcEndpoint.builder()
+                .vpcId(vpcEndpoint.vpcId())
+                .vpcEndpointId(vpcEndpoint.vpcEndpointId())
+                .networkInterfaces(vpcEndpoint.networkInterfaces()
+                        .stream()
+                        .map(Translator::translateToModelNetworkInterface)
+                        .collect(Collectors.toList()))
+                .build();
+    }
 
-        return new ArrayList<>(originalList);
+    private static NetworkInterface translateToModelNetworkInterface(software.amazon.awssdk.services.redshift.model.NetworkInterface networkInterface) {
+        return NetworkInterface.builder()
+                .availabilityZone(networkInterface.availabilityZone())
+                .networkInterfaceId(networkInterface.networkInterfaceId())
+                .privateIpAddress(networkInterface.privateIpAddress())
+                .subnetId(networkInterface.subnetId())
+                .build();
     }
 }

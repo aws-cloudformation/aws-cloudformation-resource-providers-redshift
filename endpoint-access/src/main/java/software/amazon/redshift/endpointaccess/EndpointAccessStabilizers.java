@@ -7,6 +7,8 @@ import software.amazon.awssdk.services.redshift.model.EndpointNotFoundException;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
 public class EndpointAccessStabilizers {
+    private static final String VALID_ENDPOINT_STATUS = "active";
+
     public static boolean isEndpointActive(final ProxyClient<RedshiftClient> proxyClient,
                                            ResourceModel model,
                                            CallbackContext cxt) {
@@ -19,21 +21,23 @@ public class EndpointAccessStabilizers {
 
         try {
             response = proxyClient.injectCredentialsAndInvokeV2(request, proxyClient.client()::describeEndpointAccess);
+
+            return response.endpointAccessList()
+                    .stream()
+                    .findAny()
+                    .map(endpointAccess -> endpointAccess.endpointStatus().equalsIgnoreCase(VALID_ENDPOINT_STATUS))
+                    .orElse(false);
+
         } catch (EndpointNotFoundException e) {
             return false;
         }
-
-        if (response.endpointAccessList().isEmpty()) {
-            return false;
-        }
-
-        return response.endpointAccessList().get(0).endpointStatus().equalsIgnoreCase("active");
     }
 
 
     public static boolean isEndpointDeleted(final ProxyClient<RedshiftClient> proxyClient,
                                             ResourceModel model,
                                             CallbackContext cxt) {
+
         DescribeEndpointAccessRequest request = DescribeEndpointAccessRequest.builder()
                 .endpointName(model.getEndpointName())
                 .build();

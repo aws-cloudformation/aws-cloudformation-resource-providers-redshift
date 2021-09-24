@@ -1,0 +1,114 @@
+Resources:
+  ContractTestSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Superuser credentials for the Redshift cluster
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: password
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\ ,'
+
+  # Create a cluster
+  ContractTestEndpointAccessCluster:
+    Type: AWS::Redshift::Cluster
+    DependsOn:
+      - ContractTestSecret
+      - ContractTestEndpointAccessClusterSubnetGroup0
+      - ContractTestEndpointAccessClusterSubnetGroup1
+      - ContractTestEndpointAccessVPCSecurityGroup0
+      - ContractTestEndpointAccessVPCSecurityGroup1
+    Properties:
+      ClusterType: multi-node
+      NodeType: ra3.4xlarge
+      NumberOfNodes: 2
+      DBName: dev
+      MasterUsername: !Join [ '', [ '{{resolve:secretsmanager:', !Ref ContractTestSecret, ':SecretString:username}}' ] ]
+      MasterUserPassword: !Join [ '', [ '{{resolve:secretsmanager:', !Ref ContractTestSecret, ':SecretString:password}}' ] ]
+      AvailabilityZoneRelocation: true
+      PubliclyAccessible: false
+
+  # Create a VPC
+  ContractTestEndpointAccessVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+
+  # Create 1st subnet and a subnet group
+  ContractTestEndpointAccessSubnet0:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.0.0/24
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref ContractTestEndpointAccessVpc
+  ContractTestEndpointAccessClusterSubnetGroup0:
+    Type: AWS::Redshift::ClusterSubnetGroup
+    Properties:
+      Description: Test Subnet Group 0
+      SubnetIds:
+        - !Ref ContractTestEndpointAccessSubnet0
+
+  # Create 2nd subnet and a subnet group
+  ContractTestEndpointAccessSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.1.0/24
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: !Ref AWS::Region
+      VpcId: !Ref ContractTestEndpointAccessVpc
+  ContractTestEndpointAccessClusterSubnetGroup1:
+    Type: AWS::Redshift::ClusterSubnetGroup
+    Properties:
+      Description: Test Subnet Group 1
+      SubnetIds:
+        - !Ref ContractTestEndpointAccessSubnet1
+
+  # Create 1st security group
+  ContractTestEndpointAccessVPCSecurityGroup0:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Test Security Group 0.
+      VpcId: !Ref ContractTestEndpointAccessVpc
+
+  # Create 2nd security group
+  ContractTestEndpointAccessVPCSecurityGroup1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Test Security Group 1.
+      VpcId: !Ref ContractTestEndpointAccessVpc
+
+Outputs:
+  ResourceOwner:
+    Value: !Ref AWS::AccountId
+    Export:
+      Name: ResourceOwner
+
+  ContractTestEndpointAccessClusterName:
+    Value: !Ref ContractTestEndpointAccessCluster
+    Export:
+      Name: ContractTestEndpointAccessClusterName
+
+  ContractTestEndpointAccessClusterSubnetGroup0Name:
+    Value: !Ref ContractTestEndpointAccessClusterSubnetGroup0
+    Export:
+      Name: ContractTestEndpointAccessClusterSubnetGroup0Name
+
+  ContractTestEndpointAccessClusterSubnetGroup1Name:
+    Value: !Ref ContractTestEndpointAccessClusterSubnetGroup1
+    Export:
+      Name: ContractTestEndpointAccessClusterSubnetGroup1Name
+
+  ContractTestEndpointAccessVPCSecurityGroup0Name:
+    Value: !Ref ContractTestEndpointAccessVPCSecurityGroup0
+    Export:
+      Name: ContractTestEndpointAccessVPCSecurityGroup0Name
+
+  ContractTestEndpointAccessVPCSecurityGroup1Name:
+    Value: !Ref ContractTestEndpointAccessVPCSecurityGroup1
+    Export:
+      Name: ContractTestEndpointAccessVPCSecurityGroup1Name

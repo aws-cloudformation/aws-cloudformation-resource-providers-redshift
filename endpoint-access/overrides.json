@@ -1,0 +1,18 @@
+{
+    "CREATE": {
+        "/ClusterIdentifier": "{{ContractTestEndpointAccessClusterName}}",
+        "/SubnetGroupName": "{{ContractTestEndpointAccessClusterSubnetGroup0Name}}",
+        "/ResourceOwner": "{{ResourceOwner}}",
+        "/VpcSecurityGroupIds": [
+            "{{ContractTestEndpointAccessVPCSecurityGroup0Name}}"
+        ]
+    },
+    "UPDATE": {
+        "/ClusterIdentifier": "{{ContractTestEndpointAccessClusterName}}",
+        "/SubnetGroupName": "{{ContractTestEndpointAccessClusterSubnetGroup1Name}}",
+        "/ResourceOwner": "{{ResourceOwner}}",
+        "/VpcSecurityGroupIds": [
+            "{{ContractTestEndpointAccessVPCSecurityGroup1Name}}"
+        ]
+    }
+}

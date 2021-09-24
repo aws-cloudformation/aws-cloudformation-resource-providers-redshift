@@ -1,7 +1,7 @@
 {
     "typeName": "AWS::Redshift::EndpointAccess",
     "description": "Resource schema for a Redshift-managed VPC endpoint.",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-redshift",
     "definitions": {
         "VpcSecurityGroup": {
             "description": "Describes the members of a VPC security group.",
@@ -15,7 +15,8 @@
                     "type": "string",
                     "description": "The status of the VPC security group."
                 }
-            }
+            },
+            "additionalProperties": false
         },
         "NetworkInterface": {
             "description": "Describes a network interface.",
@@ -37,7 +38,8 @@
                     "type": "string",
                     "description": "The Availability Zone."
                 }
-            }
+            },
+            "additionalProperties": false
         }
     },
     "properties": {
@@ -52,13 +54,15 @@
         "VpcSecurityGroups": {
             "description": "A list of Virtual Private Cloud (VPC) security groups to be associated with the endpoint.",
             "type": "array",
+            "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/VpcSecurityGroup"
             }
         },
         "ResourceOwner": {
             "description": "The AWS account ID of the owner of the cluster.",
-            "type": "string"
+            "type": "string",
+            "pattern": "^\\d{12}$"
         },
         "EndpointStatus": {
             "description": "The status of the endpoint.",
@@ -75,19 +79,17 @@
         },
         "SubnetGroupName": {
             "description": "The subnet group name where Amazon Redshift chooses to deploy the endpoint.",
-            "type": "string"
+            "type": "string",
+            "pattern": "^(?=^[a-zA-Z0-9-]+$).{1,255}$"
         },
         "Port": {
             "description": "The port number on which the cluster accepts incoming connections.",
             "type": "integer"
         },
-        "VpcId": {
-            "description": "The VPC identifier that the endpoint is associated.",
-            "type": "string"
-        },
         "VpcSecurityGroupIds": {
             "description": "A list of vpc security group ids to apply to the created endpoint access.",
             "type": "array",
+            "insertionOrder": false,
             "items": {
                 "type": "string"
             }
@@ -106,12 +108,14 @@
                 },
                 "NetworkInterfaces": {
                     "type": "array",
+                    "insertionOrder": false,
                     "description": "One or more network interfaces of the endpoint. Also known as an interface endpoint.",
                     "items": {
                         "$ref": "#/definitions/NetworkInterface"
                     }
                 }
-            }
+            },
+            "additionalProperties": false
         }
     },
     "additionalProperties": false,
@@ -122,13 +126,7 @@
         "/properties/EndpointName"
     ],
     "createOnlyProperties": [
-        "/properties/EndpointName",
-        "/properties/SubnetGroupName",
-        "/properties/ResourceOwner",
-        "/properties/ClusterIdentifier"
-    ],
-    "writeOnlyProperties": [
-        "/properties/VpcSecurityGroupIds"
+        "/properties/EndpointName"
     ],
     "readOnlyProperties": [
         "/properties/Address",

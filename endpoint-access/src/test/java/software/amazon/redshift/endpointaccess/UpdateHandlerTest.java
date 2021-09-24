@@ -9,10 +9,12 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.CreateEndpointAccessRequest;
+import software.amazon.awssdk.services.redshift.model.CreateEndpointAccessResponse;
+import software.amazon.awssdk.services.redshift.model.DeleteEndpointAccessRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteEndpointAccessResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAccessResponse;
-import software.amazon.awssdk.services.redshift.model.ModifyEndpointAccessRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyEndpointAccessResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -33,13 +35,11 @@ import static org.mockito.Mockito.when;
 public class UpdateHandlerTest extends AbstractTestBase {
 
     @Mock
+    RedshiftClient sdkClient;
+    @Mock
     private AmazonWebServicesClientProxy proxy;
-
     @Mock
     private ProxyClient<RedshiftClient> proxyClient;
-
-    @Mock
-    RedshiftClient sdkClient;
 
     @BeforeEach
     public void setup() {
@@ -61,15 +61,17 @@ public class UpdateHandlerTest extends AbstractTestBase {
         final ResourceModel model = ResourceModel.builder().build();
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-            .desiredResourceState(model)
-            .build();
+                .desiredResourceState(model)
+                .build();
 
         try (MockedStatic<Validator> mockedValidator = Mockito.mockStatic(Validator.class)) {
             try (MockedStatic<Translator> mockedTranslator = Mockito.mockStatic(Translator.class)) {
                 // Mock the interactions with the translator, which is used by both the update and read handlers
-                ModifyEndpointAccessRequest modifyRequest = ModifyEndpointAccessRequest.builder().build();
+                CreateEndpointAccessRequest createRequest = CreateEndpointAccessRequest.builder().build();
+                DeleteEndpointAccessRequest deleteRequest = DeleteEndpointAccessRequest.builder().build();
                 DescribeEndpointAccessRequest describeRequest = DescribeEndpointAccessRequest.builder().build();
-                mockedTranslator.when(() -> Translator.translateToUpdateRequest(model)).thenReturn(modifyRequest);
+                mockedTranslator.when(() -> Translator.translateToCreateRequest(model)).thenReturn(createRequest);
+                mockedTranslator.when(() -> Translator.translateToDeleteRequest(model)).thenReturn(deleteRequest);
                 mockedTranslator.when(() -> Translator.translateToReadRequest(model)).thenReturn(describeRequest);
                 mockedTranslator.when(() -> Translator.translateFromReadResponse(any(DescribeEndpointAccessResponse.class)))
                         .thenReturn(model);
@@ -78,11 +80,15 @@ public class UpdateHandlerTest extends AbstractTestBase {
                              Mockito.mockStatic(EndpointAccessStabilizers.class)) {
 
                     // Mock the interactions with the stabilizers
+                    mockedStabilizers.when(() -> EndpointAccessStabilizers.isEndpointDeleted(any(), any(), any()))
+                            .thenReturn(true);
                     mockedStabilizers.when(() -> EndpointAccessStabilizers.isEndpointActive(any(), any(), any()))
                             .thenReturn(true);
 
-                    when(proxyClient.client().modifyEndpointAccess(any(ModifyEndpointAccessRequest.class)))
-                            .thenReturn(ModifyEndpointAccessResponse.builder().build());
+                    when(proxyClient.client().deleteEndpointAccess(any(DeleteEndpointAccessRequest.class)))
+                            .thenReturn(DeleteEndpointAccessResponse.builder().build());
+                    when(proxyClient.client().createEndpointAccess(any(CreateEndpointAccessRequest.class)))
+                            .thenReturn(CreateEndpointAccessResponse.builder().build());
                     when(proxyClient.client().describeEndpointAccess(any(DescribeEndpointAccessRequest.class)))
                             .thenReturn(DescribeEndpointAccessResponse.builder().build());
 
