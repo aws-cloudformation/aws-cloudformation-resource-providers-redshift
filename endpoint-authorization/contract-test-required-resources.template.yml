@@ -21,6 +21,7 @@ Resources:
       MasterUserPassword: !Join [ '', [ '{{resolve:secretsmanager:', !Ref ContractTestSecret, ':SecretString:password}}' ] ]
       AvailabilityZoneRelocation: true
       PubliclyAccessible: false
+      Encrypted: true
 
 Outputs:
   ContractTestEndpointAuthorizationClusterName:
