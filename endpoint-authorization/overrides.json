@@ -1,0 +1,8 @@
+{
+    "CREATE": {
+        "/ClusterIdentifier": "{{ContractTestEndpointAuthorizationClusterName}}"
+    },
+    "UPDATE": {
+        "/ClusterIdentifier": "{{ContractTestEndpointAuthorizationClusterName}}"
+    }
+}

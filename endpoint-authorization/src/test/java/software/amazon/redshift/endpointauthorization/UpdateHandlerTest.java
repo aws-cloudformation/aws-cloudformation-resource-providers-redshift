@@ -22,9 +22,11 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.time.Duration;
+import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
@@ -52,27 +54,32 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
+                .previousResourceState(model)
                 .build();
 
         try (MockedStatic<Translator> mockedTranslator = mockStatic(Translator.class)) {
             try (MockedStatic<Validator> mockedValidator = Mockito.mockStatic(Validator.class)) {
-                AuthorizeEndpointAccessRequest authorizeRequest = AuthorizeEndpointAccessRequest.builder().build();
-                RevokeEndpointAccessRequest revokeRequest = RevokeEndpointAccessRequest.builder().build();
+                AuthorizeEndpointAccessRequest authorizeRequest = AuthorizeEndpointAccessRequest.builder()
+                        .vpcIds(Collections.singleton("vpc-to-be-auth"))
+                        .build();
+                RevokeEndpointAccessRequest revokeRequest = RevokeEndpointAccessRequest.builder()
+                        .vpcIds(Collections.singleton("vpc-to-be-revoke"))
+                        .build();
                 DescribeEndpointAuthorizationRequest describeRequest = DescribeEndpointAuthorizationRequest.builder()
                         .build();
 
+                mockedTranslator.when(() -> Translator.translateToUpdateRevokeRequest(any(), any(), anyBoolean()))
+                        .thenReturn(revokeRequest);
                 mockedTranslator.when(() -> Translator.translateToUpdateAuthorizeRequest(any(), any()))
                         .thenReturn(authorizeRequest);
-                mockedTranslator.when(() -> Translator.translateToUpdateRevokeRequest(any(), any()))
-                        .thenReturn(revokeRequest);
                 mockedTranslator.when(() -> Translator.translateToReadRequest(any())).thenReturn(describeRequest);
                 mockedTranslator.when(() -> Translator.translateFromReadResponse(any())).thenReturn(model);
                 mockedValidator.when(() -> Validator.doesExist(any())).thenReturn(true);
 
-                when(proxyClient.client().authorizeEndpointAccess(any(AuthorizeEndpointAccessRequest.class)))
-                        .thenReturn(AuthorizeEndpointAccessResponse.builder().build());
                 when(proxyClient.client().revokeEndpointAccess(any(RevokeEndpointAccessRequest.class)))
                         .thenReturn(RevokeEndpointAccessResponse.builder().build());
+                when(proxyClient.client().authorizeEndpointAccess(any(AuthorizeEndpointAccessRequest.class)))
+                        .thenReturn(AuthorizeEndpointAccessResponse.builder().build());
                 when(proxyClient.client().describeEndpointAuthorization(
                         any(DescribeEndpointAuthorizationRequest.class))
                 ).thenReturn(DescribeEndpointAuthorizationResponse.builder().build());

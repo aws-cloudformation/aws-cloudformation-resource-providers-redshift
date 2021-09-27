@@ -1,5 +1,6 @@
 package software.amazon.redshift.endpointauthorization;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,16 +20,19 @@ import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doReturn;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,7 +49,8 @@ public class TranslatorTest {
     String clusterIdentifier = "cluster-id";
     String account = "account";
     String vpcId = "vpcId";
-    List<String> vpcIds = Arrays.asList(vpcId);
+    List<String> vpcIds = Collections.singletonList(vpcId);
+    boolean force = RandomUtils.nextBoolean();
 
     @Nested
     @DisplayName("TranslateToCreateRequest")
@@ -97,57 +102,17 @@ public class TranslatorTest {
             expectedRequest = DescribeEndpointAuthorizationRequest.builder()
                     .clusterIdentifier(clusterIdentifier)
                     .account(account)
-                    .grantee(false)
                     .build();
         }
 
         @Test
         public void testTranslateSimpleCase() {
             ResourceModel resourceModel = ResourceModel.builder()
-                    .account(account)
                     .clusterIdentifier(clusterIdentifier)
+                    .account(account)
                     .build();
 
             assertEquals(expectedRequest, Translator.translateToReadRequest(resourceModel));
-        }
-
-        @Test
-        public void testAsGrantee() {
-            ResourceModel granteeModel = ResourceModel.builder()
-                    .clusterIdentifier(clusterIdentifier)
-                    .account(account)
-                    .asGrantee(true)
-                    .build();
-
-            expectedRequest = expectedRequest.toBuilder().grantee(true).build();
-
-            assertEquals(expectedRequest, Translator.translateToReadRequest(granteeModel));
-        }
-
-        @Test
-        public void testGranteeEmptyAccount() {
-            ResourceModel granteeModel = ResourceModel.builder()
-                    .clusterIdentifier(clusterIdentifier)
-                    .grantor(account)
-                    .asGrantee(true)
-                    .build();
-
-            expectedRequest = expectedRequest.toBuilder().grantee(true).build();
-
-            assertEquals(expectedRequest, Translator.translateToReadRequest(granteeModel));
-        }
-
-        @Test
-        public void testGrantorEmptyAccount() {
-            ResourceModel granteeModel = ResourceModel.builder()
-                    .clusterIdentifier(clusterIdentifier)
-                    .grantee(account)
-                    .asGrantee(false)
-                    .build();
-
-            expectedRequest = expectedRequest.toBuilder().grantee(false).build();
-
-            assertEquals(expectedRequest, Translator.translateToReadRequest(granteeModel));
         }
     }
 
@@ -161,24 +126,34 @@ public class TranslatorTest {
         ResourceModel resourceModel = ResourceModel.builder()
                 .account(account)
                 .clusterIdentifier(clusterIdentifier)
+                .vpcIds(vpcIds)
+                .allowedAllVPCs(vpcIds.isEmpty())
                 .build();
 
         @Test
         public void testNullVpcIdsToAdd() {
-            mockedClass.when(() -> Translator.getVpcIdsToAdd(resourceModel, proxyClient)).thenReturn(null);
-            assertNull(Translator.translateToUpdateAuthorizeRequest(resourceModel, proxyClient));
+            AuthorizeEndpointAccessRequest expectedRequest = AuthorizeEndpointAccessRequest.builder().build();
+
+            assertEquals(expectedRequest, Translator.translateToUpdateAuthorizeRequest(resourceModel, resourceModel));
         }
 
         @Test
         public void testFoundVpcIdsToAdd() {
+            List<String> desiredVpcIds = Collections.singletonList(vpcId + "2");
             AuthorizeEndpointAccessRequest expectedRequest = AuthorizeEndpointAccessRequest.builder()
-                    .vpcIds(vpcIds)
-                    .account(account)
                     .clusterIdentifier(clusterIdentifier)
+                    .account(account)
+                    .vpcIds(desiredVpcIds)
                     .build();
 
-            mockedClass.when(() -> Translator.getVpcIdsToAdd(resourceModel, proxyClient)).thenReturn(vpcIds);
-            assertEquals(expectedRequest, Translator.translateToUpdateAuthorizeRequest(resourceModel, proxyClient));
+            ResourceModel desiredResourceModel = ResourceModel.builder()
+                    .account(account)
+                    .clusterIdentifier(clusterIdentifier)
+                    .vpcIds(desiredVpcIds)
+                    .allowedAllVPCs(false)
+                    .build();
+
+            assertEquals(expectedRequest, Translator.translateToUpdateAuthorizeRequest(desiredResourceModel, resourceModel));
         }
     }
 
@@ -186,30 +161,39 @@ public class TranslatorTest {
     @DisplayName("TranslateToUpdateRevokeRequest")
     public class TranslateToUpdateRevokeRequestTest extends TranslatorAbstractTest {
         MockedStatic.Verification getVerificationFunction() {
-            return () -> Translator.translateToUpdateRevokeRequest(any(), any());
+            return () -> Translator.translateToUpdateRevokeRequest(any(), any(), anyBoolean());
         }
 
         ResourceModel resourceModel = ResourceModel.builder()
-                .account(account)
                 .clusterIdentifier(clusterIdentifier)
+                .account(account)
+                .vpcIds(vpcIds)
+                .allowedAllVPCs(vpcIds.isEmpty())
                 .build();
 
         @Test
         public void testNullVpcIdsToRemove() {
-            mockedClass.when(() -> Translator.getVpcIdsToRemove(resourceModel, proxyClient)).thenReturn(null);
-            assertNull(Translator.translateToUpdateRevokeRequest(resourceModel, proxyClient));
+            RevokeEndpointAccessRequest expectedRequest = RevokeEndpointAccessRequest.builder().build();
+
+            assertEquals(expectedRequest, Translator.translateToUpdateRevokeRequest(resourceModel, resourceModel, force));
         }
 
         @Test
         public void testFoundVpcIdsToRemove() {
             RevokeEndpointAccessRequest expectedRequest = RevokeEndpointAccessRequest.builder()
-                    .vpcIds(vpcIds)
                     .clusterIdentifier(clusterIdentifier)
                     .account(account)
+                    .vpcIds(vpcIds)
+                    .force(force)
                     .build();
 
-            mockedClass.when(() -> Translator.getVpcIdsToRemove(resourceModel, proxyClient)).thenReturn(vpcIds);
-            assertEquals(expectedRequest, Translator.translateToUpdateRevokeRequest(resourceModel, proxyClient));
+            ResourceModel desiredResourceModel = ResourceModel.builder()
+                    .account(account)
+                    .clusterIdentifier(clusterIdentifier)
+                    .vpcIds(Collections.emptyList())
+                    .build();
+
+            assertEquals(expectedRequest, Translator.translateToUpdateRevokeRequest(desiredResourceModel, resourceModel, force));
         }
     }
 
@@ -217,54 +201,75 @@ public class TranslatorTest {
     @DisplayName("GetVpcIdsToAdd")
     public class GetVpcIdsToAddTest extends TranslatorAbstractTest {
         MockedStatic.Verification getVerificationFunction() {
-            return () -> Translator.getVpcIdsToAdd(any(ResourceModel.class), any());
-        }
-        @Mock ResourceModel resourceModel;
-
-        @BeforeEach
-        public void setup() {
-            doReturn(account).when(resourceModel).getAccount();
-            doReturn(clusterIdentifier).when(resourceModel).getClusterIdentifier();
+            return () -> Translator.translateToUpdateAuthorizeRequest(any(), any());
         }
 
         @Test
-        public void testIdempotentAllowAll() {
-            mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                    .thenReturn(Collections.EMPTY_LIST);
-            doReturn(Collections.EMPTY_LIST).when(resourceModel).getVpcIds();
+        public void testNoneToAll() {
+            List<String> expectedVpcIds = Collections.singletonList("vpc-1");
 
-            assertNull(Translator.getVpcIdsToAdd(resourceModel, proxyClient));
+            ResourceModel oldResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.emptyList())
+                    .allowedAllVPCs(true)
+                    .build();
+
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.singletonList("vpc-1"))
+                    .allowedAllVPCs(false)
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateAuthorizeRequest(newResourceModel, oldResourceModel).vpcIds());
         }
 
         @Test
-        public void testAuthorizeAllToSpecificThrowsError() {
-             mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                     .thenReturn(Collections.EMPTY_LIST);
-             doReturn(vpcIds).when(resourceModel).getVpcIds();
+        public void testAllToNone() {
+            List<String> expectedVpcIds = Collections.emptyList();
 
-             assertThrows(
-                     CfnInvalidRequestException.class,
-                     () -> Translator.getVpcIdsToAdd(resourceModel, proxyClient)
-             );
+            ResourceModel oldResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.singletonList("vpc-1"))
+                    .allowedAllVPCs(false)
+                    .build();
+
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.emptyList())
+                    .allowedAllVPCs(true)
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateAuthorizeRequest(newResourceModel, oldResourceModel).vpcIds());
         }
 
         @Test
-        public void testNoVpcIdsToSend() {
-            mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                    .thenReturn(vpcIds);
-            doReturn(vpcIds).when(resourceModel).getVpcIds();
+        public void testDownsize() {
+            List<String> expectedVpcIds = Collections.emptyList();
 
-            mockedClass.when(() -> Translator.getVpcIdsToAdd(vpcIds, vpcIds)).thenReturn(Collections.EMPTY_LIST);
-            assertNull(Translator.getVpcIdsToAdd(resourceModel, proxyClient));
+            ResourceModel oldResourceModel = ResourceModel.builder()
+                    .vpcIds(Arrays.asList("vpc-1", "vpc-2"))
+                    .allowedAllVPCs(false)
+                    .build();
+
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.singletonList("vpc-1"))
+                    .allowedAllVPCs(false)
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateAuthorizeRequest(newResourceModel, oldResourceModel).vpcIds());
         }
 
         @Test
-        public void testNoVpcIdsInUpdateRequest() {
-            mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                    .thenReturn(vpcIds);
-            doReturn(Collections.EMPTY_LIST).when(resourceModel).getVpcIds();
+        public void testUpsize() {
+            List<String> expectedVpcIds = Collections.singletonList("vpc-2");
 
-            assertTrue(Translator.getVpcIdsToAdd(resourceModel, proxyClient).isEmpty());
+            ResourceModel oldResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.singletonList("vpc-1"))
+                    .allowedAllVPCs(false)
+                    .build();
+
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Arrays.asList("vpc-1", "vpc-2"))
+                    .allowedAllVPCs(false)
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateAuthorizeRequest(newResourceModel, oldResourceModel).vpcIds());
         }
     }
 
@@ -272,74 +277,56 @@ public class TranslatorTest {
     @DisplayName("GetVpcIdsToRemove")
     public class GetVpcIdsToRemoveTest extends TranslatorAbstractTest {
         MockedStatic.Verification getVerificationFunction() {
-            return () -> Translator.getVpcIdsToRemove(any(ResourceModel.class), any());
+            return () -> Translator.translateToUpdateRevokeRequest(any(), any(), anyBoolean());
         }
         @Mock ResourceModel resourceModel;
 
-        @BeforeEach
-        public void setup() {
-            doReturn(account).when(resourceModel).getAccount();
-            doReturn(clusterIdentifier).when(resourceModel).getClusterIdentifier();
+        @Test
+        public void testNoneToAll() {
+            List<String> expectedVpcIds = Collections.emptyList();
+
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.singletonList("vpc-1"))
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateRevokeRequest(newResourceModel, resourceModel, force).vpcIds());
         }
 
         @Test
-        public void testIdempotentAllowAll() {
-            mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                    .thenReturn(Collections.EMPTY_LIST);
-            doReturn(Collections.EMPTY_LIST).when(resourceModel).getVpcIds();
+        public void testAllToNone() {
+            List<String> expectedVpcIds = Collections.singletonList("vpc-1");
 
-            assertNull(Translator.getVpcIdsToRemove(resourceModel, proxyClient));
+            doReturn(Collections.singletonList("vpc-1")).when(resourceModel).getVpcIds();
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.emptyList())
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateRevokeRequest(newResourceModel, resourceModel, force).vpcIds());
         }
 
         @Test
-        public void testAuthorizeAllToSpecificThrowsError() {
-            mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                    .thenReturn(Collections.EMPTY_LIST);
-            doReturn(vpcIds).when(resourceModel).getVpcIds();
+        public void testDownsize() {
+            List<String> expectedVpcIds = Collections.singletonList("vpc-2");
 
-            assertThrows(
-                    CfnInvalidRequestException.class,
-                    () -> Translator.getVpcIdsToRemove(resourceModel, proxyClient)
-            );
+            doReturn(Arrays.asList("vpc-1", "vpc-2")).when(resourceModel).getVpcIds();
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Collections.singletonList("vpc-1"))
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateRevokeRequest(newResourceModel, resourceModel, force).vpcIds());
         }
 
         @Test
-        public void testNoVpcIdsToSend() {
-            mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                    .thenReturn(vpcIds);
-            doReturn(vpcIds).when(resourceModel).getVpcIds();
+        public void testUpsize() {
+            List<String> expectedVpcIds = Collections.emptyList();
 
-            mockedClass.when(() -> Translator.getVpcIdsToRemove(vpcIds, vpcIds)).thenReturn(Collections.EMPTY_LIST);
-            assertNull(Translator.getVpcIdsToRemove(resourceModel, proxyClient));
+            doReturn(Collections.singletonList("vpc-1")).when(resourceModel).getVpcIds();
+            ResourceModel newResourceModel = ResourceModel.builder()
+                    .vpcIds(Arrays.asList("vpc-1", "vpc-2"))
+                    .build();
+
+            assertEquals(expectedVpcIds, Translator.translateToUpdateRevokeRequest(newResourceModel, resourceModel, force).vpcIds());
         }
-
-        @Test
-        public void testNoVpcIdsInUpdateRequest() {
-            mockedClass.when(() -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient))
-                    .thenReturn(vpcIds);
-            doReturn(vpcIds).when(resourceModel).getVpcIds();
-            mockedClass.when(() -> Translator.getVpcIdsToRemove(vpcIds, vpcIds)).thenReturn(vpcIds);
-
-            assertEquals(vpcIds, Translator.getVpcIdsToRemove(resourceModel, proxyClient));
-        }
-    }
-
-    @Test
-    public void testGetVpcIdsToAddFilter() {
-        List<String> vpcIdsInUpdateRequest = Arrays.asList("id-1", "id-2");
-        List<String> existingVpcIds = Arrays.asList("id-1");
-        List<String> expectedVpcIds = Arrays.asList("id-2");
-
-        assertEquals(expectedVpcIds, Translator.getVpcIdsToAdd(existingVpcIds, vpcIdsInUpdateRequest));
-    }
-
-    @Test
-    public void testGetVpcIdsToRemoveFilter() {
-        List<String> vpcIdsInUpdateRequest = Arrays.asList("id-2");
-        List<String> existingVpcIds = Arrays.asList("id-1", "id-2");
-        List<String> expectedVpcIds = Arrays.asList("id-1");
-
-        assertEquals(expectedVpcIds, Translator.getVpcIdsToRemove(existingVpcIds, vpcIdsInUpdateRequest));
     }
 
     @Nested
@@ -348,7 +335,7 @@ public class TranslatorTest {
         @Test
         public void testTranslateEmptyResponse() {
             DescribeEndpointAuthorizationResponse response = DescribeEndpointAuthorizationResponse.builder()
-                    .endpointAuthorizationList(new ArrayList<EndpointAuthorization>())
+                    .endpointAuthorizationList(new ArrayList<>())
                     .build();
 
             assertEquals(ResourceModel.builder().build(), Translator.translateFromReadResponse(response));
@@ -356,16 +343,17 @@ public class TranslatorTest {
         @Test
         public void testTranslate() {
             String grantor = "grantor";
-            String grantee = "grantee";
             String clusterStatus = "cluster status";
+            Instant authorizeTime = Instant.now();
             AuthorizationStatus authorizationStatus = AuthorizationStatus.AUTHORIZED;
-            Boolean allowedAllVPCs = false;
+            Boolean allowedAllVPCs = RandomUtils.nextBoolean();
             Integer endpointCount = 1;
 
             EndpointAuthorization endpointAuthorization = EndpointAuthorization.builder()
                     .grantor(grantor)
-                    .grantee(grantee)
+                    .grantee(account)
                     .clusterIdentifier(clusterIdentifier)
+                    .authorizeTime(authorizeTime)
                     .clusterStatus(clusterStatus)
                     .status(authorizationStatus)
                     .allowedAllVPCs(allowedAllVPCs)
@@ -374,18 +362,21 @@ public class TranslatorTest {
                     .build();
 
             DescribeEndpointAuthorizationResponse response = DescribeEndpointAuthorizationResponse.builder()
-                    .endpointAuthorizationList(Arrays.asList(endpointAuthorization))
+                    .endpointAuthorizationList(Collections.singletonList(endpointAuthorization))
                     .build();
 
             ResourceModel expectedResourceModel = ResourceModel.builder()
                     .grantor(grantor)
-                    .grantee(grantee)
+                    .grantee(account)
                     .clusterIdentifier(clusterIdentifier)
+                    .authorizeTime(authorizeTime.toString())
                     .clusterStatus(clusterStatus)
                     .status(authorizationStatus.toString())
                     .allowedAllVPCs(allowedAllVPCs)
-                    .vpcIds(vpcIds)
+                    .allowedVPCs(vpcIds)
                     .endpointCount(endpointCount)
+                    .account(account)
+                    .vpcIds(vpcIds)
                     .build();
 
             assertEquals(expectedResourceModel, Translator.translateFromReadResponse(response));
@@ -395,18 +386,19 @@ public class TranslatorTest {
     @Nested
     @DisplayName("TranslateToRevokeRequest")
     public class TranslateToRevokeRequest {
+
         @Test
         public void testTranslate() {
             RevokeEndpointAccessRequest expectedRequest = RevokeEndpointAccessRequest.builder()
                     .account(account)
-                    .force(false)
+                    .force(force)
                     .clusterIdentifier(clusterIdentifier)
                     .vpcIds(vpcIds)
                     .build();
 
             ResourceModel model = ResourceModel.builder()
                     .account(account)
-                    .force(false)
+                    .force(force)
                     .clusterIdentifier(clusterIdentifier)
                     .vpcIds(vpcIds)
                     .build();
@@ -418,13 +410,13 @@ public class TranslatorTest {
         public void testTranslateNoVpcIds() {
             RevokeEndpointAccessRequest expectedRequest = RevokeEndpointAccessRequest.builder()
                     .account(account)
-                    .force(false)
+                    .force(force)
                     .clusterIdentifier(clusterIdentifier)
                     .build();
 
             ResourceModel model = ResourceModel.builder()
                     .account(account)
-                    .force(false)
+                    .force(force)
                     .clusterIdentifier(clusterIdentifier)
                     .build();
 
@@ -434,15 +426,15 @@ public class TranslatorTest {
         @Test
         public void testTranslateNoAccount() {
             RevokeEndpointAccessRequest expectedRequest = RevokeEndpointAccessRequest.builder()
-                    .account(account)
-                    .force(false)
                     .clusterIdentifier(clusterIdentifier)
+                    .account(account)
+                    .force(force)
                     .build();
 
             ResourceModel model = ResourceModel.builder()
-                    .grantee(account)
-                    .force(false)
                     .clusterIdentifier(clusterIdentifier)
+                    .account(account)
+                    .force(force)
                     .build();
 
             assertEquals(expectedRequest, Translator.translateToRevokeRequest(model));
@@ -466,55 +458,17 @@ public class TranslatorTest {
                 .grantor(account)
                 .build();
 
-        List<ResourceModel> expectedList = Arrays.asList(
+        List<ResourceModel> expectedList = Collections.singletonList(
                 ResourceModel.builder()
                         .clusterIdentifier(clusterIdentifier)
-                        .grantee(account)
-                        .grantor(account)
+                        .account(account)
                         .build()
         );
 
         DescribeEndpointAuthorizationResponse response = DescribeEndpointAuthorizationResponse.builder()
-                .endpointAuthorizationList(Arrays.asList(endpointAuthorization))
+                .endpointAuthorizationList(Collections.singletonList(endpointAuthorization))
                 .build();
 
         assertEquals(expectedList, Translator.translateFromListRequest(response));
-    }
-
-    @Nested
-    @DisplayName("GetExistingVpcIds")
-    public class GetExistingVpcIdsTest {
-        @BeforeEach
-        public void setup() {
-            doReturn(client).when(proxyClient).client();
-        }
-
-        @Test
-        public void testThrowsExceptionOnEmptyList() {
-            DescribeEndpointAuthorizationResponse response = DescribeEndpointAuthorizationResponse.builder()
-                    .endpointAuthorizationList(new ArrayList<EndpointAuthorization>())
-                    .build();
-
-            doReturn(response).when(proxyClient).injectCredentialsAndInvokeV2(any(), any());
-            assertThrows(
-                    CfnNotFoundException.class,
-                    () -> Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient)
-            );
-        }
-
-        @Test
-        public void testFindsAuthorization() {
-            EndpointAuthorization endpointAuthorization = EndpointAuthorization.builder()
-                    .allowedVPCs(vpcIds)
-                    .build();
-
-            DescribeEndpointAuthorizationResponse response = DescribeEndpointAuthorizationResponse.builder()
-                    .endpointAuthorizationList(endpointAuthorization)
-                    .build();
-
-            doReturn(response).when(proxyClient).injectCredentialsAndInvokeV2(any(), any());
-
-            assertEquals(vpcIds, Translator.getExistingVpcIds(account, clusterIdentifier, proxyClient));
-        }
     }
 }

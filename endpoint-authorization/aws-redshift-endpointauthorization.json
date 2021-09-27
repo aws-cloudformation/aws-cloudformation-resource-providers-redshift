@@ -1,38 +1,33 @@
 {
     "typeName": "AWS::Redshift::EndpointAuthorization",
     "description": "Describes an endpoint authorization for authorizing Redshift-managed VPC endpoint access to a cluster across AWS accounts.",
-    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
-    "definitions": {},
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-redshift",
+    "definitions": {
+        "AwsAccount": {
+            "type": "string",
+            "pattern": "^\\d{12}$"
+        },
+        "VpcId": {
+            "type": "string",
+            "pattern": "^vpc-\\d{1,17}$"
+        }
+    },
     "properties": {
         "Grantor": {
             "description": "The AWS account ID of the cluster owner.",
-            "type": "string"
+            "$ref": "#/definitions/AwsAccount"
         },
         "Grantee": {
             "description": "The AWS account ID of the grantee of the cluster.",
-            "type": "string"
-        },
-        "Account": {
-            "description": "The target AWS account ID to grant or revoke access for.",
-            "type": "string"
-        },
-        "VpcIds": {
-            "description": "The virtual private cloud (VPC) identifiers to grant or revoke access to.",
-            "type": "array",
-            "items": {
-                "type": "string"
-            }
-        },
-        "AsGrantee": {
-            "description": "Indicates whether to check authorization from a grantor or grantee point of view. If true, Amazon Redshift returns endpoint authorizations that you've been granted. If false (default), checks authorization from a grantor point of view.",
-            "type": "boolean"
-        },
-        "Force": {
-            "description": " Indicates whether to force the revoke action. If true, the Redshift-managed VPC endpoints associated with the endpoint authorization are also deleted.",
-            "type": "boolean"
+            "$ref": "#/definitions/AwsAccount"
         },
         "ClusterIdentifier": {
             "description": "The cluster identifier.",
+            "type": "string",
+            "pattern": "^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,63}$"
+        },
+        "AuthorizeTime": {
+            "description": "The time (UTC) when the authorization was created.",
             "type": "string"
         },
         "ClusterStatus": {
@@ -50,39 +45,57 @@
         "AllowedVPCs": {
             "description": "The VPCs allowed access to the cluster.",
             "type": "array",
+            "insertionOrder": false,
             "items": {
-                "type": "string"
+                "$ref": "#/definitions/VpcId"
             }
         },
         "EndpointCount": {
             "description": "The number of Redshift-managed VPC endpoints created for the authorization.",
             "type": "integer"
+        },
+        "Account": {
+            "description": "The target AWS account ID to grant or revoke access for.",
+            "$ref": "#/definitions/AwsAccount"
+        },
+        "VpcIds": {
+            "description": "The virtual private cloud (VPC) identifiers to grant or revoke access to.",
+            "type": "array",
+            "insertionOrder": false,
+            "items": {
+                "$ref": "#/definitions/VpcId"
+            }
+        },
+        "Force": {
+            "description": "Indicates whether to force the revoke action for the next Delete or Update stack action. If true, the Redshift-managed VPC endpoints associated with the endpoint authorization are also deleted.",
+            "type": "boolean"
         }
     },
     "additionalProperties": false,
     "required": [
-        "ClusterIdentifier"
+        "ClusterIdentifier",
+        "Account"
     ],
     "primaryIdentifier": [
         "/properties/ClusterIdentifier",
-        "/properties/Grantor",
-        "/properties/Grantee"
+        "/properties/Account"
     ],
     "createOnlyProperties": [
-        "/properties/ClusterIdentifier"
+        "/properties/ClusterIdentifier",
+        "/properties/Account"
     ],
     "readOnlyProperties": [
-        "/properties/AllowedAllVPCs",
-        "/properties/Status",
-        "/properties/ClusterStatus",
-        "/properties/AuthorizeTime",
-        "/properties/EndpointCount",
         "/properties/Grantor",
-        "/properties/Grantee"
+        "/properties/Grantee",
+        "/properties/AuthorizeTime",
+        "/properties/ClusterStatus",
+        "/properties/Status",
+        "/properties/AllowedAllVPCs",
+        "/properties/AllowedVPCs",
+        "/properties/EndpointCount"
     ],
     "writeOnlyProperties": [
-        "/properties/Account",
-        "/properties/VpcIds"
+        "/properties/Force"
     ],
     "handlers": {
         "create": {

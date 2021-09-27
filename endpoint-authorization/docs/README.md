@@ -12,12 +12,10 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::Redshift::EndpointAuthorization",
     "Properties" : {
+        "<a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>" : <i>String</i>,
         "<a href="#account" title="Account">Account</a>" : <i>String</i>,
         "<a href="#vpcids" title="VpcIds">VpcIds</a>" : <i>[ String, ... ]</i>,
-        "<a href="#asgrantee" title="AsGrantee">AsGrantee</a>" : <i>Boolean</i>,
-        "<a href="#force" title="Force">Force</a>" : <i>Boolean</i>,
-        "<a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>" : <i>String</i>,
-        "<a href="#allowedvpcs" title="AllowedVPCs">AllowedVPCs</a>" : <i>[ String, ... ]</i>,
+        "<a href="#force" title="Force">Force</a>" : <i>Boolean</i>
     }
 }
 </pre>
@@ -27,27 +25,36 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::Redshift::EndpointAuthorization
 Properties:
+    <a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>: <i>String</i>
     <a href="#account" title="Account">Account</a>: <i>String</i>
     <a href="#vpcids" title="VpcIds">VpcIds</a>: <i>
       - String</i>
-    <a href="#asgrantee" title="AsGrantee">AsGrantee</a>: <i>Boolean</i>
     <a href="#force" title="Force">Force</a>: <i>Boolean</i>
-    <a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>: <i>String</i>
-    <a href="#allowedvpcs" title="AllowedVPCs">AllowedVPCs</a>: <i>
-      - String</i>
 </pre>
 
 ## Properties
 
-#### Account
+#### ClusterIdentifier
 
-The target AWS account ID to grant or revoke access for.
+The cluster identifier.
 
-_Required_: No
+_Required_: Yes
 
 _Type_: String
 
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+_Pattern_: <code>^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,63}$</code>
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### Account
+
+_Required_: Yes
+
+_Type_: String
+
+_Pattern_: <code>^\d{12}$</code>
+
+_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### VpcIds
 
@@ -59,43 +66,13 @@ _Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
-#### AsGrantee
-
-Indicates whether to check authorization from a grantor or grantee point of view. If true, Amazon Redshift returns endpoint authorizations that you've been granted. If false (default), checks authorization from a grantor point of view.
-
-_Required_: No
-
-_Type_: Boolean
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
 #### Force
 
- Indicates whether to force the revoke action. If true, the Redshift-managed VPC endpoints associated with the endpoint authorization are also deleted.
+Indicates whether to force the revoke action for the next Delete or Update stack action. If true, the Redshift-managed VPC endpoints associated with the endpoint authorization are also deleted.
 
 _Required_: No
 
 _Type_: Boolean
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
-
-#### ClusterIdentifier
-
-The cluster identifier.
-
-_Required_: Yes
-
-_Type_: String
-
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
-
-#### AllowedVPCs
-
-The VPCs allowed access to the cluster.
-
-_Required_: No
-
-_Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -107,30 +84,34 @@ The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of
 
 For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
 
-#### AllowedAllVPCs
+#### Grantor
 
-Indicates whether all VPCs in the grantee account are allowed access to the cluster.
+Returns the <code>Grantor</code> value.
 
-#### Status
+#### Grantee
 
-The status of the authorization action.
+Returns the <code>Grantee</code> value.
+
+#### AuthorizeTime
+
+The time (UTC) when the authorization was created.
 
 #### ClusterStatus
 
 The status of the cluster.
 
-#### AuthorizeTime
+#### Status
 
-Returns the <code>AuthorizeTime</code> value.
+The status of the authorization action.
+
+#### AllowedAllVPCs
+
+Indicates whether all VPCs in the grantee account are allowed access to the cluster.
+
+#### AllowedVPCs
+
+The VPCs allowed access to the cluster.
 
 #### EndpointCount
 
 The number of Redshift-managed VPC endpoints created for the authorization.
-
-#### Grantor
-
-The AWS account ID of the cluster owner.
-
-#### Grantee
-
-The AWS account ID of the grantee of the cluster.
