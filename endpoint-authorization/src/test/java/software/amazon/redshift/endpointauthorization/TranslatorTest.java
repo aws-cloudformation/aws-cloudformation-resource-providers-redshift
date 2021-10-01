@@ -393,14 +393,12 @@ public class TranslatorTest {
                     .account(account)
                     .force(force)
                     .clusterIdentifier(clusterIdentifier)
-                    .vpcIds(vpcIds)
                     .build();
 
             ResourceModel model = ResourceModel.builder()
                     .account(account)
                     .force(force)
                     .clusterIdentifier(clusterIdentifier)
-                    .vpcIds(vpcIds)
                     .build();
 
             assertEquals(expectedRequest, Translator.translateToRevokeRequest(model));

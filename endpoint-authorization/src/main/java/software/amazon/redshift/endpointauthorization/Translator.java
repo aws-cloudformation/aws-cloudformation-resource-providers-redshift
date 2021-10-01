@@ -165,7 +165,6 @@ public class Translator {
         return RevokeEndpointAccessRequest.builder()
                 .clusterIdentifier(model.getClusterIdentifier())
                 .account(model.getAccount())
-                .vpcIds(model.getVpcIds())
                 .force(model.getForce())
                 .build();
     }
