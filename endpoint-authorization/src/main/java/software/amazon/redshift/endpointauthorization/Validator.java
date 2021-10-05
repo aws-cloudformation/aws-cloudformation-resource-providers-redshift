@@ -13,7 +13,7 @@ import javax.annotation.Nullable;
 
 public class Validator {
     static void validateAuthNotExists(final AuthorizeEndpointAccessRequest request,
-                                         final ProxyClient<RedshiftClient> proxyClient) {
+                                      final ProxyClient<RedshiftClient> proxyClient) {
         // The API will not throw an easily parsable error if the endpoint auth already exists.
         // Here we will do a manual check and throw the CfnAlreadyExistsError.
 
@@ -24,19 +24,15 @@ public class Validator {
 
         try {
             DescribeEndpointAuthorizationResponse describeResponse = proxyClient.injectCredentialsAndInvokeV2(
-                    describeRequest, proxyClient.client()::describeEndpointAuthorization
-            );
+                    describeRequest, proxyClient.client()::describeEndpointAuthorization);
 
             if (!describeResponse.endpointAuthorizationList().isEmpty()) {
-                throw new CfnAlreadyExistsException(
-                        ResourceModel.TYPE_NAME,
-                        String.format("account:%s-clusteridentifier:%s",
-                                request.account(), request.clusterIdentifier())
-                );
+                throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME,
+                        String.format("%s|%s", request.clusterIdentifier(), request.account()));
             }
         } catch (CfnAlreadyExistsException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             // If anything happened, we can just return false (does not exist). The error checking for cluster id
             // etc should be at the create level.
         }
@@ -46,10 +42,7 @@ public class Validator {
                                                   DescribeEndpointAuthorizationResponse response) {
         if (response.endpointAuthorizationList().isEmpty()) {
             throw new CfnNotFoundException(ResourceModel.TYPE_NAME,
-                    String.format("account%s-clusteridentifier%s-auth",
-                            request.account(),
-                            request.clusterIdentifier())
-            );
+                    String.format("%s|%s", request.clusterIdentifier(), request.account()));
         }
     }
 

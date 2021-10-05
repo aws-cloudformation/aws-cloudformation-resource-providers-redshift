@@ -1,6 +1,5 @@
 package software.amazon.redshift.endpointauthorization;
 
-import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AuthorizeEndpointAccessRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeEndpointAuthorizationRequest;
@@ -14,9 +13,7 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,15 +33,11 @@ public class Translator {
      * @return awsRequest the aws service request to create a resource
      */
     static AuthorizeEndpointAccessRequest translateToCreateRequest(final ResourceModel model) {
-        AuthorizeEndpointAccessRequest.Builder requestBuilder = AuthorizeEndpointAccessRequest.builder()
+        return AuthorizeEndpointAccessRequest.builder()
                 .clusterIdentifier(model.getClusterIdentifier())
-                .account(model.getAccount());
-
-        if (model.getVpcIds() != null && !model.getVpcIds().isEmpty()) {
-            requestBuilder.vpcIds(model.getVpcIds());
-        }
-
-        return requestBuilder.build();
+                .account(model.getAccount())
+                .vpcIds(model.getVpcIds())
+                .build();
     }
 
     /**
@@ -54,22 +47,9 @@ public class Translator {
      * @return awsRequest the aws service request to describe a resource
      */
     static DescribeEndpointAuthorizationRequest translateToReadRequest(final ResourceModel model) {
-        String targetAccount = model.getAccount();
-        Boolean asGrantee = Optional.ofNullable(model.getAsGrantee()).orElse(false);
-
-        if (StringUtils.isNullOrEmpty(model.getAccount())) {
-            // What if we did a read right after a create? The account should be grantor
-            if (asGrantee) {
-                targetAccount = model.getGrantor();
-            } else {
-                targetAccount = model.getGrantee();
-            }
-        }
-
         return DescribeEndpointAuthorizationRequest.builder()
                 .clusterIdentifier(model.getClusterIdentifier())
-                .account(targetAccount)
-                .grantee(asGrantee)
+                .account(model.getAccount())
                 .build();
     }
 
@@ -121,7 +101,7 @@ public class Translator {
                 proxyClient
         );
 
-        List<String> vpcIdsInUpdateRequest = model.getVpcIds();
+        List<String> vpcIdsInUpdateRequest = model.getVpcIds() == null ? Collections.emptyList() : model.getVpcIds();
 
         // If there are no current VPC ids specified in the authorization, this means all VPCs are authorized
         if (existingVpcIds.isEmpty()) {
@@ -159,7 +139,7 @@ public class Translator {
                 model.getClusterIdentifier(),
                 proxyClient
         );
-        List<String> vpcIdsInUpdateRequest = model.getVpcIds();
+        List<String> vpcIdsInUpdateRequest = model.getVpcIds() == null ? Collections.emptyList() : model.getVpcIds();
 
         // This means that we are trying to authorize specific after doing an authorize all - not allowed
         if (existingVpcIds.isEmpty()) {
@@ -195,8 +175,8 @@ public class Translator {
     }
 
     static List<String> getExistingVpcIds(final String accountId,
-                                   final String clusterId,
-                                   final ProxyClient<RedshiftClient> proxyClient) {
+                                          final String clusterId,
+                                          final ProxyClient<RedshiftClient> proxyClient) {
         // Make a call to check the existing VPC ids that exist for the auth. Remove the ones that already
         // exist before making the API call, otherwise we get an error saying vpc id already exists.
         DescribeEndpointAuthorizationRequest describeRequest = DescribeEndpointAuthorizationRequest.builder()
@@ -213,11 +193,7 @@ public class Translator {
 
         List<EndpointAuthorization> endpointAuthorizationList = describeResponse.endpointAuthorizationList();
         if (endpointAuthorizationList.isEmpty()) {
-            throw new CfnNotFoundException(ResourceModel.TYPE_NAME,
-                    String.format("account:%s-clusteridentifier:%s",
-                            accountId,
-                            clusterId)
-            );
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, String.format("%s|%s", clusterId, accountId));
         }
 
         return endpointAuthorizationList.get(0).allowedVPCs();
@@ -230,55 +206,23 @@ public class Translator {
      * @return model resource model
      */
     static ResourceModel translateFromReadResponse(final DescribeEndpointAuthorizationResponse response) {
-        List<EndpointAuthorization> endpointAuthorizationList = response.endpointAuthorizationList();
-        if (endpointAuthorizationList.isEmpty()) {
-            return ResourceModel.builder().build();
-        }
-
-        Function<Function<EndpointAuthorization, Object>, Object> producer = buildProducer(endpointAuthorizationList);
-        Function<Function<EndpointAuthorization, List<String>>, List<String>> listProducer = buildListProducer(endpointAuthorizationList);
-
-        return ResourceModel.builder()
-                .grantor((String) producer.apply(EndpointAuthorization::grantor))
-                .grantee((String) producer.apply(EndpointAuthorization::grantee))
-                .clusterIdentifier((String) producer.apply(EndpointAuthorization::clusterIdentifier))
-                .clusterStatus((String) producer.apply(EndpointAuthorization::clusterStatus))
-                .status(producer.apply(EndpointAuthorization::status).toString())
-                .allowedAllVPCs((Boolean) producer.apply(EndpointAuthorization::allowedAllVPCs))
-                .vpcIds(listProducer.apply(EndpointAuthorization::allowedVPCs))
-                .endpointCount((Integer) producer.apply(EndpointAuthorization::endpointCount))
-                .build();
-    }
-
-    /*
-        Builds a function given the endpointAccessList, which you call with a single parameter - the resource's
-        getter method, and will return either that resource, or null.
-    */
-    private static Function<Function<EndpointAuthorization, Object>, Object> buildProducer(
-            final Collection<EndpointAuthorization> endpointAuthorizationList) {
-        return (function) -> getResourceOptional(endpointAuthorizationList, function).orElse(null);
-    }
-
-    private static <T> Function<Function<EndpointAuthorization, List<T>>, List<T>> buildListProducer(
-            final Collection<EndpointAuthorization> endpointAuthorizationList) {
-        return (function) -> getResourceOptional(endpointAuthorizationList, function).orElse(null);
-    }
-
-    /*
-        Our get API returns a list of objects regardless of whether we specified a single one or not.
-
-        This function:
-            - Takes in the list of objects (EndpointAuthorizations')
-            - Builds a stream of single items from each EndpointAuthorization, getting that item using the getter method
-            - Returns any of these, if at least one exists (it should only contain one), otherwise returns null
-    */
-    private static <U, T> Optional<U> getResourceOptional(final Collection<T> resourceList,
-                                                          Function<? super T, ? extends U> resourceGetterMethod) {
-        return Optional.ofNullable(streamOfOrEmpty(resourceList)
-                .map(resourceGetterMethod)
-                .filter(Objects::nonNull)
+        return response.endpointAuthorizationList()
+                .stream()
+                .map(endpointAuthorization -> ResourceModel.builder()
+                        .grantor(endpointAuthorization.grantor())
+                        .grantee(endpointAuthorization.grantee())
+                        .clusterIdentifier(endpointAuthorization.clusterIdentifier())
+                        .authorizeTime(endpointAuthorization.authorizeTime().toString())
+                        .clusterStatus(endpointAuthorization.clusterStatus())
+                        .status(endpointAuthorization.statusAsString())
+                        .allowedAllVPCs(endpointAuthorization.allowedAllVPCs())
+                        .allowedVPCs(endpointAuthorization.allowedVPCs())
+                        .endpointCount(endpointAuthorization.endpointCount())
+                        .account(endpointAuthorization.grantee())
+                        .vpcIds(endpointAuthorization.allowedVPCs())
+                        .build())
                 .findAny()
-                .orElse(null));
+                .orElse(ResourceModel.builder().build());
     }
 
     /**
@@ -288,25 +232,11 @@ public class Translator {
      * @return awsRequest the aws service request to modify a resource
      */
     static RevokeEndpointAccessRequest translateToRevokeRequest(final ResourceModel model) {
-        String account = model.getAccount();
-
-        // Revoke is called by the grantor
-        if (StringUtils.isNullOrEmpty(account)) {
-            account = model.getGrantee();
-        }
-
-        RevokeEndpointAccessRequest.Builder builder = RevokeEndpointAccessRequest.builder()
+        return RevokeEndpointAccessRequest.builder()
                 .clusterIdentifier(model.getClusterIdentifier())
-                .account(account)
-                .force(model.getForce());
-
-
-        List<String> vpcIds = model.getVpcIds();
-        if (vpcIds != null && !vpcIds.isEmpty()) {
-            builder.vpcIds(vpcIds);
-        }
-
-        return builder.build();
+                .account(model.getAccount())
+                .force(model.getForce())
+                .build();
     }
 
     /**
@@ -331,8 +261,7 @@ public class Translator {
         return streamOfOrEmpty(response.endpointAuthorizationList())
                 .map(endpointAuthorization -> ResourceModel.builder()
                         .clusterIdentifier(endpointAuthorization.clusterIdentifier())
-                        .grantee(endpointAuthorization.grantee())
-                        .grantor(endpointAuthorization.grantor())
+                        .account(endpointAuthorization.grantee())
                         .build())
                 .collect(Collectors.toList());
     }
