@@ -16,7 +16,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#resourceowner" title="ResourceOwner">ResourceOwner</a>" : <i>String</i>,
         "<a href="#endpointname" title="EndpointName">EndpointName</a>" : <i>String</i>,
         "<a href="#subnetgroupname" title="SubnetGroupName">SubnetGroupName</a>" : <i>String</i>,
-        "<a href="#vpcid" title="VpcId">VpcId</a>" : <i>String</i>,
         "<a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>" : <i>[ String, ... ]</i>,
     }
 }
@@ -31,7 +30,6 @@ Properties:
     <a href="#resourceowner" title="ResourceOwner">ResourceOwner</a>: <i>String</i>
     <a href="#endpointname" title="EndpointName">EndpointName</a>: <i>String</i>
     <a href="#subnetgroupname" title="SubnetGroupName">SubnetGroupName</a>: <i>String</i>
-    <a href="#vpcid" title="VpcId">VpcId</a>: <i>String</i>
     <a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>: <i>
       - String</i>
 </pre>
@@ -56,6 +54,8 @@ _Required_: No
 
 _Type_: String
 
+_Pattern_: <code>^\d{12}$</code>
+
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### EndpointName
@@ -66,7 +66,7 @@ _Required_: Yes
 
 _Type_: String
 
-_Pattern_: <code>[a-z]([a-z0-9]*(-[a-z0-9]+)){0,29}</code>
+_Pattern_: <code>^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,30}$</code>
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
@@ -78,23 +78,15 @@ _Required_: No
 
 _Type_: String
 
+_Pattern_: <code>^(?=^[a-zA-Z0-9-]+$).{1,255}$</code>
+
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
-
-#### VpcId
-
-The VPC identifier that the endpoint is associated.
-
-_Required_: No
-
-_Type_: String
-
-_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### VpcSecurityGroupIds
 
 A list of vpc security group ids to apply to the created endpoint access.
 
-_Required_: No
+_Required_: Yes
 
 _Type_: List of String
 
