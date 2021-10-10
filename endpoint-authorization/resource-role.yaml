@@ -23,7 +23,14 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                - "ec2:DeleteClientVpnEndpoint"
+                - "ec2:DescribeAddresses"
+                - "ec2:DescribeInternetGateways"
+                - "ec2:DescribeSecurityGroups"
+                - "ec2:DescribeSubnets"
+                - "ec2:DescribeVpcAttribute"
                 - "redshift:AuthorizeEndpointAccess"
+                - "redshift:DeleteEndpointAccess"
                 - "redshift:DescribeEndpointAuthorization"
                 - "redshift:RevokeEndpointAccess"
                 Resource: "*"

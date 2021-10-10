@@ -118,7 +118,14 @@
         },
         "delete": {
             "permissions": [
-                "redshift:RevokeEndpointAccess"
+                "redshift:RevokeEndpointAccess",
+                "redshift:DeleteEndpointAccess",
+                "ec2:DeleteClientVpnEndpoint",
+                "ec2:DescribeVpcAttribute",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeAddresses",
+                "ec2:DescribeInternetGateways",
+                "ec2:DescribeSubnets"
             ],
             "timeoutInMinutes": 60
         },
