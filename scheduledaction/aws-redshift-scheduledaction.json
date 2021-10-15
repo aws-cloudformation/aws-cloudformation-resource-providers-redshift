@@ -125,6 +125,7 @@
             }
         }
     },
+    "taggable": false,
     "additionalProperties": false,
     "required": [
         "ScheduledActionName"
