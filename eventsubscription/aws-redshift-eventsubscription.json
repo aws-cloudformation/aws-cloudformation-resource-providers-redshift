@@ -129,6 +129,7 @@
             }
         }
     },
+    "taggable": true,
     "additionalProperties": false,
     "required": [
         "SubscriptionName"
