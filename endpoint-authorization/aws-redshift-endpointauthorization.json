@@ -71,6 +71,7 @@
             "type": "boolean"
         }
     },
+    "taggable": false,
     "additionalProperties": false,
     "required": [
         "ClusterIdentifier",
