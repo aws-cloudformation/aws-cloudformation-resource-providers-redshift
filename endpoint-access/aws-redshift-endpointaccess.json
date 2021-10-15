@@ -118,6 +118,7 @@
             "additionalProperties": false
         }
     },
+    "taggable": false,
     "additionalProperties": false,
     "required": [
         "EndpointName",
