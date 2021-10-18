@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -74,7 +75,7 @@ public class TranslatorTest {
                      .networkInterfaces(resourceModelNetworkInterfaces)
                      .build();
 
-    List<String> vpcSecurityGroupIds = Arrays.asList("security-group-id");
+    List<String> vpcSecurityGroupIds = Collections.singletonList(vpcSecurityGroupId);
 
     EndpointAccess endpointAccess = EndpointAccess.builder()
             .clusterIdentifier(clusterIdentifier)
@@ -165,9 +166,10 @@ public class TranslatorTest {
         ResourceModel expectedResourceModel = ResourceModel.builder()
                 .clusterIdentifier(clusterIdentifier)
                 .resourceOwner(resourceOwner)
-                .subnetGroupName(subnetGroupName)
-                .endpointStatus(endpointStatus)
                 .endpointName(endpointName)
+                .subnetGroupName(subnetGroupName)
+                .vpcSecurityGroupIds(vpcSecurityGroupIds)
+                .endpointStatus(endpointStatus)
                 .endpointCreateTime(endpointCreateTime.toString())
                 .port(port)
                 .address(address)
