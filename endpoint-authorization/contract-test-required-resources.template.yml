@@ -1,0 +1,30 @@
+Resources:
+  ContractTestSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Description: Superuser credentials for the Redshift cluster
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: password
+        PasswordLength: 16
+        ExcludeCharacters: '"''@/\ ,'
+
+  # Create a cluster
+  ContractTestEndpointAuthorizationCluster:
+    Type: AWS::Redshift::Cluster
+    Properties:
+      ClusterType: multi-node
+      NodeType: ra3.4xlarge
+      NumberOfNodes: 2
+      DBName: dev
+      MasterUsername: !Join [ '', [ '{{resolve:secretsmanager:', !Ref ContractTestSecret, ':SecretString:username}}' ] ]
+      MasterUserPassword: !Join [ '', [ '{{resolve:secretsmanager:', !Ref ContractTestSecret, ':SecretString:password}}' ] ]
+      AvailabilityZoneRelocation: true
+      PubliclyAccessible: false
+      Encrypted: true
+
+Outputs:
+  ContractTestEndpointAuthorizationClusterName:
+    Value: !Ref ContractTestEndpointAuthorizationCluster
+    Export:
+      Name: ContractTestEndpointAuthorizationClusterName

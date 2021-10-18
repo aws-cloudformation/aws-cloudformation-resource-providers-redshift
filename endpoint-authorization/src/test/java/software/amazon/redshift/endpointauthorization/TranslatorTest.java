@@ -1,5 +1,6 @@
 package software.amazon.redshift.endpointauthorization;
 
+import org.apache.commons.lang3.RandomUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +20,7 @@ import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -97,7 +99,6 @@ public class TranslatorTest {
             expectedRequest = DescribeEndpointAuthorizationRequest.builder()
                     .clusterIdentifier(clusterIdentifier)
                     .account(account)
-                    .grantee(false)
                     .build();
         }
 
@@ -109,45 +110,6 @@ public class TranslatorTest {
                     .build();
 
             assertEquals(expectedRequest, Translator.translateToReadRequest(resourceModel));
-        }
-
-        @Test
-        public void testAsGrantee() {
-            ResourceModel granteeModel = ResourceModel.builder()
-                    .clusterIdentifier(clusterIdentifier)
-                    .account(account)
-                    .asGrantee(true)
-                    .build();
-
-            expectedRequest = expectedRequest.toBuilder().grantee(true).build();
-
-            assertEquals(expectedRequest, Translator.translateToReadRequest(granteeModel));
-        }
-
-        @Test
-        public void testGranteeEmptyAccount() {
-            ResourceModel granteeModel = ResourceModel.builder()
-                    .clusterIdentifier(clusterIdentifier)
-                    .grantor(account)
-                    .asGrantee(true)
-                    .build();
-
-            expectedRequest = expectedRequest.toBuilder().grantee(true).build();
-
-            assertEquals(expectedRequest, Translator.translateToReadRequest(granteeModel));
-        }
-
-        @Test
-        public void testGrantorEmptyAccount() {
-            ResourceModel granteeModel = ResourceModel.builder()
-                    .clusterIdentifier(clusterIdentifier)
-                    .grantee(account)
-                    .asGrantee(false)
-                    .build();
-
-            expectedRequest = expectedRequest.toBuilder().grantee(false).build();
-
-            assertEquals(expectedRequest, Translator.translateToReadRequest(granteeModel));
         }
     }
 
@@ -358,14 +320,16 @@ public class TranslatorTest {
             String grantor = "grantor";
             String grantee = "grantee";
             String clusterStatus = "cluster status";
+            Instant authorizeTime = Instant.now();
             AuthorizationStatus authorizationStatus = AuthorizationStatus.AUTHORIZED;
-            Boolean allowedAllVPCs = false;
+            Boolean allowedAllVPCs = RandomUtils.nextBoolean();
             Integer endpointCount = 1;
 
             EndpointAuthorization endpointAuthorization = EndpointAuthorization.builder()
                     .grantor(grantor)
                     .grantee(grantee)
                     .clusterIdentifier(clusterIdentifier)
+                    .authorizeTime(authorizeTime)
                     .clusterStatus(clusterStatus)
                     .status(authorizationStatus)
                     .allowedAllVPCs(allowedAllVPCs)
@@ -374,7 +338,7 @@ public class TranslatorTest {
                     .build();
 
             DescribeEndpointAuthorizationResponse response = DescribeEndpointAuthorizationResponse.builder()
-                    .endpointAuthorizationList(Arrays.asList(endpointAuthorization))
+                    .endpointAuthorizationList(Collections.singletonList(endpointAuthorization))
                     .build();
 
             ResourceModel expectedResourceModel = ResourceModel.builder()
@@ -382,10 +346,13 @@ public class TranslatorTest {
                     .grantee(grantee)
                     .clusterIdentifier(clusterIdentifier)
                     .clusterStatus(clusterStatus)
+                    .authorizeTime(authorizeTime.toString())
                     .status(authorizationStatus.toString())
                     .allowedAllVPCs(allowedAllVPCs)
-                    .vpcIds(vpcIds)
+                    .allowedVPCs(endpointAuthorization.allowedVPCs())
                     .endpointCount(endpointCount)
+                    .account(grantee)
+                    .vpcIds(vpcIds)
                     .build();
 
             assertEquals(expectedResourceModel, Translator.translateFromReadResponse(response));
@@ -401,14 +368,12 @@ public class TranslatorTest {
                     .account(account)
                     .force(false)
                     .clusterIdentifier(clusterIdentifier)
-                    .vpcIds(vpcIds)
                     .build();
 
             ResourceModel model = ResourceModel.builder()
                     .account(account)
                     .force(false)
                     .clusterIdentifier(clusterIdentifier)
-                    .vpcIds(vpcIds)
                     .build();
 
             assertEquals(expectedRequest, Translator.translateToRevokeRequest(model));
@@ -440,7 +405,7 @@ public class TranslatorTest {
                     .build();
 
             ResourceModel model = ResourceModel.builder()
-                    .grantee(account)
+                    .account(account)
                     .force(false)
                     .clusterIdentifier(clusterIdentifier)
                     .build();
@@ -469,8 +434,7 @@ public class TranslatorTest {
         List<ResourceModel> expectedList = Arrays.asList(
                 ResourceModel.builder()
                         .clusterIdentifier(clusterIdentifier)
-                        .grantee(account)
-                        .grantor(account)
+                        .account(account)
                         .build()
         );
 

@@ -17,6 +17,7 @@ import java.util.function.Function;
 public class AbstractTestBase {
     protected static final Credentials MOCK_CREDENTIALS;
     protected static final LoggerProxy logger;
+    protected static final String AWS_REGION = "us-east-1";
 
     static {
         MOCK_CREDENTIALS = new Credentials("accessKey", "secretKey", "token");

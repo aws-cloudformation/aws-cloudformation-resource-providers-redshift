@@ -1,0 +1,8 @@
+{
+    "CREATE": {
+        "/ClusterIdentifier": "{{ContractTestEndpointAuthorizationClusterName}}",
+        "/VpcIds": [
+            "vpc-0"
+        ]
+    }
+}
