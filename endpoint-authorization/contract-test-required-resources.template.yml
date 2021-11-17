@@ -10,7 +10,7 @@ Resources:
         ExcludeCharacters: '"''@/\ ,'
 
   # Create a cluster
-  ContractTestEndpointAuthorizationCluster:
+  RedshiftEndpointAuthorizationContractCluster:
     Type: AWS::Redshift::Cluster
     Properties:
       ClusterType: multi-node
@@ -24,7 +24,7 @@ Resources:
       Encrypted: true
 
 Outputs:
-  ContractTestEndpointAuthorizationClusterName:
-    Value: !Ref ContractTestEndpointAuthorizationCluster
+  RedshiftEndpointAuthorizationContractClusterId:
+    Value: !Ref RedshiftEndpointAuthorizationContractCluster
     Export:
-      Name: ContractTestEndpointAuthorizationClusterName
+      Name: RedshiftEndpointAuthorizationContractCluster

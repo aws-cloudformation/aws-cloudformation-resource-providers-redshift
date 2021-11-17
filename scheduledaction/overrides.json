@@ -1,7 +1,7 @@
 {
     "CREATE": {
         "/Schedule": "cron(0 20 * * ? *)",
-        "/IamRole": "{{ContractTestRedshiftSchedulerRole}}",
+        "/IamRole": "{{RedshiftScheduledActionContractRole}}",
         "/TargetAction": {
             "ResumeCluster": {
                 "ClusterIdentifier": "test-cluster-id"
@@ -12,7 +12,7 @@
     },
     "UPDATE": {
         "/Schedule": "cron(0 20 * * ? *)",
-        "/IamRole": "{{ContractTestRedshiftSchedulerRole}}",
+        "/IamRole": "{{RedshiftScheduledActionContractRole}}",
         "/TargetAction": {
             "PauseCluster": {
                 "ClusterIdentifier": "test-cluster-id"

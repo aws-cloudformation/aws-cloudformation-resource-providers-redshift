@@ -1,5 +1,5 @@
 Resources:
-  ContractTestRole:
+  RedshiftScheduledActionContractRole:
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -28,7 +28,7 @@ Resources:
                 Resource: "*"
 
 Outputs:
-  ContractTestRoleArn:
-    Value: !GetAtt ContractTestRole.Arn
+  RedshiftScheduledActionContractRoleArn:
+    Value: !GetAtt RedshiftScheduledActionContractRole.Arn
     Export:
-      Name: ContractTestRedshiftSchedulerRole
+      Name: RedshiftScheduledActionContractRole

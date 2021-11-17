@@ -9,14 +9,14 @@ Resources:
         PasswordLength: 16
         ExcludeCharacters: '"''@/\ ,'
 
-  # Create a cluster
-  ContractTestEndpointAccessCluster:
+  # EndpointAccess Contract Tests dependencies.
+  RedshiftEndpointAccessContractCluster:
     Type: AWS::Redshift::Cluster
     DependsOn:
       - ContractTestSecret
-      - ContractTestEndpointAccessClusterSubnetGroup
-      - ContractTestEndpointAccessVPCSecurityGroup0
-      - ContractTestEndpointAccessVPCSecurityGroup1
+      - RedshiftEndpointAccessContractClusterSubnetGroup
+      - RedshiftEndpointAccessVpcContractSecurityGroup
+      - RedshiftEndpointAccessVpcContractSecurityGroup1
     Properties:
       ClusterType: multi-node
       NodeType: ra3.4xlarge
@@ -28,65 +28,61 @@ Resources:
       PubliclyAccessible: false
       Encrypted: true
 
-  # Create a VPC
-  ContractTestEndpointAccessVpc:
+  RedshiftEndpointAccessContractVpc:
     Type: AWS::EC2::VPC
     Properties:
-      CidrBlock: 10.0.0.0/16
+      CidrBlock: 10.2.0.0/16
 
-  # Create 1st subnet and a subnet group
-  ContractTestEndpointAccessSubnet:
+  RedshiftEndpointAccessContractSubnet:
     Type: AWS::EC2::Subnet
     Properties:
-      CidrBlock: 10.0.0.0/24
+      CidrBlock: 10.2.1.0/24
+      VpcId: !Ref RedshiftEndpointAccessContractVpc
       AvailabilityZone:
         Fn::Select:
-          - 0
-          - Fn::GetAZs: !Ref AWS::Region
-      VpcId: !Ref ContractTestEndpointAccessVpc
-  ContractTestEndpointAccessClusterSubnetGroup:
+          - '0'
+          - Fn::GetAZs:
+              Ref: AWS::Region
+  RedshiftEndpointAccessContractClusterSubnetGroup:
     Type: AWS::Redshift::ClusterSubnetGroup
     Properties:
-      Description: Test Subnet Group
-      SubnetIds:
-        - !Ref ContractTestEndpointAccessSubnet
+      Description: EndpointAccess Contract Cluster Subnet Group.
+      SubnetIds: [ !Ref RedshiftEndpointAccessContractSubnet ]
 
-  # Create 1st security group
-  ContractTestEndpointAccessVPCSecurityGroup0:
+  RedshiftEndpointAccessVpcContractSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Test Security Group 0.
-      VpcId: !Ref ContractTestEndpointAccessVpc
+      GroupDescription: EndpointAccess Contract Security Group.
+      VpcId: !Ref RedshiftEndpointAccessContractVpc
 
-  # Create 2nd security group
-  ContractTestEndpointAccessVPCSecurityGroup1:
+  RedshiftEndpointAccessVpcContractSecurityGroup1:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Test Security Group 1.
-      VpcId: !Ref ContractTestEndpointAccessVpc
+      GroupDescription: EndpointAccess Contract Security Group 1.
+      VpcId: !Ref RedshiftEndpointAccessContractVpc
 
 Outputs:
-  ResourceOwner:
+  RedshiftEndpointAccessContractResourceOwnerId:
     Value: !Ref AWS::AccountId
     Export:
-      Name: ResourceOwner
+      Name: RedshiftEndpointAccessContractResourceOwner
 
-  ContractTestEndpointAccessClusterName:
-    Value: !Ref ContractTestEndpointAccessCluster
+  RedshiftEndpointAccessContractClusterId:
+    Value: !Ref RedshiftEndpointAccessContractCluster
     Export:
-      Name: ContractTestEndpointAccessClusterName
+      Name: RedshiftEndpointAccessContractCluster
 
-  ContractTestEndpointAccessClusterSubnetGroupName:
-    Value: !Ref ContractTestEndpointAccessClusterSubnetGroup
+  RedshiftEndpointAccessContractClusterSubnetGroupName:
+    Value: !Ref RedshiftEndpointAccessContractClusterSubnetGroup
     Export:
-      Name: ContractTestEndpointAccessClusterSubnetGroupName
+      Name: RedshiftEndpointAccessContractClusterSubnetGroup
 
-  ContractTestEndpointAccessVPCSecurityGroup0Name:
-    Value: !Ref ContractTestEndpointAccessVPCSecurityGroup0
+  RedshiftEndpointAccessVpcContractSecurityGroupName:
+    Value: !Ref RedshiftEndpointAccessVpcContractSecurityGroup
     Export:
-      Name: ContractTestEndpointAccessVPCSecurityGroup0Name
+      Name: RedshiftEndpointAccessVpcContractSecurityGroup
 
-  ContractTestEndpointAccessVPCSecurityGroup1Name:
-    Value: !Ref ContractTestEndpointAccessVPCSecurityGroup1
+  RedshiftEndpointAccessVpcContractSecurityGroup1Name:
+    Value: !Ref RedshiftEndpointAccessVpcContractSecurityGroup1
     Export:
-      Name: ContractTestEndpointAccessVPCSecurityGroup1Name
+      Name: RedshiftEndpointAccessVpcContractSecurityGroup1
