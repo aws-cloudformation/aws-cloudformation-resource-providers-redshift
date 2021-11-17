@@ -1,15 +1,15 @@
 {
     "CREATE": {
-        "/ClusterIdentifier": "{{ContractTestEndpointAccessClusterName}}",
-        "/SubnetGroupName": "{{ContractTestEndpointAccessClusterSubnetGroupName}}",
-        "/ResourceOwner": "{{ResourceOwner}}",
+        "/ClusterIdentifier": "{{RedshiftEndpointAccessContractCluster}}",
+        "/SubnetGroupName": "{{RedshiftEndpointAccessContractClusterSubnetGroup}}",
+        "/ResourceOwner": "{{RedshiftEndpointAccessContractResourceOwner}}",
         "/VpcSecurityGroupIds": [
-            "{{ContractTestEndpointAccessVPCSecurityGroup0Name}}"
+            "{{RedshiftEndpointAccessVpcContractSecurityGroup}}"
         ]
     },
     "UPDATE": {
         "/VpcSecurityGroupIds": [
-            "{{ContractTestEndpointAccessVPCSecurityGroup1Name}}"
+            "{{RedshiftEndpointAccessVpcContractSecurityGroup1}}"
         ]
     }
 }

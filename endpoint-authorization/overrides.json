@@ -1,6 +1,6 @@
 {
     "CREATE": {
-        "/ClusterIdentifier": "{{ContractTestEndpointAuthorizationClusterName}}",
+        "/ClusterIdentifier": "{{RedshiftEndpointAuthorizationContractCluster}}",
         "/VpcIds": [
             "vpc-0"
         ]
