@@ -16,6 +16,8 @@ public class CallbackContext extends StdCallbackContext {
     int retryForPatchingStabilize = 0;
     boolean callbackAfterAquaModify = false;
     boolean callbackAfterClusterMaintenance = false;
+    boolean callbackAfterClusterCreate = false;
+    boolean callbackAfterClusterRestore = false;
 
     public void setLoggingProperties(LoggingProperties loggingProperties) {
         this.loggingProperties = loggingProperties;
@@ -64,4 +66,13 @@ public class CallbackContext extends StdCallbackContext {
     public boolean getCallbackAfterClusterMaintenance() { return this.callbackAfterClusterMaintenance; }
 
     public void setCallbackAfterClusterMaintenance(boolean callbackAfterClusterMaintenance) { this.callbackAfterClusterMaintenance = callbackAfterClusterMaintenance; }
+
+    public boolean getCallbackAfterClusterCreate() { return this.callbackAfterClusterCreate; }
+
+    public void setCallbackAfterClusterCreate(boolean callbackAfterClusterCreate) { this.callbackAfterClusterCreate = callbackAfterClusterCreate; }
+
+    public boolean getCallbackAfterClusterRestore() { return this.callbackAfterClusterRestore; }
+
+    public void setCallbackAfterClusterRestore(boolean callbackAfterClusterRestore) { this.callbackAfterClusterRestore = callbackAfterClusterRestore; }
+
 }

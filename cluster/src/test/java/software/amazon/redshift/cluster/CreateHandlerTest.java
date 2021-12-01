@@ -162,9 +162,15 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -172,9 +178,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModel().getClusterIdentifier()).
+                isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
 
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
         verify(proxyClient.client(), times(3))
@@ -257,9 +262,15 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .lastSuccessfulDeliveryTime(Instant.now())
                         .build());
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -267,10 +278,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-
-        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
-
+        assertThat(response.getResourceModel().getClusterIdentifier()).
+                isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
         verify(proxyClient.client(), times(4))
                 .describeClusters(any(DescribeClustersRequest.class));
