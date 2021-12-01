@@ -89,7 +89,6 @@ public class CreateHandler extends BaseHandlerStd {
                                 .backoffDelay(CREATE_BACKOFF_STRATEGY)
                                 .makeServiceCall(this::restoreFromClusterSnapshot)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                //.progress();
                                 .done((_request, _response, _client, _model, _context) -> {
                                     if(!callbackContext.getCallbackAfterClusterRestore()) {
                                         logger.log(String.format("Cluster Restore done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, resourceModel.getClusterIdentifier()));
@@ -109,7 +108,6 @@ public class CreateHandler extends BaseHandlerStd {
                                 .backoffDelay(CREATE_BACKOFF_STRATEGY)
                                 .makeServiceCall(this::createClusterResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                //.progress();
                                 .done((_request, _response, _client, _model, _context) -> {
                                     if(!callbackContext.getCallbackAfterClusterCreate()) {
                                         logger.log(String.format("Cluster Create done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, resourceModel.getClusterIdentifier()));
