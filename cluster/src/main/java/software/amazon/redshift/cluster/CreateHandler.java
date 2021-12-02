@@ -89,7 +89,15 @@ public class CreateHandler extends BaseHandlerStd {
                                 .backoffDelay(CREATE_BACKOFF_STRATEGY)
                                 .makeServiceCall(this::restoreFromClusterSnapshot)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                .progress();
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    if(!callbackContext.getCallbackAfterClusterRestore()) {
+                                        logger.log(String.format("Cluster Restore done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, resourceModel.getClusterIdentifier()));
+                                        callbackContext.setCallbackAfterClusterRestore(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Cluster Restore.");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                        });
                     }
                     return progress;
                 })
@@ -100,7 +108,15 @@ public class CreateHandler extends BaseHandlerStd {
                                 .backoffDelay(CREATE_BACKOFF_STRATEGY)
                                 .makeServiceCall(this::createClusterResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                .progress();
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    if(!callbackContext.getCallbackAfterClusterCreate()) {
+                                        logger.log(String.format("Cluster Create done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, resourceModel.getClusterIdentifier()));
+                                        callbackContext.setCallbackAfterClusterCreate(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Cluster Create.");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
                     }
                     return progress;
                 })
