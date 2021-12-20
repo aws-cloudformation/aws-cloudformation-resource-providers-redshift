@@ -1,5 +1,6 @@
 {
     "CREATE": {
+        "/Account": "000000000000",
         "/ClusterIdentifier": "{{RedshiftEndpointAuthorizationContractCluster}}",
         "/VpcIds": [
             "vpc-0"
