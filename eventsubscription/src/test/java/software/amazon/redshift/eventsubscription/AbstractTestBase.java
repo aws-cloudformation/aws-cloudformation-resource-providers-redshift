@@ -22,7 +22,9 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,7 +38,7 @@ public class AbstractTestBase {
     private static final String SNS_TOPIC_ARN;
     private static final String SOURCE_TYPE;
     private static final List<String> SOURCE_IDS;
-    private static final List<String> EVENT_CATEGORIES;
+    private static final Set<String> EVENT_CATEGORIES;
     private static final String SEVERITY;
     private static final boolean ENABLED;
     private static final List<Tag> TAGS;
@@ -45,7 +47,7 @@ public class AbstractTestBase {
     private static final String STATUS;
     private static final Instant SUBSCRIPTION_CREATION_TIME;
     private static final List<String> SOURCE_IDS_LIST;
-    private static final List<String> EVENT_CATEGORIES_LIST;
+    private static final Set<String> EVENT_CATEGORIES_LIST;
     private static final EventSubscription EVENT_SUBSCRIPTION;
 
     static {
@@ -59,7 +61,7 @@ public class AbstractTestBase {
             add("DummySourceId1");
             add("DummySourceId2");
         }};
-        EVENT_CATEGORIES = new ArrayList<String>() {{
+        EVENT_CATEGORIES = new HashSet<String>() {{
             add("DummyEventCategory1");
             add("DummyEventCategory2");
         }};

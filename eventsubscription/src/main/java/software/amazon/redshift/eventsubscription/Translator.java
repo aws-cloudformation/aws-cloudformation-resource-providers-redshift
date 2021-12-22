@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.redshift.model.ModifyEventSubscriptionReq
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -72,7 +73,7 @@ public class Translator {
                         .snsTopicArn(eventSubscription.snsTopicArn())
                         .sourceType(eventSubscription.sourceType())
                         .sourceIds(eventSubscription.sourceIdsList())
-                        .eventCategories(eventSubscription.eventCategoriesList())
+                        .eventCategories(new HashSet<>(eventSubscription.eventCategoriesList()))
                         .severity(eventSubscription.severity())
                         .enabled(eventSubscription.enabled())
                         .tags(translateToModelTags(eventSubscription.tags()))
@@ -81,7 +82,7 @@ public class Translator {
                         .status(eventSubscription.status())
                         .subscriptionCreationTime(eventSubscription.subscriptionCreationTime() == null ? null : eventSubscription.subscriptionCreationTime().toString())
                         .sourceIdsList(eventSubscription.sourceIdsList())
-                        .eventCategoriesList(eventSubscription.eventCategoriesList())
+                        .eventCategoriesList(new HashSet<>(eventSubscription.eventCategoriesList()))
                         .build())
                 .findAny()
                 .orElse(ResourceModel.builder().build());
