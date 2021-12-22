@@ -2,11 +2,25 @@
     "CREATE": {
         "/SnsTopicArn": "{{RedshiftEventSubscriptionContractSns}}",
         "/SourceIds": [],
-        "/Tags": []
+        "/Tags": [],
+        "/EventCategories": [
+            "management",
+            "security",
+            "monitoring",
+            "configuration",
+            "pending"
+        ]
     },
     "UPDATE": {
         "/SnsTopicArn": "{{RedshiftEventSubscriptionContractSns}}",
         "/SourceIds": [],
-        "/Tags": []
+        "/Tags": [],
+        "/EventCategories": [
+            "management",
+            "security",
+            "monitoring",
+            "configuration",
+            "pending"
+        ]
     }
 }
