@@ -2,6 +2,7 @@
     "CREATE": {
         "/Schedule": "cron(0 20 * * ? *)",
         "/IamRole": "{{RedshiftScheduledActionContractRole}}",
+        "/ScheduledActionDescription": "A Redshift Scheduled Action for CFN Contract Tests - CREATE",
         "/TargetAction": {
             "ResumeCluster": {
                 "ClusterIdentifier": "test-cluster-id"
@@ -13,6 +14,7 @@
     "UPDATE": {
         "/Schedule": "cron(0 20 * * ? *)",
         "/IamRole": "{{RedshiftScheduledActionContractRole}}",
+        "/ScheduledActionDescription": "A Redshift Scheduled Action for CFN Contract Tests - UPDATE",
         "/TargetAction": {
             "PauseCluster": {
                 "ClusterIdentifier": "test-cluster-id"
