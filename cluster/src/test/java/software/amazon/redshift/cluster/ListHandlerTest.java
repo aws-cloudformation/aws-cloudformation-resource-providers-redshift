@@ -50,6 +50,7 @@ public class ListHandlerTest {
         proxy = mock(AmazonWebServicesClientProxy.class);
         logger = mock(Logger.class);
         proxyClient = MOCK_PROXY(proxy, sdkClient);
+        System.setProperty("aws.region", AWS_REGION);
     }
 
     @Test
