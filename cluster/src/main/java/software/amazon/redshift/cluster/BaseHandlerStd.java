@@ -11,6 +11,7 @@ import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
+import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
@@ -94,11 +95,13 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     DescribeClustersResponse awsResponse =
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
-    List<Cluster> clusters = awsResponse.clusters();
-    if(!CollectionUtils.isNullOrEmpty(clusters)) {
-      return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus());
-    }
-    return false;
+    Cluster cluster = awsResponse.clusters()
+            .stream()
+            .findAny()
+            .orElse(Cluster.builder().build());
+
+    return CLUSTER_STATUS_AVAILABLE.equalsIgnoreCase(cluster.clusterStatus()) &&
+            CLUSTER_STATUS_AVAILABLE.equalsIgnoreCase(cluster.clusterAvailabilityStatus());
   }
 
   protected boolean doesClusterExist(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model,
@@ -141,14 +144,20 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     DescribeClustersResponse awsResponse =
             proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
-    List<Cluster> clusters = awsResponse.clusters();
-    if(!CollectionUtils.isNullOrEmpty(clusters)) {
-      String clusterParameterGroupApplyStatus =
-              clusters.get(0).clusterParameterGroups().get(0).parameterApplyStatus();
-      return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus())
-              && PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(clusterParameterGroupApplyStatus);
-    }
-    return false;
+    Cluster cluster = awsResponse.clusters()
+            .stream()
+            .findAny()
+            .orElse(Cluster.builder().build());
+
+    String clusterParameterGroupApplyStatus = cluster.clusterParameterGroups()
+            .stream()
+            .findFirst()
+            .map(ClusterParameterGroupStatus::parameterApplyStatus)
+            .orElse(null);
+
+    return CLUSTER_STATUS_AVAILABLE.equalsIgnoreCase(cluster.clusterStatus()) &&
+            CLUSTER_STATUS_AVAILABLE.equalsIgnoreCase(cluster.clusterAvailabilityStatus()) &&
+            PARAMETER_GROUP_STATUS_PENDING_REBOOT.equals(clusterParameterGroupApplyStatus);
   }
 
   protected boolean isAquaConfigurationStatusApplied (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
@@ -162,13 +171,14 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       awsRequest = DescribeClustersRequest.builder().clusterIdentifier(model.getClusterIdentifier()).build();
       awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
 
-      List<Cluster> clusters = awsResponse.clusters();
-      if(!CollectionUtils.isNullOrEmpty(clusters)) {
-        AquaConfiguration aquaConfiguration = clusters.get(0).aquaConfiguration();
+      Cluster cluster = awsResponse.clusters()
+              .stream()
+              .findAny()
+              .orElse(Cluster.builder().build());
 
-        if (ObjectUtils.allNotNull(aquaConfiguration)) {
-          return CLUSTER_STATUS_AVAILABLE.equals(awsResponse.clusters().get(0).clusterStatus());
-        }
+      if (ObjectUtils.allNotNull(cluster.aquaConfiguration())) {
+        return CLUSTER_STATUS_AVAILABLE.equalsIgnoreCase(cluster.clusterStatus()) &&
+                CLUSTER_STATUS_AVAILABLE.equalsIgnoreCase(cluster.clusterAvailabilityStatus());
       }
     }
     catch (final RedshiftException e) {
