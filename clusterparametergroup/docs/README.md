@@ -12,7 +12,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 {
     "Type" : "AWS::Redshift::ClusterParameterGroup",
     "Properties" : {
-        "<a href="#parametergroupname" title="ParameterGroupName">ParameterGroupName</a>" : <i>String</i>,
         "<a href="#description" title="Description">Description</a>" : <i>String</i>,
         "<a href="#parametergroupfamily" title="ParameterGroupFamily">ParameterGroupFamily</a>" : <i>String</i>,
         "<a href="#parameters" title="Parameters">Parameters</a>" : <i>[ <a href="parameter.md">Parameter</a>, ... ]</i>,
@@ -26,7 +25,6 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 <pre>
 Type: AWS::Redshift::ClusterParameterGroup
 Properties:
-    <a href="#parametergroupname" title="ParameterGroupName">ParameterGroupName</a>: <i>String</i>
     <a href="#description" title="Description">Description</a>: <i>String</i>
     <a href="#parametergroupfamily" title="ParameterGroupFamily">ParameterGroupFamily</a>: <i>String</i>
     <a href="#parameters" title="Parameters">Parameters</a>: <i>
@@ -36,18 +34,6 @@ Properties:
 </pre>
 
 ## Properties
-
-#### ParameterGroupName
-
-Cloudformation will generate a unique group name.
-
-_Required_: No
-
-_Type_: String
-
-_Maximum_: <code>255</code>
-
-_Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### Description
 
@@ -86,3 +72,13 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 ### Ref
 
 When you pass the logical ID of this resource to the intrinsic `Ref` function, Ref returns the ParameterGroupName.
+
+### Fn::GetAtt
+
+The `Fn::GetAtt` intrinsic function returns a value for a specified attribute of this type. The following are the available attributes and sample return values.
+
+For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::GetAtt](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-getatt.html).
+
+#### ParameterGroupName
+
+Cloudformation will generate a unique group name.
