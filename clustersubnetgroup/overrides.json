@@ -1,0 +1,16 @@
+{
+    "CREATE": {
+        "/Description": "Redshift ClusterSubnetGroup Contract Test",
+        "/SubnetIds": [
+            "{{RedshiftClusterSubnetGroupContractSubnet}}"
+        ],
+        "/Tags": []
+    },
+    "UPDATE": {
+        "/Description": "Redshift ClusterSubnetGroup Contract Test",
+        "/SubnetIds": [
+            "{{RedshiftClusterSubnetGroupContractSubnet1}}"
+        ],
+        "/Tags": []
+    }
+}

@@ -6,6 +6,7 @@
         "Tag": {
             "description": "A key-value pair to associate with a resource.",
             "type": "object",
+            "additionalProperties": false,
             "properties": {
                 "Key": {
                     "type": "string",
@@ -34,6 +35,7 @@
         "SubnetIds": {
             "description": "The list of VPC subnet IDs",
             "type": "array",
+            "insertionOrder": false,
             "maxItems": 20,
             "items": {
                 "type": "string"
@@ -42,6 +44,7 @@
         "Tags": {
             "description": "The list of tags for the cluster parameter group.",
             "type": "array",
+            "insertionOrder": false,
             "maxItems": 50,
             "items": {
                 "$ref": "#/definitions/Tag"
@@ -50,7 +53,7 @@
         "ClusterSubnetGroupName": {
             "description": "This name must be unique for all subnet groups that are created by your AWS account. If costumer do not provide it, cloudformation will generate it. Must not be \"Default\". ",
             "type": "string",
-            "maximum": 255
+            "maxLength": 255
         }
     },
     "additionalProperties": false,
@@ -64,6 +67,9 @@
     "readOnlyProperties": [
         "/properties/ClusterSubnetGroupName"
     ],
+    "tagging": {
+        "taggable": true
+    },
     "handlers": {
         "create": {
             "permissions": [
