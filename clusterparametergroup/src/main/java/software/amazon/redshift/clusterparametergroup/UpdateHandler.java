@@ -1,5 +1,6 @@
 package software.amazon.redshift.clusterparametergroup;
 
+import com.amazonaws.util.StringUtils;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections.CollectionUtils;
 import software.amazon.awssdk.awscore.AwsResponse;
@@ -38,7 +39,9 @@ public class UpdateHandler extends BaseHandlerStd {
         final ResourceModel model = request.getDesiredResourceState();
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
-                    if (CollectionUtils.isEmpty(model.getParameters())) {
+                    if (StringUtils.isNullOrEmpty(model.getParameterGroupName())) {
+                        throw new CfnNotFoundException(ResourceModel.TYPE_NAME, "A Null or Empty ClusterParameterGroup Name");
+                    } else if (CollectionUtils.isEmpty(model.getParameters())) {
                         return proxy.initiate("AWS-Redshift-ClusterParameterGroup::Reset", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                                 .translateToServiceRequest(Translator::translateToResetRequest)
                                 .makeServiceCall((awsRequest, client) -> {

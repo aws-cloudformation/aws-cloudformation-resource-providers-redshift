@@ -6,7 +6,7 @@
         "ParameterGroupName": {
             "description": "Cloudformation will generate a unique group name.",
             "type": "string",
-            "maximum": 255
+            "maxLength": 255
         },
         "Description": {
             "type": "string"
@@ -17,6 +17,7 @@
         "Parameters": {
             "type": "array",
             "uniqueItems": false,
+            "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/Parameter"
             }
@@ -24,6 +25,7 @@
         "Tags": {
             "type": "array",
             "uniqueItems": false,
+            "insertionOrder": false,
             "items": {
                 "$ref": "#/definitions/Tag"
             }
@@ -63,6 +65,9 @@
             ]
         }
     },
+    "tagging": {
+        "taggable": true
+    },
     "required": [
         "Description",
         "ParameterGroupFamily"
@@ -70,6 +75,9 @@
     "createOnlyProperties": [
         "/properties/ParameterGroupFamily",
         "/properties/Description"
+    ],
+    "writeOnlyProperties": [
+        "/properties/Parameters"
     ],
     "primaryIdentifier": [
         "/properties/ParameterGroupName"
