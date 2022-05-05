@@ -1,13 +1,28 @@
 # AWS::Redshift::ClusterSubnetGroup
-##Background
-This is new uluru resource is planned to replace the native resource in CloudFormation. It is developed following [uluru onboarding guide](https://w.amazon.com/bin/view/AWS21/Design/Uluru/Onboarding_Guide) Please refer to [redshift API](https://docs.aws.amazon.com/redshift/latest/APIReference/Welcome.html) when development.
 
-##Code generate
-The RPDK will automatically generate the correct resource model from the schema whenever the project is built via Maven. You can also do this manually with the following command: `cfn generate`.
+The code uses [Lombok](https://projectlombok.org/), and [you may have to install IDE integrations](https://projectlombok.org/setup/overview)
+to enable auto-complete for Lombok-annotated classes.
 
-> Please don't modify files under `target/generated-sources/rpdk`, as they will be automatically overwritten.
+## Contract Test
 
-The code uses [Lombok](https://projectlombok.org/), and [you may have to install IDE integrations](https://projectlombok.org/setup/overview) to enable auto-complete for Lombok-annotated classes.
-
-##Sam Test
-Create two subnets using one VPC first, these can be used to test construct the subnet group.
+1. Build the package
+   ```bash
+   mvn clean package
+   ```
+1. Run the contract test in your local
+    1. Initiate a SAM local virtual environment. Type in the following command to your terminal. Note: SAM local command will occupy the
+       terminal window.
+    ```bash
+    sam local start-lambda
+    ```
+    1. Perform the contract test
+    ```bash
+    cfn test --enforce-timeout 60
+    ```
+    1. If you ever want to perform any specific contract test item, use the following command instead.
+    ```bash
+    cfn test -- -k <Test-Name>
+    ```
+1. Modify the `overrides.json` to control the contract test input cases if necessary.
+1. For more information, please refer
+   to [Testing resource types locally using SAM](https://docs.aws.amazon.com/cloudformation-cli/latest/userguide/resource-type-test.html)
