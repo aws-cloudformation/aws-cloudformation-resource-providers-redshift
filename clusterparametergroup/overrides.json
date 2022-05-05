@@ -1,0 +1,25 @@
+{
+    "CREATE": {
+        "/ParameterGroupName": "contract-test-parameter-group-name",
+        "/Description": "Redshift ClusterParameterGroup Contract Test Create",
+        "/ParameterGroupFamily": "redshift-1.0",
+        "/Parameters": [],
+        "/Tags": []
+    },
+    "UPDATE": {
+        "/ParameterGroupName": "contract-test-parameter-group-name",
+        "/Description": "Redshift ClusterParameterGroup Contract Test Update",
+        "/ParameterGroupFamily": "redshift-1.0",
+        "/Parameters": [
+            {
+                "ParameterName": "statement_timeout",
+                "ParameterValue": 101
+            },
+            {
+                "ParameterName": "use_fips_ssl",
+                "ParameterValue": true
+            }
+        ],
+        "/Tags": []
+    }
+}
