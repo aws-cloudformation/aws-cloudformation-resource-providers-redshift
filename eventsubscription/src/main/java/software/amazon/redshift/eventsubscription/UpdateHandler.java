@@ -37,7 +37,7 @@ public class UpdateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
-        final String resourceName = "arn:aws:redshift:" + request.getRegion() + ":" + request.getAwsAccountId() + ":eventsubscription:" + request.getDesiredResourceState().getSubscriptionName();
+        final String resourceName = "arn:" + request.getAwsPartition() + ":redshift:" + request.getRegion() + ":" + request.getAwsAccountId() + ":eventsubscription:" + request.getDesiredResourceState().getSubscriptionName();
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
