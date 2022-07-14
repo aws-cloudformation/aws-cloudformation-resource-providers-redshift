@@ -17,9 +17,10 @@ out/
 target/
 
 # our logs
-rpdk.log
+rpdk.log*
 
 # contains credentials
 sam-tests/
 
 .hypothesis
+.pytest_cache
