@@ -40,7 +40,7 @@ Properties:
 
 A unique identifier for the cluster. You use this identifier to refer to the cluster for any subsequent cluster operations such as deleting or modifying. All alphabetical characters must be lower case, no hypens at the end, no two consecutive hyphens. Cluster name should be unique for all clusters within an AWS account
 
-_Required_: No
+_Required_: Yes
 
 _Type_: String
 
@@ -74,7 +74,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 The subnet group name where Amazon Redshift chooses to deploy the endpoint.
 
-_Required_: No
+_Required_: Yes
 
 _Type_: String
 
