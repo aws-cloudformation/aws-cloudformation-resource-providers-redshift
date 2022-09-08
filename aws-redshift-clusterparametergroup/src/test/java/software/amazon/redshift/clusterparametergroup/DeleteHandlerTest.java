@@ -1,32 +1,40 @@
 package software.amazon.redshift.clusterparametergroup;
 
-import java.time.Duration;
-import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.*;
-import software.amazon.cloudformation.proxy.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupNotFoundException;
+import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupResponse;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.HandlerErrorCode;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static software.amazon.redshift.clusterparametergroup.TestUtils.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.AWS_REGION;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.COMPLETE_MODEL;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.DESIRED_RESOURCE_TAGS;
 
 @ExtendWith(MockitoExtension.class)
 public class DeleteHandlerTest extends AbstractTestBase {
 
     @Mock
+    RedshiftClient sdkClient;
+    @Mock
     private AmazonWebServicesClientProxy proxy;
-
     @Mock
     private ProxyClient<RedshiftClient> proxyClient;
-
-    @Mock
-    RedshiftClient sdkClient;
-
     private DeleteHandler handler;
 
     @BeforeEach
@@ -72,6 +80,7 @@ public class DeleteHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().deleteClusterParameterGroup(any(DeleteClusterParameterGroupRequest.class))).thenThrow(
                 ClusterParameterGroupNotFoundException.class);
+
         final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);

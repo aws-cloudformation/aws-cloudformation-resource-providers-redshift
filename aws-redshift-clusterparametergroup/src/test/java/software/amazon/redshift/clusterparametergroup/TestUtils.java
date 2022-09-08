@@ -2,9 +2,12 @@ package software.amazon.redshift.clusterparametergroup;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.ClusterParameterGroup;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
+import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -13,11 +16,9 @@ public class TestUtils {
     final static String DESCRIPTION = "description";
     final static String PARAMETER_GROUP_FAMILY = "redshift-1.0";
     final static String PARAMETER_GROUP_NAME = "logicalid-kvw2fztz3cvh";
-    final static String AWS_ACCOUNT_ID ="1111";
+    final static String AWS_ACCOUNT_ID = "1111";
 
     final static String AWS_REGION = "us-east-1";
-    final static String AWS_REGION_CN = "cn-north-1";
-    final static String AWS_REGION_GOV = "us-gov-west-1";
 
     final static Map<String, String> DESIRED_RESOURCE_TAGS = ImmutableMap.of("key1", "val1", "key2", "val2", "key3", "val3");
 
@@ -36,15 +37,33 @@ public class TestUtils {
     );
 
     final static List<Parameter> PARAMETERS = Arrays.asList(
-            new Parameter("auto_analyze", "true"),
-            new Parameter("datestyle", "ISO, MDY"),
-            new Parameter("statement_timeout", "1000")
+            Parameter.builder()
+                    .parameterName("auto_analyze")
+                    .parameterValue("true")
+                    .build(),
+            Parameter.builder()
+                    .parameterName("datestyle")
+                    .parameterValue("ISO, MDY")
+                    .build(),
+            Parameter.builder()
+                    .parameterName("statement_timeout")
+                    .parameterValue("1000")
+                    .build()
     );
 
     final static List<Parameter> UNSUPPORTED_PARAMETERS = Arrays.asList(
-            new Parameter("invalid", "true"),
-            new Parameter("datestyle", "ISO, MDY"),
-            new Parameter("statement_timeout", "1000")
+            Parameter.builder()
+                    .parameterName("invalid")
+                    .parameterValue("true")
+                    .build(),
+            Parameter.builder()
+                    .parameterName("datestyle")
+                    .parameterValue("ISO, MDY")
+                    .build(),
+            Parameter.builder()
+                    .parameterName("statement_timeout")
+                    .parameterValue("1000")
+                    .build()
     );
     final static List<software.amazon.awssdk.services.redshift.model.Parameter> SDK_PARAMETERS = Arrays.asList(
             software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("auto_analyze").parameterValue("true").isModifiable(true).build(),
@@ -100,12 +119,9 @@ public class TestUtils {
             software.amazon.awssdk.services.redshift.model.Tag.builder().key("stackKey").value("stackValue").build()
     );
 
-    final static List<String>  SDK_TAG_KEYS_TO_DELETE = ImmutableList.of("key3");
+    final static List<String> SDK_TAG_KEYS_TO_DELETE = ImmutableList.of("key3");
 
     final static DescribeTagsResponse DESCRIBE_TAGS_RESPONSE_CREATING = DescribeTagsResponse.builder()
             .taggedResources(TAGGED_RESOURCES_CREATING)
             .build();
-
-    final static CreateTagsRequest CREATE_TAGS_REQUEST = CreateTagsRequest.builder().resourceName(ARN).tags(SDK_TAGS_TO_CREATE).build();
-    final static DeleteTagsRequest DELETE_TAGS_REQUEST = DeleteTagsRequest.builder().resourceName(ARN).tagKeys(SDK_TAG_KEYS_TO_DELETE).build();
 }

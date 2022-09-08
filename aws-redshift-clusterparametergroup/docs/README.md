@@ -37,6 +37,8 @@ Properties:
 
 #### Description
 
+A description of the parameter group.
+
 _Required_: Yes
 
 _Type_: String
@@ -44,6 +46,8 @@ _Type_: String
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### ParameterGroupFamily
+
+The Amazon Redshift engine version to which the cluster parameter group applies. The cluster engine version determines the set of parameters.
 
 _Required_: Yes
 
@@ -53,6 +57,8 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### Parameters
 
+An array of parameters to be modified. A maximum of 20 parameters can be modified in a single request.
+
 _Required_: No
 
 _Type_: List of <a href="parameter.md">Parameter</a>
@@ -60,6 +66,8 @@ _Type_: List of <a href="parameter.md">Parameter</a>
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### Tags
+
+An array of key-value pairs to apply to this resource.
 
 _Required_: No
 
@@ -81,4 +89,4 @@ For more information about using the `Fn::GetAtt` intrinsic function, see [Fn::G
 
 #### ParameterGroupName
 
-Cloudformation will generate a unique group name.
+The name of the cluster parameter group.
