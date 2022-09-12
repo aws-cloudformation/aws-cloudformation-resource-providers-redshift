@@ -1,41 +1,41 @@
 package software.amazon.redshift.clusterparametergroup;
 
-import java.time.Duration;
-import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
-import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.OperationStatus;
-import software.amazon.cloudformation.proxy.ProgressEvent;
-import software.amazon.cloudformation.proxy.ProxyClient;
-import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersResponse;
+import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.OperationStatus;
+import software.amazon.cloudformation.proxy.ProgressEvent;
+import software.amazon.cloudformation.proxy.ProxyClient;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.time.Duration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.AWS_REGION;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.CLUSTER_PARAMETER_GROUP;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.COMPLETE_MODEL;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.DESIRED_RESOURCE_TAGS;
-import static software.amazon.redshift.clusterparametergroup.TestUtils.PARAMETER_GROUP_NAME;
 
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest extends AbstractTestBase {
 
     @Mock
+    RedshiftClient sdkClient;
+    @Mock
     private AmazonWebServicesClientProxy proxy;
-
     @Mock
     private ProxyClient<RedshiftClient> proxyClient;
-
-    @Mock
-    RedshiftClient sdkClient;
-
     private ReadHandler handler;
 
     @BeforeEach
@@ -47,33 +47,12 @@ public class ReadHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void handleRequest_ResourceNotFound() {
-        final ResourceModel model = COMPLETE_MODEL;
-        // set group name to null, which is not part of DescribeParameterGroups response
-        model.setParameterGroupName("null");
-
-        when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
-                .thenReturn(DescribeClusterParameterGroupsResponse.builder()
-                        .parameterGroups(CLUSTER_PARAMETER_GROUP)
-                        .marker("")
-                        .build());
-
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-            .desiredResourceState(model)
-            .build();
-
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
-        assertThat(response).isNotNull();
-        assertThat(response.getStatus()).isEqualTo(OperationStatus.FAILED);
-        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
-        assertThat(response.getResourceModels()).isNull();
-        model.setParameterGroupName(PARAMETER_GROUP_NAME);
-    }
-
-    @Test
     public void handleRequest_Success() {
         final ResourceModel model = COMPLETE_MODEL;
+
+        when(proxyClient.client().describeClusterParameters(any(DescribeClusterParametersRequest.class)))
+                .thenReturn(DescribeClusterParametersResponse.builder().build());
+
         when(proxyClient.client().describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class)))
                 .thenReturn(DescribeClusterParameterGroupsResponse.builder()
                         .parameterGroups(CLUSTER_PARAMETER_GROUP)
