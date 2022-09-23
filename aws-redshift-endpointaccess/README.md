@@ -3,10 +3,7 @@
 The code uses [Lombok](https://projectlombok.org/), and [you may have to install IDE integrations](https://projectlombok.org/setup/overview) to enable auto-complete for Lombok-annotated classes.
 
 ## Contract Test
-1. Create necessary resources for the contract test. All the required resources are defined in the `./contract-test-required-resources.template.yml`. If you have never created this CloudFormation stack to your AWS Console before, use the following command to create the stack.
-    ```bash
-    aws cloudformation create-stack --region <Region> --template-body file://./contract-test-required-resources.template.yml --stack-name "aws-redshift-endpointaccess-contract-test-required-resources-stack"
-    ```
+1. Create necessary resources for the contract test.
 2. Build the package
    ```bash
    mvn clean package
