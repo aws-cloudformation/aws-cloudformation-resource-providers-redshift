@@ -13,10 +13,12 @@ To declare this entity in your AWS CloudFormation template, use the following sy
     "Type" : "AWS::Redshift::EndpointAccess",
     "Properties" : {
         "<a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>" : <i>String</i>,
+        "<a href="#vpcsecuritygroups" title="VpcSecurityGroups">VpcSecurityGroups</a>" : <i>[ <a href="vpcsecuritygroup.md">VpcSecurityGroup</a>, ... ]</i>,
         "<a href="#resourceowner" title="ResourceOwner">ResourceOwner</a>" : <i>String</i>,
         "<a href="#endpointname" title="EndpointName">EndpointName</a>" : <i>String</i>,
         "<a href="#subnetgroupname" title="SubnetGroupName">SubnetGroupName</a>" : <i>String</i>,
         "<a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>" : <i>[ String, ... ]</i>,
+        "<a href="#vpcendpoint" title="VpcEndpoint">VpcEndpoint</a>" : <i><a href="vpcendpoint.md">VpcEndpoint</a></i>
     }
 }
 </pre>
@@ -27,11 +29,14 @@ To declare this entity in your AWS CloudFormation template, use the following sy
 Type: AWS::Redshift::EndpointAccess
 Properties:
     <a href="#clusteridentifier" title="ClusterIdentifier">ClusterIdentifier</a>: <i>String</i>
+    <a href="#vpcsecuritygroups" title="VpcSecurityGroups">VpcSecurityGroups</a>: <i>
+      - <a href="vpcsecuritygroup.md">VpcSecurityGroup</a></i>
     <a href="#resourceowner" title="ResourceOwner">ResourceOwner</a>: <i>String</i>
     <a href="#endpointname" title="EndpointName">EndpointName</a>: <i>String</i>
     <a href="#subnetgroupname" title="SubnetGroupName">SubnetGroupName</a>: <i>String</i>
     <a href="#vpcsecuritygroupids" title="VpcSecurityGroupIds">VpcSecurityGroupIds</a>: <i>
       - String</i>
+    <a href="#vpcendpoint" title="VpcEndpoint">VpcEndpoint</a>: <i><a href="vpcendpoint.md">VpcEndpoint</a></i>
 </pre>
 
 ## Properties
@@ -45,6 +50,16 @@ _Required_: Yes
 _Type_: String
 
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
+
+#### VpcSecurityGroups
+
+A list of Virtual Private Cloud (VPC) security groups to be associated with the endpoint.
+
+_Required_: No
+
+_Type_: List of <a href="vpcsecuritygroup.md">VpcSecurityGroup</a>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
 #### ResourceOwner
 
@@ -92,6 +107,16 @@ _Type_: List of String
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### VpcEndpoint
+
+The connection endpoint for connecting to an Amazon Redshift cluster through the proxy.
+
+_Required_: No
+
+_Type_: <a href="vpcendpoint.md">VpcEndpoint</a>
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 ## Return Values
 
 ### Ref
@@ -120,10 +145,34 @@ The time (UTC) that the endpoint was created.
 
 The port number on which the cluster accepts incoming connections.
 
-#### VpcSecurityGroups
+#### VpcSecurityGroupId
 
-A list of Virtual Private Cloud (VPC) security groups to be associated with the endpoint.
+Returns the <code>VpcSecurityGroupId</code> value.
 
-#### VpcEndpoint
+#### Status
 
-The connection endpoint for connecting to an Amazon Redshift cluster through the proxy.
+Returns the <code>Status</code> value.
+
+#### VpcEndpointId
+
+Returns the <code>VpcEndpointId</code> value.
+
+#### VpcId
+
+Returns the <code>VpcId</code> value.
+
+#### NetworkInterfaceId
+
+Returns the <code>NetworkInterfaceId</code> value.
+
+#### PrivateIpAddress
+
+Returns the <code>PrivateIpAddress</code> value.
+
+#### SubnetId
+
+Returns the <code>SubnetId</code> value.
+
+#### AvailabilityZone
+
+Returns the <code>AvailabilityZone</code> value.
