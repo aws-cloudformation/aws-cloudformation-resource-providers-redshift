@@ -355,7 +355,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### IamRoles
 
-A list of AWS Identity and Access Management (IAM) roles that can be used by the cluster to access other AWS services. You must supply the IAM roles in their Amazon Resource Name (ARN) format. You can supply up to 10 IAM roles in a single request
+A list of AWS Identity and Access Management (IAM) roles that can be used by the cluster to access other AWS services. You must supply the IAM roles in their Amazon Resource Name (ARN) format. You can supply up to 50 IAM roles in a single request
 
 _Required_: No
 
@@ -439,9 +439,9 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### SnapshotCopyRetentionPeriod
 
-The number of days to retain automated snapshots in the destination region after they are copied from the source region.
+The number of days to retain automated snapshots in the destination region after they are copied from the source region. 
 
- Default is 7.
+ Default is 7. 
 
  Constraints: Must be at least 1 and no more than 35.
 
@@ -649,3 +649,4 @@ Returns the <code>Port</code> value.
 #### Address
 
 Returns the <code>Address</code> value.
+
