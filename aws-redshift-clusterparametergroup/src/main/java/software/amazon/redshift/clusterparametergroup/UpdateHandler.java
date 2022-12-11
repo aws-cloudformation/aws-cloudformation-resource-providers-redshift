@@ -81,8 +81,7 @@ public class UpdateHandler extends BaseHandlerStd {
                         .translateToServiceRequest(Translator::translateToResetRequest)
                         .makeServiceCall(this::resetClusterParameterGroup)
                         .handleError(this::resetClusterParameterGroupErrorHandler)
-                        .progress()
-                )
+                        .progress())
 
                 .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Update::UpdateParameters", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
