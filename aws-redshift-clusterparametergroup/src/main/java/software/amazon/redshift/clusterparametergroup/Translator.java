@@ -2,6 +2,7 @@ package software.amazon.redshift.clusterparametergroup;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.redshift.model.CreateClusterParameterGroupRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteClusterParameterGroupRequest;
@@ -20,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static software.amazon.redshift.clusterparametergroup.UpdateHandler.NEED_TO_BE_RESET;
 
 public class Translator {
     private static final Gson GSON = new GsonBuilder().create();
@@ -202,7 +205,12 @@ public class Translator {
     public static ResetClusterParameterGroupRequest translateToResetRequest(ResourceModel model) {
         return ResetClusterParameterGroupRequest.builder()
                 .parameterGroupName(model.getParameterGroupName())
-                .resetAllParameters(true)
+                .resetAllParameters(false)
+                .parameters(model.getParameters()
+                        .stream()
+                        .filter(parameter -> StringUtils.equalsIgnoreCase(parameter.getParameterValue(), NEED_TO_BE_RESET))
+                        .map(Translator::translateToSdkParameter)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
@@ -215,7 +223,11 @@ public class Translator {
     static ModifyClusterParameterGroupRequest translateToUpdateRequest(final ResourceModel model) {
         return ModifyClusterParameterGroupRequest.builder()
                 .parameterGroupName(model.getParameterGroupName())
-                .parameters(translateToSdkParameters(model.getParameters()))
+                .parameters(model.getParameters()
+                        .stream()
+                        .filter(parameter -> !StringUtils.equalsIgnoreCase(parameter.getParameterValue(), NEED_TO_BE_RESET))
+                        .map(Translator::translateToSdkParameter)
+                        .collect(Collectors.toList()))
                 .build();
     }
 
