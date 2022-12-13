@@ -25,8 +25,10 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class UpdateHandler extends BaseHandlerStd {
@@ -93,21 +95,18 @@ public class UpdateHandler extends BaseHandlerStd {
     }
 
     private ResourceModel getUpdatableResourceModel(ResourceModel desiredModel, ResourceModel previousModel) {
-        List<Parameter> desiredParameters = desiredModel.getParameters()
-                .stream()
-                .map(parameter -> Parameter.builder()
-                        .parameterName(StringUtils.lowerCase(parameter.getParameterName()))
-                        .parameterValue(parameter.getParameterValue())
-                        .build())
-                .collect(Collectors.toList());
+        Function<List<Parameter>, List<Parameter>> lowerCaseParameterName = (raw) -> Optional.ofNullable(raw)
+                .map(parameters -> parameters
+                        .stream()
+                        .map(parameter -> Parameter.builder()
+                                .parameterName(StringUtils.lowerCase(parameter.getParameterName()))
+                                .parameterValue(parameter.getParameterValue())
+                                .build())
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
 
-        List<Parameter> previousParameters = previousModel.getParameters()
-                .stream()
-                .map(parameter -> Parameter.builder()
-                        .parameterName(StringUtils.lowerCase(parameter.getParameterName()))
-                        .parameterValue(parameter.getParameterValue())
-                        .build())
-                .collect(Collectors.toList());
+        List<Parameter> desiredParameters = lowerCaseParameterName.apply(desiredModel.getParameters());
+        List<Parameter> previousParameters = lowerCaseParameterName.apply(previousModel.getParameters());
 
         return desiredModel.toBuilder()
                 .parameters(CollectionUtils.disjunction(desiredParameters, previousParameters)
