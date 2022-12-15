@@ -95,7 +95,6 @@ public class Translator {
                         .parameterGroupName(clusterParameterGroup.parameterGroupName())
                         .description(clusterParameterGroup.description())
                         .parameterGroupFamily(clusterParameterGroup.parameterGroupFamily())
-                        .tags(translateToModelTags(clusterParameterGroup.tags()))
                         .build())
                 .findAny()
                 .orElse(ResourceModel.builder().build());
