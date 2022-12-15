@@ -108,17 +108,11 @@ public class Translator {
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
-    final List<Tag> tags = streamOfOrEmpty(awsResponse.clusterSubnetGroups())
-            .map(software.amazon.awssdk.services.redshift.model.ClusterSubnetGroup::tags)
-            .filter(Objects::nonNull)
-            .findAny()
-            .orElse(null);
 
     return ResourceModel.builder()
             .clusterSubnetGroupName(subnetGroupName)
             .description(description)
             .subnetIds(translateSubnetIdsFromSdk(subnetIds))
-            .tags(translateTagsFromSdk(tags))
             .build();
   }
 
