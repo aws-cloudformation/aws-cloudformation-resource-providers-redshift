@@ -16,6 +16,8 @@ import software.amazon.awssdk.services.redshift.model.TaggedResource;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -76,11 +78,10 @@ public class Translator {
                         .eventCategories(new HashSet<>(eventSubscription.eventCategoriesList()))
                         .severity(eventSubscription.severity())
                         .enabled(eventSubscription.enabled())
-                        .tags(translateToModelTags(eventSubscription.tags()))
                         .customerAwsId(eventSubscription.customerAwsId())
                         .custSubscriptionId(eventSubscription.custSubscriptionId())
                         .status(eventSubscription.status())
-                        .subscriptionCreationTime(eventSubscription.subscriptionCreationTime() == null ? null : eventSubscription.subscriptionCreationTime().toString())
+                        .subscriptionCreationTime(Objects.toString(eventSubscription.subscriptionCreationTime(), null))
                         .sourceIdsList(eventSubscription.sourceIdsList())
                         .eventCategoriesList(new HashSet<>(eventSubscription.eventCategoriesList()))
                         .build())
@@ -183,15 +184,8 @@ public class Translator {
     static ModifyTagsRequest translateToUpdateTagsRequest(final ResourceModel desiredResourceState,
                                                           final ResourceModel currentResourceState,
                                                           final String resourceName) {
-        List<Tag> toBeCreatedTags = desiredResourceState.getTags() == null ? Collections.emptyList() : desiredResourceState.getTags()
-                .stream()
-                .filter(tag -> currentResourceState.getTags() == null || !currentResourceState.getTags().contains(tag))
-                .collect(Collectors.toList());
-
-        List<Tag> toBeDeletedTags = currentResourceState.getTags() == null ? Collections.emptyList() : currentResourceState.getTags()
-                .stream()
-                .filter(tag -> desiredResourceState.getTags() == null || !desiredResourceState.getTags().contains(tag))
-                .collect(Collectors.toList());
+        List<Tag> toBeCreatedTags = subtract(desiredResourceState.getTags(), currentResourceState.getTags());
+        List<Tag> toBeDeletedTags = subtract(currentResourceState.getTags(), desiredResourceState.getTags());
 
         return ModifyTagsRequest.builder()
                 .createNewTagsRequest(CreateTagsRequest.builder()
@@ -212,21 +206,44 @@ public class Translator {
         return GSON.fromJson(GSON.toJson(tag), software.amazon.awssdk.services.redshift.model.Tag.class);
     }
 
-    public static List<software.amazon.awssdk.services.redshift.model.Tag> translateToSdkTags(List<Tag> tags) {
-        return tags == null ? null : tags
-                .stream()
-                .map(Translator::translateToSdkTag)
-                .collect(Collectors.toList());
+    public static List<software.amazon.awssdk.services.redshift.model.Tag> translateToSdkTags(List<Tag> modelTags) {
+        return Optional.ofNullable(modelTags)
+                .map(tags -> tags
+                        .stream()
+                        .map(Translator::translateToSdkTag)
+                        .collect(Collectors.toList()))
+                .orElse(null);
     }
 
     private static Tag translateToModelTag(software.amazon.awssdk.services.redshift.model.Tag tag) {
         return GSON.fromJson(GSON.toJson(tag), Tag.class);
     }
 
-    private static List<Tag> translateToModelTags(List<software.amazon.awssdk.services.redshift.model.Tag> tags) {
-        return tags == null ? null : tags
-                .stream()
-                .map(Translator::translateToModelTag)
-                .collect(Collectors.toList());
+    private static List<Tag> translateToModelTags(List<software.amazon.awssdk.services.redshift.model.Tag> sdkTags) {
+        return Optional.ofNullable(sdkTags)
+                .map(tags -> tags
+                        .stream()
+                        .map(Translator::translateToModelTag)
+                        .collect(Collectors.toList()))
+                .orElse(null);
+    }
+
+    /**
+     * Do subtract for two lists: a - b
+     *
+     * @param a   the list that wants to minus b
+     * @param b   the list that would be subtracted by a
+     * @param <T> the class of a's and b's elements
+     * @return (a - b) a.k.a (a minus b)
+     */
+    private static <T> List<T> subtract(List<T> a, List<T> b) {
+        return Optional.ofNullable(a)
+                .map(aIfNotNull -> aIfNotNull
+                        .stream()
+                        .filter(ao -> Optional.ofNullable(b)
+                                .map(bIfNotNull -> !bIfNotNull.contains(ao))
+                                .orElse(true))
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 }

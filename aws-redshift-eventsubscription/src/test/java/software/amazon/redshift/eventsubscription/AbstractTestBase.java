@@ -165,7 +165,6 @@ public class AbstractTestBase {
                 .eventCategories(EVENT_CATEGORIES)
                 .severity(SEVERITY)
                 .enabled(ENABLED)
-                .tags(translateToModelTags())
                 .customerAwsId(CUSTOMER_AWS_ID)
                 .custSubscriptionId(CUST_SUBSCRIPTION_ID)
                 .status(STATUS)
