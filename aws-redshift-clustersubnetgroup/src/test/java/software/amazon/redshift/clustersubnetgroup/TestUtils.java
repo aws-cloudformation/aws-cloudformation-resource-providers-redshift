@@ -67,7 +67,6 @@ public class TestUtils {
             .description(DESCRIPTION)
             .clusterSubnetGroupName(SUBNET_GROUP_NAME)
             .subnetIds(SUBNET_IDS)
-            .tags(TAGS)
             .build();
 
     final static DescribeTagsResponse DESCRIBE_TAGS_RESPONSE = DescribeTagsResponse.builder()
