@@ -1,5 +1,6 @@
 package software.amazon.redshift.clusterparametergroup;
 
+import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
@@ -10,6 +11,8 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
+    protected static final String CALL_GRAPH_TYPE_NAME = StringUtils.replace(ResourceModel.TYPE_NAME, "::", "-");
+
     @Override
     public final ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,

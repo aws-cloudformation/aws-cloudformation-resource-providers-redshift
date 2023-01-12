@@ -35,7 +35,7 @@ public class CreateHandler extends BaseHandlerStd {
         this.logger = logger;
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-                .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::GeneratePrimaryIdentifier", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::GeneratePrimaryIdentifier", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest((model) -> null)
                         .makeServiceCall((awsRequest, client) -> null)
                         .done((awsRequest, awsResponse, client, model, context) -> ProgressEvent.<ResourceModel, CallbackContext>builder()
@@ -55,7 +55,7 @@ public class CreateHandler extends BaseHandlerStd {
                                 .build())
                 )
 
-                .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Create", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Create", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToCreateRequest)
                         .makeServiceCall(this::createClusterParameterGroup)
                         .handleError(this::createClusterParameterGroupErrorHandler)

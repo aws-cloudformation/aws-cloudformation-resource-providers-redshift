@@ -28,7 +28,7 @@ public class ReadHandler extends BaseHandlerStd {
         this.logger = logger;
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-                .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Read::ReadInstance", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Read::ReadInstance", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToReadRequest)
                         .makeServiceCall(this::describeClusterParameterGroups)
                         .handleError(this::describeClusterParameterGroupsErrorHandler)
@@ -40,7 +40,7 @@ public class ReadHandler extends BaseHandlerStd {
                                 .build())
                 )
 
-                .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Read::ReadParameters", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Read::ReadParameters", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToReadParametersRequest)
                         .makeServiceCall(this::describeClusterParameters)
                         .handleError(this::describeClusterParametersErrorHandler)
