@@ -46,7 +46,7 @@ public class UpdateHandler extends BaseHandlerStd {
         final String resourceName = String.format("arn:%s:redshift:%s:%s:parametergroup:%s", request.getAwsPartition(), request.getRegion(), request.getAwsAccountId(), request.getDesiredResourceState().getParameterGroupName());
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-                .then(progress -> proxy.initiate("AWS-Redshift-EventSubscription::Update::ReadTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Update::ReadTags", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(resourceModel -> Translator.translateToReadTagsRequest(resourceName))
                         .makeServiceCall(this::readTags)
                         .handleError(this::operateTagsErrorHandler)
@@ -57,7 +57,7 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .status(OperationStatus.IN_PROGRESS)
                                 .build()))
 
-                .then(progress -> proxy.initiate("AWS-Redshift-EventSubscription::Update::UpdateTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Update::UpdateTags", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(resourceModel -> Translator.translateToUpdateTagsRequest(request.getDesiredResourceState(), resourceModel, resourceName))
                         .makeServiceCall(this::updateTags)
                         .handleError(this::operateTagsErrorHandler)
@@ -68,7 +68,7 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .status(OperationStatus.IN_PROGRESS)
                                 .build()))
 
-                .then(progress -> proxy.initiate("AWS-RedshiftServerless-Workgroup::Update::ReadParameters", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Update::ReadParameters", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToReadParametersRequest)
                         .makeServiceCall(this::describeClusterParameters)
                         .handleError(this::describeClusterParametersErrorHandler)
@@ -79,13 +79,13 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .status(OperationStatus.IN_PROGRESS)
                                 .build()))
 
-                .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Update::ResetParameters", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Update::ResetParameters", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToResetRequest)
                         .makeServiceCall(this::resetClusterParameterGroup)
                         .handleError(this::resetClusterParameterGroupErrorHandler)
                         .progress())
 
-                .then(progress -> proxy.initiate("AWS-Redshift-ClusterParameterGroup::Update::UpdateParameters", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                .then(progress -> proxy.initiate(String.format("%s::Update::UpdateParameters", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToUpdateRequest)
                         .makeServiceCall(this::modifyClusterParameterGroup)
                         .handleError(this::modifyClusterParameterGroupErrorHandler)

@@ -26,7 +26,7 @@ public class DeleteHandler extends BaseHandlerStd {
 
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
-                        proxy.initiate("AWS-Redshift-ClusterParameterGroup::Delete", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                        proxy.initiate(String.format("%s::Delete", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                                 .translateToServiceRequest(Translator::translateToDeleteRequest)
                                 .makeServiceCall(this::deleteClusterParameterGroup)
                                 .handleError(this::deleteClusterParameterGroupErrorHandler)
