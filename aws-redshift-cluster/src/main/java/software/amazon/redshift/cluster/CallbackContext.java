@@ -18,6 +18,7 @@ public class CallbackContext extends StdCallbackContext {
     boolean callbackAfterClusterMaintenance = false;
     boolean callbackAfterClusterCreate = false;
     boolean callbackAfterClusterRestore = false;
+    boolean callbackAfterAfterClusterParameterGroupNameModify = false;
 
     public void setLoggingProperties(LoggingProperties loggingProperties) {
         this.loggingProperties = loggingProperties;
@@ -56,6 +57,12 @@ public class CallbackContext extends StdCallbackContext {
     public void setRetryForAquaStabilize(int retryForAquaStabilize) { this.retryForAquaStabilize = retryForAquaStabilize; }
 
     public boolean getCallbackAfterAquaModify() { return this.callbackAfterAquaModify; }
+
+    public boolean getCallbackAfterClusterParameterGroupNameModify() { return this.callbackAfterAfterClusterParameterGroupNameModify; }
+
+    public void setCallbackAfterClusterParameterGroupNameModify(boolean callbackAfterAfterClusterParameterGroupNameModify) {
+        this.callbackAfterAfterClusterParameterGroupNameModify = callbackAfterAfterClusterParameterGroupNameModify;
+    }
 
     public void setCallbackAfterAquaModify(boolean callbackAfterAquaModify) { this.callbackAfterAquaModify = callbackAfterAquaModify; }
 

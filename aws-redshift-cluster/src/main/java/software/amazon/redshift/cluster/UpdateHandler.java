@@ -236,6 +236,36 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
+                    if (issueModifyClusterParameterGroupRequest(request.getPreviousResourceState(), model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterParameterGroupName", proxyClient, model, callbackContext)
+                                .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateParameterGroupNameRequest(model, request.getPreviousResourceState()))
+                                .makeServiceCall(this::updateCluster)
+                                .stabilize((_request, _response, _client, _model, _context) -> stabilizeClusterAfterClusterParameterGroupUpdate(_client, _model, _context))
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    if(!callbackContext.getCallbackAfterClusterParameterGroupNameModify()) {
+                                        logger.log(String.format("Modify Cluster Parameter Group Name done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, model.getClusterIdentifier()));
+                                        callbackContext.setCallbackAfterClusterParameterGroupNameModify(true);
+                                        logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Modify Cluster Parameter Group Name.");
+                                        return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
+                                    }
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if ((issueModifyClusterParameterGroupRequest(request.getPreviousResourceState(), model) && isRebootRequired(model, proxyClient)) || isAQUAStatusApplying(model, proxyClient)){
+                        return proxy.initiate("AWS-Redshift-Cluster::RebootCluster", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToRebootClusterRequest)
+                                .makeServiceCall(this::rebootCluster)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
                     if (issueModifyClusterRequest(request.getPreviousResourceState(), model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateRequest(model, request.getPreviousResourceState()))
@@ -251,17 +281,6 @@ public class UpdateHandler extends BaseHandlerStd {
                                     }
                                     return ProgressEvent.progress(_model, callbackContext);
                                 });
-                    }
-                    return progress;
-                })
-
-                .then(progress -> {
-                    if ((issueModifyClusterRequest(request.getPreviousResourceState(), model) && isRebootRequired(model, proxyClient)) || isAQUAStatusApplying(model, proxyClient)){
-                        return proxy.initiate("AWS-Redshift-Cluster::RebootCluster", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator::translateToRebootClusterRequest)
-                                .makeServiceCall(this::rebootCluster)
-                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                .progress();
                     }
                     return progress;
                 })

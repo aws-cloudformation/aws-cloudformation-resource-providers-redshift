@@ -130,12 +130,11 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean stabilizeCluster(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt, ResourceHandlerRequest<ResourceModel> request) {
-    if(ObjectUtils.notEqual(request.getPreviousResourceState().getClusterParameterGroupName(),
-            model.getClusterParameterGroupName())) {
-      // UpdateDbParamterGroup starts with a slight delay, hence separate stabilization implementation.
-      return isClusterActiveAfterUpdateDbParameterGroup(proxyClient, model, cxt);
-    }
     return isClusterActive(proxyClient, model, cxt);
+  }
+
+  protected boolean stabilizeClusterAfterClusterParameterGroupUpdate(final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
+      return isClusterActiveAfterUpdateDbParameterGroup(proxyClient, model, cxt);
   }
 
   protected boolean isClusterActiveAfterUpdateDbParameterGroup (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
@@ -217,11 +216,15 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             || model.getMasterUsername() == null || model.getMasterUserPassword() == null;
   }
 
+  protected boolean issueModifyClusterParameterGroupRequest(ResourceModel prevModel, ResourceModel model) {
+    return ObjectUtils.notEqual(prevModel.getClusterParameterGroupName(), model.getClusterParameterGroupName());
+  }
+
   protected boolean issueModifyClusterRequest(ResourceModel prevModel, ResourceModel model) {
     return  ObjectUtils.notEqual(prevModel.getMasterUserPassword(), model.getMasterUserPassword()) ||
             ObjectUtils.notEqual(prevModel.getAllowVersionUpgrade(), model.getAllowVersionUpgrade()) ||
             ObjectUtils.notEqual(prevModel.getAutomatedSnapshotRetentionPeriod(), model.getAutomatedSnapshotRetentionPeriod()) ||
-            ObjectUtils.notEqual(prevModel.getClusterParameterGroupName(), model.getClusterParameterGroupName()) ||
+            //ObjectUtils.notEqual(prevModel.getClusterParameterGroupName(), model.getClusterParameterGroupName()) ||
             ObjectUtils.notEqual(prevModel.getClusterVersion(), model.getClusterVersion()) ||
             ObjectUtils.notEqual(prevModel.getElasticIp(), model.getElasticIp()) ||
             ObjectUtils.notEqual(prevModel.getEncrypted(), model.getEncrypted()) ||
