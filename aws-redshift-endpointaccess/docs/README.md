@@ -124,6 +124,38 @@ The port number on which the cluster accepts incoming connections.
 
 A list of Virtual Private Cloud (VPC) security groups to be associated with the endpoint.
 
+#### VpcSecurityGroupId
+
+Returns the <code>VpcSecurityGroupId</code> value.
+
+#### Status
+
+Returns the <code>Status</code> value.
+
 #### VpcEndpoint
 
 The connection endpoint for connecting to an Amazon Redshift cluster through the proxy.
+
+#### VpcEndpointId
+
+Returns the <code>VpcEndpointId</code> value.
+
+#### VpcId
+
+Returns the <code>VpcId</code> value.
+
+#### NetworkInterfaceId
+
+Returns the <code>NetworkInterfaceId</code> value.
+
+#### PrivateIpAddress
+
+Returns the <code>PrivateIpAddress</code> value.
+
+#### SubnetId
+
+Returns the <code>SubnetId</code> value.
+
+#### AvailabilityZone
+
+Returns the <code>AvailabilityZone</code> value.
