@@ -1,7 +1,6 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;;
-import com.amazonaws.util.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -19,7 +18,11 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
@@ -266,7 +269,7 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    if (issueModifyClusterRequest(request.getPreviousResourceState(), model)) {
+                    if (shouldModifyCluster(request.getPreviousResourceState(), model)) {
                         return proxy.initiate("AWS-Redshift-Cluster::UpdateCluster", proxyClient, model, callbackContext)
                                 .translateToServiceRequest((modifyClusterRequest) -> Translator.translateToUpdateRequest(model, request.getPreviousResourceState()))
                                 .backoffDelay(BACKOFF_STRATEGY)
@@ -690,5 +693,110 @@ public class UpdateHandler extends BaseHandlerStd {
                 rotateEncryptionKeyRequest.clusterIdentifier()));
 
         return rotateEncryptionKeyResponse;
+    }
+
+    /*
+    We used to compare the values like this:
+    notEqual(oldModel.getAllowVersionUpgrade(), newModel.getAllowVersionUpgrade()) ||
+    notEqual(... more attributes)
+
+    The above is type-safe, but when we need to provide detailed logs about which attributes changed,
+    adding logs for each attribute is tedious (I couldn't figure out how, feel free to PR if you know how).
+
+    The approach below uses Reflection APIs to get the attribute dynamically,
+    which is not 100% type-safe, but unit tests are ensuring every hard-coded attributes
+    in the list (and their getter methods) exist on the ResourceModel (generated from aws-redshift-cluster.json).
+
+    Pros of the approach below:
+    - update attributes list (whether its change triggers modifyCluster) easily.
+    - reduce duplicated code
+
+    As always, never log anything sensitive :)
+     */
+    private boolean shouldModifyCluster(ResourceModel oldModel, ResourceModel newModel) {
+        // any 1 or more attribute value change regardless of sensitive/insensitive,
+        // will trigger a modifyClusterRequest
+        final String[] insensitiveAttributes = new String[] {
+                "AllowVersionUpgrade",
+                "AutomatedSnapshotRetentionPeriod",
+                "AvailabilityZone",
+                "AvailabilityZoneRelocation",
+                "ClusterSecurityGroups",
+                "ClusterVersion",
+                "ElasticIp",
+                "Encrypted",
+                "HsmClientCertificateIdentifier",
+                "HsmConfigurationIdentifier",
+                "KmsKeyId",
+                "MaintenanceTrackName",
+                "ManualSnapshotRetentionPeriod",
+                "Port",
+                "PreferredMaintenanceWindow",
+                "PubliclyAccessible",
+                "VpcSecurityGroupIds"
+        };
+        final String[] sensitiveAttributes = new String[] {
+                "MasterUserPassword"
+        };
+
+        // get combined attributes (insensitive + sensitive)
+        final String[] allAttributes = Stream
+                .concat(
+                        Arrays.stream(insensitiveAttributes),
+                        Arrays.stream(sensitiveAttributes)
+                ).toArray(String[]::new);
+
+        boolean shouldModifyCluster = false;
+
+        logger.log("Checking cluster attribute values changes for ModifyCluster...");
+
+        // for loop to log every attribute's value change for debugging
+        for (String attribute : allAttributes) {
+            final Object oldModelValue = getAttributeValue(oldModel, attribute);
+            final Object newModelValue = getAttributeValue(newModel, attribute);
+
+            boolean attributeValueChanged = ObjectUtils.notEqual(oldModelValue, newModelValue);
+
+            // if an attribute changed, we log both values,
+            // i.e. "PubliclyAccessible change from true to false"
+            if (attributeValueChanged) {
+                if (Arrays.asList(sensitiveAttributes).contains(attribute)) {
+                    // Be CAREFUL, we don't log any sensitive attribute values
+                    logger.log(String.format("Sensitive attribute %s changed", attribute));
+                } else {
+                    // insensitive attributes
+                    logger.log(String.format("%s changed from %s to %s", attribute, oldModelValue, newModelValue));
+                }
+            }
+
+            shouldModifyCluster = shouldModifyCluster || attributeValueChanged;
+        }
+
+        if (shouldModifyCluster) {
+            logger.log("Cluster attribute(s) changes detected, should issue modifyClusterRequest");
+        } else {
+            logger.log("No cluster attribute changes detected, should skip modifyClusterRequest");
+        }
+
+        return shouldModifyCluster;
+    }
+
+    private Object getAttributeValue(ResourceModel model, String attribute) {
+        try {
+            Method getter = ResourceModel.class.getMethod("get" + attribute);
+            return getter.invoke(model);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            logger.log(e.getStackTrace().toString());
+            // This should never get triggered during runtime.
+            //
+            // we throw RuntimeException here to ensure unit test catches any attribute typos,
+            // for example, if developers mistype an attribute in the list,
+            // unit test would throw the following exception and fail,
+            // which stops build process.
+            //
+            // Only if the all attributes match the Model generated from aws-redshift-cluster.json,
+            // the tests will pass
+            throw new RuntimeException(String.format("Failed to get %s from cluster to decide whether to modifyCluster", attribute));
+        }
     }
 }

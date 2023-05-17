@@ -1,30 +1,20 @@
 package software.amazon.redshift.cluster;
 
-import com.amazonaws.SdkClientException;
 import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ObjectUtils;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.Cluster;
-import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
-import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsResponse;
-import software.amazon.awssdk.services.redshift.model.InvalidTagException;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
-import software.amazon.awssdk.services.redshift.model.SnapshotCopyGrantNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
@@ -36,7 +26,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
@@ -218,33 +207,6 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected boolean issueModifyClusterParameterGroupRequest(ResourceModel prevModel, ResourceModel model) {
     return ObjectUtils.notEqual(prevModel.getClusterParameterGroupName(), model.getClusterParameterGroupName());
-  }
-
-  protected boolean issueModifyClusterRequest(ResourceModel prevModel, ResourceModel model) {
-    return  ObjectUtils.notEqual(prevModel.getMasterUserPassword(), model.getMasterUserPassword()) ||
-            ObjectUtils.notEqual(prevModel.getAllowVersionUpgrade(), model.getAllowVersionUpgrade()) ||
-            ObjectUtils.notEqual(prevModel.getAutomatedSnapshotRetentionPeriod(), model.getAutomatedSnapshotRetentionPeriod()) ||
-            //ObjectUtils.notEqual(prevModel.getClusterParameterGroupName(), model.getClusterParameterGroupName()) ||
-            ObjectUtils.notEqual(prevModel.getClusterVersion(), model.getClusterVersion()) ||
-            ObjectUtils.notEqual(prevModel.getElasticIp(), model.getElasticIp()) ||
-            ObjectUtils.notEqual(prevModel.getEncrypted(), model.getEncrypted()) ||
-            ObjectUtils.notEqual(prevModel.getHsmClientCertificateIdentifier(), model.getHsmClientCertificateIdentifier()) ||
-            ObjectUtils.notEqual(prevModel.getHsmConfigurationIdentifier(), model.getHsmConfigurationIdentifier()) ||
-            ObjectUtils.notEqual(prevModel.getKmsKeyId(), model.getKmsKeyId()) ||
-            ObjectUtils.notEqual(prevModel.getPreferredMaintenanceWindow(), model.getPreferredMaintenanceWindow()) ||
-            ObjectUtils.notEqual(prevModel.getPubliclyAccessible(), model.getPubliclyAccessible()) ||
-            ObjectUtils.notEqual(prevModel.getClusterSecurityGroups(), model.getClusterSecurityGroups()) ||
-            ObjectUtils.notEqual(prevModel.getVpcSecurityGroupIds(), model.getVpcSecurityGroupIds()) ||
-            ObjectUtils.notEqual(prevModel.getAvailabilityZone(), model.getAvailabilityZone()) ||
-            ObjectUtils.notEqual(prevModel.getAvailabilityZoneRelocation(), model.getAvailabilityZoneRelocation()) ||
-            ObjectUtils.notEqual(prevModel.getEncrypted(), model.getEncrypted()) ||
-            ObjectUtils.notEqual(prevModel.getKmsKeyId(), model.getKmsKeyId()) ||
-            ObjectUtils.notEqual(prevModel.getPort(), model.getPort()) ||
-            ObjectUtils.notEqual(prevModel.getManualSnapshotRetentionPeriod(), model.getManualSnapshotRetentionPeriod()) ||
-            ObjectUtils.notEqual(prevModel.getClusterVersion(), model.getClusterVersion()) ||
-            ObjectUtils.notEqual(prevModel.getElasticIp(), model.getElasticIp()) ||
-            ObjectUtils.notEqual(prevModel.getMaintenanceTrackName(), model.getMaintenanceTrackName()) ||
-            ObjectUtils.notEqual(prevModel.getEnhancedVpcRouting(), model.getEnhancedVpcRouting());
   }
 
   protected boolean issueModifySnapshotCopyRetentionPeriod(ResourceModel prevModel, ResourceModel model) {

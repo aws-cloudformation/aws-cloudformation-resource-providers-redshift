@@ -533,7 +533,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void testModifyMasterUserName() {
+    public void testModifyMasterUserPasswordAndPubliclyAccessible() {
         ResourceModel previousModel = ResourceModel.builder()
                 .clusterIdentifier(CLUSTER_IDENTIFIER)
                 .masterUsername(MASTER_USERNAME)
@@ -561,7 +561,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .allowVersionUpgrade(true)
                 .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
-                .publiclyAccessible(false)
+                .publiclyAccessible(true)
                 .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(null)
                 .vpcSecurityGroupIds(new LinkedList<String>())
