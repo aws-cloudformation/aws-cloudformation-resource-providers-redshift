@@ -108,20 +108,48 @@ public class UpdateHandler extends BaseHandlerStd {
         List<Parameter> desiredParameters = lowerCaseParameterName.apply(desiredModel.getParameters());
         List<Parameter> previousParameters = lowerCaseParameterName.apply(previousModel.getParameters());
 
-        return desiredModel.toBuilder()
-                .parameters(CollectionUtils.disjunction(desiredParameters, previousParameters)
+        for (Parameter desiredParam : desiredParameters) {
+            logger.log(String.format("desiredParam: ParameterName: %s ParameterValue: %s",
+                    desiredParam.getParameterName(),
+                    desiredParam.getParameterValue())
+            );
+        }
+
+        for (Parameter previousParam : desiredParameters) {
+            logger.log(String.format("previousParam: ParameterName: %s ParameterValue: %s",
+                    previousParam.getParameterName(),
+                    previousParam.getParameterValue())
+            );
+        }
+
+        /*
+        Any added parameters to previousParameters will be updated to the parameter group;
+        any removed parameters from previousParameters will be reset to the default value.
+         */
+        List<Parameter> updatableParameters = CollectionUtils.disjunction(desiredParameters, previousParameters)
+                .stream()
+                .map(parameter -> desiredParameters
                         .stream()
-                        .map(parameter -> desiredParameters
-                                .stream()
-                                .filter(d -> StringUtils.equalsIgnoreCase(d.getParameterName(), parameter.getParameterName()))
-                                .findAny()
-                                .orElse(Parameter.builder()
-                                        .parameterName(parameter.getParameterName())
-                                        .parameterValue(NEED_TO_BE_RESET)
-                                        .build()))
-                        .distinct()
-                        .collect(Collectors.toList()))
-                .build();
+                        .filter(d -> StringUtils.equalsIgnoreCase(d.getParameterName(), parameter.getParameterName()))
+                        .findAny()
+                        .orElse(Parameter.builder()
+                                .parameterName(parameter.getParameterName())
+                                .parameterValue(NEED_TO_BE_RESET)
+                                .build()))
+                .distinct()
+                .collect(Collectors.toList());
+
+        logger.log("The following parameters will be updated or reset:");
+        for (Parameter updatableParam : updatableParameters) {
+            logger.log(String.format("updatableParam: ParameterName: %s ParameterValue: %s",
+                    updatableParam.getParameterName(),
+                    updatableParam.getParameterValue())
+            );
+        }
+
+        return desiredModel.toBuilder()
+            .parameters(updatableParameters)
+            .build();
     }
 
     private DescribeClusterParametersResponse describeClusterParameters(final DescribeClusterParametersRequest awsRequest,
@@ -130,6 +158,13 @@ public class UpdateHandler extends BaseHandlerStd {
         awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterParameters);
 
         logger.log(String.format("%s's Parameters has successfully been read.", ResourceModel.TYPE_NAME));
+
+        if (awsResponse.hasParameters()) {
+            for (software.amazon.awssdk.services.redshift.model.Parameter param : awsResponse.parameters()) {
+                logger.log("Parameter from describeClusterParameter: " + param.toString());
+            }
+        }
+
         return awsResponse;
     }
 
