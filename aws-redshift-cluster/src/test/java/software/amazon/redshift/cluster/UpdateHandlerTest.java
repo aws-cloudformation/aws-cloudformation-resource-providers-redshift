@@ -1,18 +1,20 @@
 package software.amazon.redshift.cluster;
 
 import java.time.Duration;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
-import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
@@ -21,8 +23,6 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.DisableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
@@ -33,7 +33,6 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
-import software.amazon.awssdk.services.redshift.model.TaggedResource;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -54,18 +53,13 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
-import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
-import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
-import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
-import static software.amazon.redshift.cluster.TestUtils.OWNER_ACCOUNT_NO;
-import static software.amazon.redshift.cluster.TestUtils.RESOURCE_NAME_PREFIX;
+import static software.amazon.redshift.cluster.TestUtils.modifyAttribute;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateHandlerTest extends AbstractTestBase {
@@ -603,6 +597,160 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
                 .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
+                .build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
+
+        // todo: make tests more independent so we can add tests like this elsewhere
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length == 1);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length == 17);
+
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("MasterUserPassword"));
+
+        List<String> insensitiveFileds = Arrays.asList(
+                "AllowVersionUpgrade",
+                "AutomatedSnapshotRetentionPeriod",
+                "AvailabilityZone",
+                "AvailabilityZoneRelocation",
+                "ClusterSecurityGroups",
+                "ClusterVersion",
+                "ElasticIp",
+                "Encrypted",
+                "EnhancedVpcRouting",
+                "HsmClientCertificateIdentifier",
+                "HsmConfigurationIdentifier",
+                "KmsKeyId",
+                "MaintenanceTrackName",
+                "ManualSnapshotRetentionPeriod",
+                "Port",
+                "PreferredMaintenanceWindow",
+                "PubliclyAccessible",
+                "VpcSecurityGroupIds"
+        );
+
+        for (int i = 0; i < insensitiveFileds.size(); i++) {
+            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i].equals(
+                    insensitiveFileds.get(i)
+            ));
+        }
+    }
+
+    private static boolean BOOLEAN_BEFORE = true;
+    private static boolean BOOLEAN_AFTER = false;
+
+    private static Stream<Arguments> detectableModifyClusterAttributeTest() {
+        return Stream.of(
+                Arguments.of("AllowVersionUpgrade", BOOLEAN_BEFORE, BOOLEAN_AFTER),
+                Arguments.of("AutomatedSnapshotRetentionPeriod", 10, 15),
+                Arguments.of("AvailabilityZone", "before-az", "after-az"),
+                Arguments.of("AvailabilityZoneRelocation", true, false),
+                // todo: mock this attribute properly
+//                Arguments.of("ClusterSecurityGroups",
+//                        Arrays.asList(ClusterSecurityGroupMembership.builder().clusterSecurityGroupName("before-sg").build().toString()),
+//                        Arrays.asList(ClusterSecurityGroupMembership.builder().clusterSecurityGroupName("after-sg").build().toString())
+//                ),
+                Arguments.of("ClusterVersion", "before-cv", "after-cv"),
+                Arguments.of("ElasticIp", "before-eip", "after-eip"),
+                Arguments.of("Encrypted", BOOLEAN_BEFORE, BOOLEAN_AFTER),
+                Arguments.of("EnhancedVpcRouting", BOOLEAN_BEFORE, BOOLEAN_AFTER),
+                Arguments.of("HsmClientCertificateIdentifier", "before-hsm-cert-id", "after-hsm-cert-id"),
+                Arguments.of("HsmConfigurationIdentifier", "before-hsm-config-id", "after-hsm-config-id"),
+                Arguments.of("KmsKeyId", "before-kms", "after-kms"),
+                Arguments.of("MaintenanceTrackName", "before-track", "after-track"),
+                Arguments.of("ManualSnapshotRetentionPeriod", 5, 15),
+                Arguments.of("MasterUserPassword", "before-password", "after-password"),
+                Arguments.of("Port", 100, 200),
+                Arguments.of("PreferredMaintenanceWindow", "before-window", "after-window"),
+                Arguments.of("PubliclyAccessible", BOOLEAN_BEFORE, BOOLEAN_AFTER),
+                Arguments.of("VpcSecurityGroupIds", Arrays.asList("before-sg-id"), Arrays.asList("after-sg-id"))
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("detectableModifyClusterAttributeTest")
+    public void testModifyClusterAttributes(
+            String modifyClusterAttribute,
+            Object beforeValue,
+            Object afterValue
+    ) throws Exception {
+        if (modifyClusterAttribute.equals("ClusterSecurityGroups")) {
+            return;
+        }
+        ResourceModel previousModel = ResourceModel.builder()
+                .availabilityZoneRelocation(BOOLEAN_BEFORE)
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .masterUserPassword(MASTER_USERPASSWORD)
+                .nodeType("dc2.large")
+                .clusterType("multi-node")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .allowVersionUpgrade(BOOLEAN_BEFORE)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(BOOLEAN_BEFORE)
+                .publiclyAccessible(BOOLEAN_BEFORE)
+                .clusterSecurityGroups(new LinkedList<String>())
+                .iamRoles(null)
+                .vpcSecurityGroupIds(new LinkedList<String>())
+                .tags(null)
+                .build();
+
+        Cluster existingCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType("dc2.large")
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .clusterAvailabilityStatus("Available")
+                .allowVersionUpgrade(BOOLEAN_BEFORE)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(BOOLEAN_BEFORE)
+                .enhancedVpcRouting(BOOLEAN_BEFORE)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(BOOLEAN_BEFORE)
+                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
+                .build();
+
+        String attributeName = Character.toLowerCase(modifyClusterAttribute.charAt(0)) + modifyClusterAttribute.substring(1);
+
+        // copy modifiedCluster from existingCluster, then change one attribute
+        Cluster modifiedCluster = existingCluster.toBuilder().build();
+        modifyAttribute(existingCluster, Cluster.class, attributeName, beforeValue);
+        modifyAttribute(modifiedCluster, Cluster.class, attributeName, afterValue);
+
+        // copy from previousModel and modify one attribute
+        ResourceModel updateModel = previousModel.toBuilder().build();
+        modifyAttribute(updateModel, ResourceModel.class, attributeName, afterValue);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))

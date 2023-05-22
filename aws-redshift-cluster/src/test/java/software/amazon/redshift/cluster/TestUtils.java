@@ -5,6 +5,7 @@ import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 
+import java.lang.reflect.Field;
 import java.util.LinkedList;
 
 public class TestUtils {
@@ -75,5 +76,15 @@ public class TestUtils {
             .vpcSecurityGroupIds(new LinkedList<String>())
             .tags(new LinkedList<Tag>())
             .build();
+
+    public static <T> void modifyAttribute(T object, Class<T> clazz, String attributeName, Object attributeValue) throws Exception {
+        try {
+            Field field = clazz.getDeclaredField(attributeName);
+            field.setAccessible(true);
+            field.set(object, attributeValue);
+        } catch (NoSuchFieldException noSuchFieldException) {
+            return;
+        }
+    }
 
 }
