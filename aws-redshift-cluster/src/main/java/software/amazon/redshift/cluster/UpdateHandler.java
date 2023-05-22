@@ -1,6 +1,7 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.CollectionUtils;;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -27,6 +28,36 @@ import java.util.stream.Stream;
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
     private final String RESOURCE_NAME_PREFIX = "arn:aws:redshift:";
+
+    /*
+    Any 1 or 1+ attribute(s) value(s) change(s) will trigger a modifyClusterRequest,
+    regardless of sensitive or insensitive.
+
+    Detectable meaning we only support modifyClusterRequest if the included attributes in Cluster model change.
+     */
+    public static final String[] DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE = new String[] {
+            "AllowVersionUpgrade",
+            "AutomatedSnapshotRetentionPeriod",
+            "AvailabilityZone",
+            "AvailabilityZoneRelocation",
+            "ClusterSecurityGroups",
+            "ClusterVersion",
+            "ElasticIp",
+            "Encrypted",
+            "EnhancedVpcRouting",
+            "HsmClientCertificateIdentifier",
+            "HsmConfigurationIdentifier",
+            "KmsKeyId",
+            "MaintenanceTrackName",
+            "ManualSnapshotRetentionPeriod",
+            "Port",
+            "PreferredMaintenanceWindow",
+            "PubliclyAccessible",
+            "VpcSecurityGroupIds"
+    };
+    public static final String[] DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE = new String[] {
+            "MasterUserPassword"
+    };
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -716,34 +747,11 @@ public class UpdateHandler extends BaseHandlerStd {
     private boolean shouldModifyCluster(ResourceModel oldModel, ResourceModel newModel) {
         // any 1 or more attribute value change regardless of sensitive/insensitive,
         // will trigger a modifyClusterRequest
-        final String[] insensitiveAttributes = new String[] {
-                "AllowVersionUpgrade",
-                "AutomatedSnapshotRetentionPeriod",
-                "AvailabilityZone",
-                "AvailabilityZoneRelocation",
-                "ClusterSecurityGroups",
-                "ClusterVersion",
-                "ElasticIp",
-                "Encrypted",
-                "HsmClientCertificateIdentifier",
-                "HsmConfigurationIdentifier",
-                "KmsKeyId",
-                "MaintenanceTrackName",
-                "ManualSnapshotRetentionPeriod",
-                "Port",
-                "PreferredMaintenanceWindow",
-                "PubliclyAccessible",
-                "VpcSecurityGroupIds"
-        };
-        final String[] sensitiveAttributes = new String[] {
-                "MasterUserPassword"
-        };
-
         // get combined attributes (insensitive + sensitive)
         final String[] allAttributes = Stream
                 .concat(
-                        Arrays.stream(insensitiveAttributes),
-                        Arrays.stream(sensitiveAttributes)
+                        Arrays.stream(DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE),
+                        Arrays.stream(DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE)
                 ).toArray(String[]::new);
 
         boolean shouldModifyCluster = false;
@@ -760,7 +768,7 @@ public class UpdateHandler extends BaseHandlerStd {
             // if an attribute changed, we log both values,
             // i.e. "PubliclyAccessible change from true to false"
             if (attributeValueChanged) {
-                if (Arrays.asList(sensitiveAttributes).contains(attribute)) {
+                if (Arrays.asList(DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE).contains(attribute)) {
                     // Be CAREFUL, we don't log any sensitive attribute values
                     logger.log(String.format("Sensitive attribute %s changed", attribute));
                 } else {
