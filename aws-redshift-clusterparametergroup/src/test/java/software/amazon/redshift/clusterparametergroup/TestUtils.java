@@ -1,16 +1,17 @@
 package software.amazon.redshift.clusterparametergroup;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroup;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class TestUtils {
     final static String DESCRIPTION = "description";
@@ -36,7 +37,8 @@ public class TestUtils {
             TaggedResource.builder().tag(software.amazon.awssdk.services.redshift.model.Tag.builder().key("key3").value("val3").build()).build()
     );
 
-    final static List<Parameter> PARAMETERS = Arrays.asList(
+    final static String WLM_JSON_CONFIGURATION = "[{\"user_group\":\"example_user_group1\",\"query_group\": \"example_query_group1\", \"query_concurrency\":7},{\"query_concurrency\":5}]";
+    final static List<Parameter> DESIRED_PARAMETERS = Arrays.asList(
             Parameter.builder()
                     .parameterName("auto_analyze")
                     .parameterValue("true")
@@ -46,58 +48,45 @@ public class TestUtils {
                     .parameterValue("ISO, MDY")
                     .build(),
             Parameter.builder()
-                    .parameterName("statement_timeout")
-                    .parameterValue("1000")
+                    .parameterName("wlm_json_configuration")
+                    .parameterValue(WLM_JSON_CONFIGURATION)
                     .build()
     );
 
-    final static List<Parameter> UNSUPPORTED_PARAMETERS = Arrays.asList(
-            Parameter.builder()
-                    .parameterName("invalid")
-                    .parameterValue("true")
-                    .build(),
+    final static List<Parameter> PREVIOUS_PARAMETERS = Arrays.asList(
             Parameter.builder()
                     .parameterName("datestyle")
                     .parameterValue("ISO, MDY")
                     .build(),
             Parameter.builder()
-                    .parameterName("statement_timeout")
-                    .parameterValue("1000")
+                    .parameterName("wlm_json_configuration")
+                    // adding format changes to the json string,
+                    // we'll need to compare the actual JSON objects are equal functionally
+                    .parameterValue("[ {\"user_group\":\"example_user_group1\",\"query_group\":\"example_query_group1\",  \"query_concurrency\":7},{\"query_concurrency\":5}]")
                     .build()
     );
+
     final static List<software.amazon.awssdk.services.redshift.model.Parameter> SDK_PARAMETERS = Arrays.asList(
             software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("auto_analyze").parameterValue("true").isModifiable(true).build(),
             software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("datestyle").parameterValue("ISO, MDY").isModifiable(true).build(),
             software.amazon.awssdk.services.redshift.model.Parameter.builder().parameterName("statement_timeout").parameterValue("1000").isModifiable(true).build()
     );
 
-    final static String ARN = String.format("arn:aws:redshift:%s:%s:parametergroup:%s", AWS_REGION, AWS_ACCOUNT_ID, PARAMETER_GROUP_NAME);
+    final static List<software.amazon.awssdk.services.redshift.model.Parameter> getSdkParametersFromParameters(List<Parameter> parameters) {
+        return parameters.stream().map(param -> software.amazon.awssdk.services.redshift.model.Parameter.builder()
+                .parameterName(param.getParameterName())
+                .parameterValue(param.getParameterValue())
+                .source("user")
+                .isModifiable(true)
+                .build()).collect(Collectors.toList());
+    }
 
     final static ResourceModel COMPLETE_MODEL = ResourceModel.builder()
             .parameterGroupName(PARAMETER_GROUP_NAME)
             .description(DESCRIPTION)
             .parameterGroupFamily(PARAMETER_GROUP_FAMILY)
             .tags(TAGS)
-            .parameters(PARAMETERS)
-            .build();
-
-    final static ClusterParameterGroup PARAMETER_GROUP = ClusterParameterGroup.builder()
-            .description(DESCRIPTION)
-            .tags(SDK_TAGS)
-            .parameterGroupFamily(PARAMETER_GROUP_FAMILY)
-            .parameterGroupName(PARAMETER_GROUP_NAME)
-            .build();
-
-    final static DescribeClusterParameterGroupsResponse DESCRIBE_CLUSTER_PARAMETER_GROUPS_RESPONSE = DescribeClusterParameterGroupsResponse.builder()
-            .parameterGroups(PARAMETER_GROUP)
-            .build();
-
-    final static DescribeTagsResponse DESCRIBE_TAGS_RESPONSE = DescribeTagsResponse.builder()
-            .taggedResources(TAGGED_RESOURCES)
-            .build();
-
-    final static DescribeClusterParametersResponse DESCRIBE_CLUSTER_PARAMETERS_RESPONSE = DescribeClusterParametersResponse.builder()
-            .parameters(SDK_PARAMETERS)
+            .parameters(DESIRED_PARAMETERS)
             .build();
 
     final static ClusterParameterGroup CLUSTER_PARAMETER_GROUP = ClusterParameterGroup.builder()
@@ -119,9 +108,25 @@ public class TestUtils {
             software.amazon.awssdk.services.redshift.model.Tag.builder().key("stackKey").value("stackValue").build()
     );
 
-    final static List<String> SDK_TAG_KEYS_TO_DELETE = ImmutableList.of("key3");
-
     final static DescribeTagsResponse DESCRIBE_TAGS_RESPONSE_CREATING = DescribeTagsResponse.builder()
             .taggedResources(TAGGED_RESOURCES_CREATING)
             .build();
+
+    final static boolean parametersEquals(
+            List<software.amazon.awssdk.services.redshift.model.Parameter> params1,
+            List<software.amazon.awssdk.services.redshift.model.Parameter> params2
+    ) {
+        if (params1.size() != params2.size()) {
+            return false;
+        }
+
+        Function<List<software.amazon.awssdk.services.redshift.model.Parameter>, Set<String>> paramsToSet = list -> list.stream()
+                .map(parameter -> parameter.parameterName() + parameter.parameterValue())
+                .collect(Collectors.toCollection(TreeSet::new));
+
+        Set<String> set1 = paramsToSet.apply(params1);
+        Set<String> set2 = paramsToSet.apply(params2);
+
+        return set1.equals(set2);
+    }
 }

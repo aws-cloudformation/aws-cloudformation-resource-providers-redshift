@@ -1,5 +1,8 @@
 package software.amazon.redshift.clusterparametergroup;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
@@ -27,12 +30,16 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class UpdateHandler extends BaseHandlerStd {
     public static final String NEED_TO_BE_RESET = "needToBeReset";
+    private static final String WLM_JSON_CONFIGURATION = "wlm_json_configuration";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
@@ -94,7 +101,14 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
     }
 
+    /*
+    compares the desired parameters and the previous parameters,
+    calculates which parameters need to be reset (value set to NEED_TO_BE_RESET),
+    and which parameter values need to be updated
+     */
     private ResourceModel getUpdatableResourceModel(ResourceModel desiredModel, ResourceModel previousModel) {
+        logger.log("DesiredModel parameters: " + desiredModel.getParameters() + "\nPreviousModel parameters: " + previousModel.getParameters());
+
         Function<List<Parameter>, List<Parameter>> lowerCaseParameterName = (raw) -> Optional.ofNullable(raw)
                 .map(parameters -> parameters
                         .stream()
@@ -108,48 +122,99 @@ public class UpdateHandler extends BaseHandlerStd {
         List<Parameter> desiredParameters = lowerCaseParameterName.apply(desiredModel.getParameters());
         List<Parameter> previousParameters = lowerCaseParameterName.apply(previousModel.getParameters());
 
-        for (Parameter desiredParam : desiredParameters) {
-            logger.log(String.format("desiredParam: ParameterName: %s ParameterValue: %s",
-                    desiredParam.getParameterName(),
-                    desiredParam.getParameterValue())
-            );
-        }
-
-        for (Parameter previousParam : desiredParameters) {
-            logger.log(String.format("previousParam: ParameterName: %s ParameterValue: %s",
-                    previousParam.getParameterName(),
-                    previousParam.getParameterValue())
-            );
-        }
+        /*
+        like before, we assume there's no duplicated parameters like [{key1: value1}, {key1: value2}]
+         */
+        Function<List<Parameter>, Map<String, String>> paramsToMap = list -> list.stream()
+                .collect(Collectors.toMap(Parameter::getParameterName, Parameter::getParameterValue));
+        Map<String, String> desiredParamKeyValueMap = paramsToMap.apply(desiredParameters);
+        Map<String, String> previousParamKeyValueMap = paramsToMap.apply(previousParameters);
 
         /*
-        Any added parameters to previousParameters will be updated to the parameter group;
-        any removed parameters from previousParameters will be reset to the default value.
+        previousParameters
+        [
+            { "auto_analyze": true },
+            { "date_style": "ISO, MDY" },
+            { "wlm_json_configuration": "[{key1: value1}]" }
+        ]
+
+        desiredParameters
+        [
+            { "statement_timeout": 1000 },
+            { "date_style": "ISO, MDY" }, // value stays the same, will be ignored,
+            { "wlm_json_configuration": "[{key1:        value1}]" } // needs to `JSON` compare with previous wlm_json_configuration (see code)
+        ]
+
+        updatableParameters
+        [
+            { "auto_analyze": NEED_TO_BE_RESET }, // exists in previous not in desired, value will be set to NEED_TO_BE_RESET
+        ]
          */
         List<Parameter> updatableParameters = CollectionUtils.disjunction(desiredParameters, previousParameters)
                 .stream()
-                .map(parameter -> desiredParameters
-                        .stream()
-                        .filter(d -> StringUtils.equalsIgnoreCase(d.getParameterName(), parameter.getParameterName()))
-                        .findAny()
-                        .orElse(Parameter.builder()
-                                .parameterName(parameter.getParameterName())
-                                .parameterValue(NEED_TO_BE_RESET)
-                                .build()))
+                .filter(parameter -> {
+                    /*
+                    We only specially handle when wlm_json_configuration exists in both previous and desired parameters.
+
+                    When both previous and desired parameters contain wlm_json_configuration,
+                    we'll need to first sanitize both wlm_json_configurations (stringified JSON) then
+                    check if they're equal.
+
+                    For example, [{key:value}] is the same as [   {key: value}]
+
+                    When only previous parameters contains wlm_json_configuration,
+                    it means it needs to be reset.
+
+                    When only desired parameters contains wlm_json_configuration,
+                    we only need to apply the new one.
+                     */
+                    if (parameter.getParameterName().equals(WLM_JSON_CONFIGURATION)
+                            && desiredParamKeyValueMap.containsKey(WLM_JSON_CONFIGURATION)
+                            && previousParamKeyValueMap.containsKey(WLM_JSON_CONFIGURATION)
+                    ) {
+                        try {
+                            final String desiredWlm = getSanitizedString(desiredParamKeyValueMap.get(WLM_JSON_CONFIGURATION));
+                            final String previousWlm = getSanitizedString(previousParamKeyValueMap.get(WLM_JSON_CONFIGURATION));
+                            /*
+                            only when their sanitized values don't match, we update
+                             */
+                            return !desiredWlm.equals(previousWlm);
+                        } catch (JsonProcessingException e) {
+                            /*
+                            ignore this exception for now to be consistent with existing behavior,
+                            this invalid JSON will fail modifyParameterGroup API's JSON validation.
+
+                            When I get a chance to verify the behaviors we should for sure
+                            throw invalid JSON exception as soon as we can:
+
+                            throw new CfnInvalidRequestException(e);
+                             */
+                            return true; // true meaning we'll modify wlm_json_configuration using the new one
+                        }
+                    }
+                    // don't filter out any parameters by default
+                    return true;
+                })
+                .map(parameter -> Parameter.builder()
+                        .parameterName(parameter.getParameterName())
+                        .parameterValue(desiredParamKeyValueMap.getOrDefault(parameter.getParameterName(), NEED_TO_BE_RESET))
+                        .build())
+                /*
+                needs distinct because doing the map operation above can introduce the same Parameter,
+                this happens when the same parameter value changes,
+                in which this parameter key exists in both previous and desired parameters, but w/ diff values,
+                after map() we'll have 2 parameters, whose values are all set to desired parameter's value
+                 */
                 .distinct()
                 .collect(Collectors.toList());
 
-        logger.log("The following parameters will be updated or reset:");
-        for (Parameter updatableParam : updatableParameters) {
-            logger.log(String.format("updatableParam: ParameterName: %s ParameterValue: %s",
-                    updatableParam.getParameterName(),
-                    updatableParam.getParameterValue())
-            );
-        }
-
         return desiredModel.toBuilder()
-            .parameters(updatableParameters)
-            .build();
+                .parameters(updatableParameters)
+                .build();
+    }
+
+    private String getSanitizedString(final String str) throws JsonProcessingException {
+        return OBJECT_MAPPER.readValue(str, JsonNode.class).toString();
     }
 
     private DescribeClusterParametersResponse describeClusterParameters(final DescribeClusterParametersRequest awsRequest,
