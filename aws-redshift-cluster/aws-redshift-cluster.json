@@ -304,7 +304,8 @@
         "/properties/MasterUsername"
     ],
     "writeOnlyProperties": [
-        "/properties/MasterUserPassword"
+        "/properties/MasterUserPassword",
+        "/properties/Classic"
     ],
     "tagging": {
         "taggable": true
