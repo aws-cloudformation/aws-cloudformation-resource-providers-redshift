@@ -102,6 +102,7 @@
                 "redshift:CreateClusterParameterGroup",
                 "redshift:ModifyClusterParameterGroup",
                 "redshift:DescribeClusterParameterGroups",
+                "redshift:DescribeTags",
                 "redshift:CreateTags",
                 "ec2:AllocateAddress",
                 "ec2:AssociateAddress",
@@ -118,11 +119,13 @@
         "read": {
             "permissions": [
                 "redshift:DescribeClusterParameterGroups",
-                "initech:DescribeReport"
+                "initech:DescribeReport",
+                "redshift:DescribeTags"
             ]
         },
         "update": {
             "permissions": [
+                "redshift:DescribeClusterParameterGroups",
                 "redshift:ResetClusterParameterGroup",
                 "redshift:ModifyClusterParameterGroup",
                 "redshift:DescribeTags",
@@ -133,12 +136,15 @@
         },
         "delete": {
             "permissions": [
+                "redshift:DescribeTags",
+                "redshift:DescribeClusterParameterGroups",
                 "redshift:DeleteClusterParameterGroup",
                 "initech:DeleteReport"
             ]
         },
         "list": {
             "permissions": [
+                "redshift:DescribeTags",
                 "redshift:DescribeClusterParameterGroups",
                 "initech:ListReports"
             ]
