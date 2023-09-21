@@ -1,13 +1,11 @@
 package software.amazon.redshift.cluster;
 
 import software.amazon.awssdk.services.redshift.model.Cluster;
-import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.lang.reflect.Field;
-import java.util.LinkedList;
+import java.util.Collections;
 
 public class TestUtils {
     final static String AWS_REGION = "us-east-1";
@@ -20,14 +18,15 @@ public class TestUtils {
     final static String MASTER_USERNAME = "master";
     final static String MASTER_USERPASSWORD = "Test1234";
     final static String NODETYPE = "ds2.xlarge";
-    final static int  NUMBER_OF_NODES = 2;
+    final static int NUMBER_OF_NODES = 2;
     final static String IAM_ROLE_ARN = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role";
     final static String BUCKET_NAME = "bucket-enable-logging";
     final static String S3_KEY_PREFIX = "create";
-    final static String RESOURCE_NAME_PREFIX = "arn:aws:redshift:";
     final static String OWNER_ACCOUNT_NO = "1111";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
+            .clusterStatus("available")
+            .clusterAvailabilityStatus("Available")
             .clusterIdentifier(CLUSTER_IDENTIFIER)
             .masterUsername(MASTER_USERNAME)
             .nodeType(NODETYPE)
@@ -38,9 +37,9 @@ public class TestUtils {
             .enhancedVpcRouting(false)
             .manualSnapshotRetentionPeriod(1)
             .publiclyAccessible(false)
-            .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-            .iamRoles(new LinkedList<ClusterIamRole>())
-            .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+            .clusterSecurityGroups(Collections.emptyList())
+            .iamRoles(Collections.emptyList())
+            .vpcSecurityGroups(Collections.emptyList())
             .build();
 
     final static Cluster BASIC_CLUSTER_READ = Cluster.builder()
@@ -55,9 +54,10 @@ public class TestUtils {
             .enhancedVpcRouting(false)
             .manualSnapshotRetentionPeriod(1)
             .publiclyAccessible(false)
-            .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-            .iamRoles(new LinkedList<ClusterIamRole>())
-            .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+            .clusterSecurityGroups(Collections.emptyList())
+            .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
+            .iamRoles(Collections.emptyList())
+            .vpcSecurityGroups(Collections.emptyList())
             .build();
 
     final static ResourceModel BASIC_MODEL = ResourceModel.builder()
@@ -73,10 +73,10 @@ public class TestUtils {
             .enhancedVpcRouting(false)
             .manualSnapshotRetentionPeriod(1)
             .publiclyAccessible(false)
-            .clusterSecurityGroups(new LinkedList<String>())
-            .iamRoles(new LinkedList<String>())
-            .vpcSecurityGroupIds(new LinkedList<String>())
-            .tags(new LinkedList<Tag>())
+            .clusterSecurityGroups(Collections.emptyList())
+            .iamRoles(Collections.emptyList())
+            .vpcSecurityGroupIds(Collections.emptyList())
+            .tags(Collections.emptyList())
             .build();
 
     final static ResourceHandlerRequest<ResourceModel> BASIC_RESOURCE_HANDLER_REQUEST = ResourceHandlerRequest.<ResourceModel>builder()

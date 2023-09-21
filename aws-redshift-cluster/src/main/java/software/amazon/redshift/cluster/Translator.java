@@ -1,7 +1,6 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.StringUtils;
-import com.google.common.collect.MapDifference;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
@@ -21,8 +20,6 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
