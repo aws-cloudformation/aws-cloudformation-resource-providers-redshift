@@ -2,19 +2,16 @@ package software.amazon.redshift.cluster;
 
 import java.time.Duration;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
-import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
-import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
@@ -33,7 +30,6 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -53,10 +49,13 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static software.amazon.redshift.cluster.TestUtils.AWS_ACCOUNT_ID;
+import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
+import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
+import static software.amazon.redshift.cluster.TestUtils.BASIC_RESOURCE_HANDLER_REQUEST;
 import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
-import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 import static software.amazon.redshift.cluster.TestUtils.modifyAttribute;
@@ -94,69 +93,34 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .key("foo")
                 .value("bar")
                 .build();
-
         Tag tagToRemove = Tag.builder()
                 .key("foo-remove")
                 .value("bar-remove")
                 .build();
-
-        List<Tag> prevModelTags = new LinkedList<>();
-        prevModelTags.add(tag);
-        prevModelTags.add(tagToRemove);
-
-        List<String> prevModelIamRoles = new LinkedList<>();
-        prevModelIamRoles.add(IAM_ROLE_ARN);
-        prevModelIamRoles.add("arn:aws:iam::1111:role/cfn_migration_test_IAM_role_to_remove");
-
+        final String roleToRemove = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role_to_remove";
+        List<Tag> prevModelTags = Arrays.asList(tag, tagToRemove);
+        List<String> prevModelIamRoles = Arrays.asList(IAM_ROLE_ARN, roleToRemove);
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
                 .s3KeyPrefix("test")
                 .build();
-
-        ResourceModel previousModel = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType("dc2.large")
-                .clusterType("multi-node")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
+        ResourceModel previousModel = BASIC_MODEL.toBuilder()
                 .iamRoles(prevModelIamRoles)
-                .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(prevModelTags)
                 .loggingProperties(loggingProperties)
                 .build();
 
-
-        List<Tag> newModelTags = new LinkedList<>();
-        newModelTags.add(tag);
-
-        List<String> newModelIamRoles = new LinkedList<>();
-        newModelIamRoles.add(IAM_ROLE_ARN);
-
-        ResourceModel updateModel = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType("dc2.large")
-                .clusterType("multi-node")
+        List<Tag> newModelTags = Arrays.asList(tag);
+        List<String> newModelIamRoles = Arrays.asList(IAM_ROLE_ARN);
+        ResourceModel updateModel = BASIC_MODEL.toBuilder()
                 .numberOfNodes(NUMBER_OF_NODES * 2)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(newModelIamRoles)
-                .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(newModelTags)
-                .loggingProperties(null)
                 .build();
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .awsPartition("aws-us-gov")
+                .region("us-gov-west-1")
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();
@@ -166,72 +130,27 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .iamRoleArn(IAM_ROLE_ARN)
                 .applyStatus("in-sync")
                 .build();
-
         ClusterIamRole iamRoleRemove = ClusterIamRole
                 .builder()
-                .iamRoleArn("arn:aws:iam::1111:role/cfn_migration_test_IAM_role-remove")
+                .iamRoleArn(roleToRemove)
                 .applyStatus("in-sync")
                 .build();
 
-        Cluster existingCluster = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder()
                 .iamRoles(iamRole, iamRoleRemove)
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-remove").value("bar-remove").build())
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
+                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(),
+                        software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-remove").value("bar-remove").build())
                 .build();
 
-        Cluster modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+        Cluster modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled = BASIC_CLUSTER.toBuilder()
                 .iamRoles(iamRole)
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
-        Cluster modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES*2)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+        Cluster modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes = BASIC_CLUSTER.toBuilder()
+                .numberOfNodes(NUMBER_OF_NODES * 2)
                 .iamRoles(iamRole)
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
                 .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build())
-                .clusterParameterGroups(ClusterParameterGroupStatus.builder().parameterApplyStatus("in-sync").build())
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
@@ -253,9 +172,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(existingCluster)
                         .build())
-//                .thenReturn(DescribeClustersResponse.builder()
-//                        .clusters(existingCluster)
-//                        .build())
                 .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled)
                         .build())
@@ -283,8 +199,13 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .cluster(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes)
                         .build());
 
-
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        // verify that ARN is correctly constructed
+        ArgumentCaptor<DeleteTagsRequest> deleteTagsRequestArgumentCaptor = ArgumentCaptor.forClass(DeleteTagsRequest.class);
+        verify(proxyClient.client()).deleteTags(deleteTagsRequestArgumentCaptor.capture());
+        final String govClusterArn = deleteTagsRequestArgumentCaptor.getValue().resourceName();
+        assertThat(govClusterArn.equals("arn:aws-us-gov:redshift:us-gov-west-1:" + AWS_ACCOUNT_ID + ":cluster:" + CLUSTER_IDENTIFIER));
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
@@ -309,25 +230,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testCreateTags_CreateIamRole_Logging_ModifyNodeType() {
-        List<Tag> prevTags = new LinkedList<>();
-        prevTags.add(Tag.builder().key("dummyKey").value("dummyValue").build());
-        List<String> prevModelIamRoles = new LinkedList<>();
-        prevModelIamRoles.add(IAM_ROLE_ARN);
+        List<Tag> prevTags = Arrays.asList(Tag.builder().key("dummyKey").value("dummyValue").build());
+        List<String> prevModelIamRoles = Arrays.asList(IAM_ROLE_ARN);
 
-        ResourceModel previousModel = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
+        ResourceModel previousModel = BASIC_MODEL.toBuilder()
                 .nodeType("dc2.large")
-                .clusterType("multi-node")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
                 .iamRoles(prevModelIamRoles)
-                .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(prevTags)
                 .loggingProperties(null)
                 .build();
@@ -340,38 +248,23 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .key("foo-add")
                 .value("bar-add")
                 .build();
-        List<Tag> newModelTags = new LinkedList<>();
-        newModelTags.add(tag);
-        newModelTags.add(tagToAdd);
+        List<Tag> newModelTags = Arrays.asList(tag, tagToAdd);
 
-        List<String> newModelIamRoles = new LinkedList<>();
-        newModelIamRoles.add(IAM_ROLE_ARN);
-        newModelIamRoles.add("arn:aws:iam::1111:role/cfn_migration_test_IAM_role_to_add");
+        final String roleToAdd = "arn:aws:iam::1111:role/cfn_migration_test_IAM_role_to_add";
+        List<String> newModelIamRoles = Arrays.asList(IAM_ROLE_ARN, roleToAdd);
 
         LoggingProperties loggingProperties = LoggingProperties.builder()
                 .bucketName(BUCKET_NAME)
                 .s3KeyPrefix("test/")
                 .build();
 
-        ResourceModel updateModel = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType("ds2.xlarge")
-                .clusterType("multi-node")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
+        ResourceModel updateModel = BASIC_MODEL.toBuilder()
                 .iamRoles(newModelIamRoles)
-                .vpcSecurityGroupIds(new LinkedList<String>())
                 .tags(newModelTags)
                 .loggingProperties(loggingProperties)
                 .build();
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();
@@ -383,69 +276,25 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .build();
         ClusterIamRole iamRole_add = ClusterIamRole
                 .builder()
-                .iamRoleArn("arn:aws:iam::1111:role/cfn_migration_test_IAM_role_to_add")
+                .iamRoleArn(roleToAdd)
                 .applyStatus("in-sync")
                 .build();
 
-        Cluster existingCluster = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder()
                 .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
                 .iamRoles(iamRole)
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
                 .build();
 
-
-        Cluster modifiedCluster_tagAdded_iamRoleAdded = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+        Cluster modifiedCluster_tagAdded_iamRoleAdded = BASIC_CLUSTER.toBuilder()
                 .iamRoles(iamRole, iamRole_add)
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
+                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(),
+                        software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
                 .build();
 
-        Cluster modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("ds2.xlarge")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+        Cluster modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify = BASIC_CLUSTER.toBuilder()
                 .iamRoles(iamRole, iamRole_add)
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(), software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
-                .clusterParameterGroups(ClusterParameterGroupStatus.builder().parameterApplyStatus("in-sync").build())
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
+                .tags(software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo").value("bar").build(),
+                        software.amazon.awssdk.services.redshift.model.Tag.builder().key("foo-add").value("bar-add").build())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
@@ -482,7 +331,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().deleteTags(any(DeleteTagsRequest.class)))
                 .thenReturn(DeleteTagsResponse.builder().build());
-
 
         when(proxyClient.client().modifyClusterIamRoles(any(ModifyClusterIamRolesRequest.class)))
                 .thenReturn(ModifyClusterIamRolesResponse.builder()
@@ -528,76 +376,19 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testModifyMasterUserPasswordAndPubliclyAccessible() {
-        ResourceModel previousModel = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType("dc2.large")
-                .clusterType("multi-node")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(null)
-                .vpcSecurityGroupIds(new LinkedList<String>())
-                .tags(null)
-                .build();
+        ResourceModel previousModel = BASIC_MODEL.toBuilder().build();
 
-        ResourceModel updateModel = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
+        ResourceModel updateModel = BASIC_MODEL.toBuilder()
                 .masterUserPassword("new"+MASTER_USERPASSWORD)
-                .nodeType("dc2.large")
-                .clusterType("multi-node")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(true)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(null)
-                .vpcSecurityGroupIds(new LinkedList<String>())
-                .tags(null)
                 .build();
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();
 
-        Cluster existingCluster = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
-                .build();
-
-        Cluster modifiedCluster = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
-                .build();
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder().build();
+        Cluster modifiedCluster = BASIC_CLUSTER.toBuilder().build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
@@ -703,38 +494,20 @@ public class UpdateHandlerTest extends AbstractTestBase {
         if (modifyClusterAttribute.equals("ClusterSecurityGroups")) {
             return;
         }
-        ResourceModel previousModel = ResourceModel.builder()
+        ResourceModel previousModel = BASIC_MODEL.toBuilder()
                 .availabilityZoneRelocation(BOOLEAN_BEFORE)
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
                 .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType("dc2.large")
-                .clusterType("multi-node")
-                .numberOfNodes(NUMBER_OF_NODES)
                 .allowVersionUpgrade(BOOLEAN_BEFORE)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(BOOLEAN_BEFORE)
-                .publiclyAccessible(BOOLEAN_BEFORE)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(null)
-                .vpcSecurityGroupIds(new LinkedList<String>())
-                .tags(null)
-                .build();
-
-        Cluster existingCluster = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType("dc2.large")
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(BOOLEAN_BEFORE)
-                .automatedSnapshotRetentionPeriod(0)
                 .encrypted(BOOLEAN_BEFORE)
                 .enhancedVpcRouting(BOOLEAN_BEFORE)
-                .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(BOOLEAN_BEFORE)
-                .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
+                .build();
+
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder()
+                .allowVersionUpgrade(BOOLEAN_BEFORE)
+                .encrypted(BOOLEAN_BEFORE)
+                .enhancedVpcRouting(BOOLEAN_BEFORE)
+                .publiclyAccessible(BOOLEAN_BEFORE)
                 .build();
 
         String attributeName = Character.toLowerCase(modifyClusterAttribute.charAt(0)) + modifyClusterAttribute.substring(1);
@@ -748,7 +521,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         ResourceModel updateModel = previousModel.toBuilder().build();
         modifyAttribute(updateModel, ResourceModel.class, attributeName, afterValue);
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();

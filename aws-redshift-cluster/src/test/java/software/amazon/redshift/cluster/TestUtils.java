@@ -3,7 +3,9 @@ package software.amazon.redshift.cluster;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -24,8 +26,11 @@ public class TestUtils {
     final static String S3_KEY_PREFIX = "create";
     final static String RESOURCE_NAME_PREFIX = "arn:aws:redshift:";
     final static String OWNER_ACCOUNT_NO = "1111";
+    final static String AWS_PARTITION = "aws";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
+            .clusterStatus("available")
+            .clusterAvailabilityStatus("Available")
             .clusterIdentifier(CLUSTER_IDENTIFIER)
             .masterUsername(MASTER_USERNAME)
             .nodeType(NODETYPE)
@@ -54,6 +59,7 @@ public class TestUtils {
             .manualSnapshotRetentionPeriod(1)
             .publiclyAccessible(false)
             .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
+            .clusterSnapshotCopyStatus(ClusterSnapshotCopyStatus.builder().build())
             .iamRoles(new LinkedList<ClusterIamRole>())
             .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
             .build();
@@ -75,6 +81,12 @@ public class TestUtils {
             .iamRoles(new LinkedList<String>())
             .vpcSecurityGroupIds(new LinkedList<String>())
             .tags(new LinkedList<Tag>())
+            .build();
+
+    final static ResourceHandlerRequest<ResourceModel> BASIC_RESOURCE_HANDLER_REQUEST = ResourceHandlerRequest.<ResourceModel>builder()
+            .region(AWS_REGION)
+            .awsAccountId(AWS_ACCOUNT_ID)
+            .awsPartition(AWS_PARTITION)
             .build();
 
     public static <T> void modifyAttribute(T object, Class<T> clazz, String attributeName, Object attributeValue) throws Exception {
