@@ -1,5 +1,6 @@
 package software.amazon.redshift.cluster;
 
+import com.amazonaws.arn.Arn;
 import com.amazonaws.util.CollectionUtils;;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ObjectUtils;
@@ -109,8 +110,14 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> {
                     List<List<Tag>> updateTags = updateTags(request.getPreviousResourceState().getTags(), model.getTags());
 
-                    String resourceName = RESOURCE_NAME_PREFIX + request.getRegion() + ":" + request.getAwsAccountId() +
-                            ":cluster:" + model.getClusterIdentifier();
+                    final String resourceName = Arn.builder()
+                            .withService("redshift")
+                            .withPartition(request.getAwsPartition())
+                            .withAccountId(request.getAwsAccountId())
+                            .withRegion(request.getRegion())
+                            .withResource(String.format("cluster:%s", model.getClusterIdentifier()))
+                            .build()
+                            .toString();
 
                     if (!CollectionUtils.isNullOrEmpty(updateTags) && !CollectionUtils.isNullOrEmpty(updateTags.get(DELETE_TAGS_INDEX))) {
                         progress = proxy.initiate("AWS-Redshift-Cluster::DeleteTags", proxyClient, model, callbackContext)
