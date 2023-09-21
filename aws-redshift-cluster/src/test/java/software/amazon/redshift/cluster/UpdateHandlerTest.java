@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
@@ -53,6 +54,8 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static software.amazon.redshift.cluster.TestUtils.AWS_ACCOUNT_ID;
+import static software.amazon.redshift.cluster.TestUtils.BASIC_RESOURCE_HANDLER_REQUEST;
 import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
@@ -156,7 +159,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .loggingProperties(null)
                 .build();
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .awsPartition("aws-us-gov")
+                .region("us-gov-west-1")
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();
@@ -286,6 +291,12 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
+        // verify that ARN is correctly constructed
+        ArgumentCaptor<DeleteTagsRequest> deleteTagsRequestArgumentCaptor = ArgumentCaptor.forClass(DeleteTagsRequest.class);
+        verify(proxyClient.client()).deleteTags(deleteTagsRequestArgumentCaptor.capture());
+        final String govClusterArn = deleteTagsRequestArgumentCaptor.getValue().resourceName();
+        assertThat(govClusterArn).isEqualTo("arn:aws-us-gov:redshift:us-gov-west-1:" + AWS_ACCOUNT_ID + ":cluster:" + CLUSTER_IDENTIFIER);
+
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
@@ -371,7 +382,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .loggingProperties(loggingProperties)
                 .build();
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();
@@ -562,7 +573,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .tags(null)
                 .build();
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();
@@ -748,7 +759,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         ResourceModel updateModel = previousModel.toBuilder().build();
         modifyAttribute(updateModel, ResourceModel.class, attributeName, afterValue);
 
-        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
                 .desiredResourceState(updateModel)
                 .previousResourceState(previousModel)
                 .build();
