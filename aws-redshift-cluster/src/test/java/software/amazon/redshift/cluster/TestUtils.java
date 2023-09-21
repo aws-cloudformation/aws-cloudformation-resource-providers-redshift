@@ -4,6 +4,7 @@ import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.lang.reflect.Field;
 import java.util.LinkedList;
@@ -12,6 +13,7 @@ public class TestUtils {
     final static String AWS_REGION = "us-east-1";
     final static String DESCRIPTION = "description";
     final static String SUBNET_GROUP_NAME = "name";
+    final static String AWS_PARTITION = "aws";
     final static String AWS_ACCOUNT_ID ="1111";
     final static String CLUSTER_IDENTIFIER = "redshift-cluster-1";
     final static String CLUSTER_IDENTIFIER_COMPLETE = "redshift-cluster-2";
@@ -75,6 +77,12 @@ public class TestUtils {
             .iamRoles(new LinkedList<String>())
             .vpcSecurityGroupIds(new LinkedList<String>())
             .tags(new LinkedList<Tag>())
+            .build();
+
+    final static ResourceHandlerRequest<ResourceModel> BASIC_RESOURCE_HANDLER_REQUEST = ResourceHandlerRequest.<ResourceModel>builder()
+            .region(AWS_REGION)
+            .awsAccountId(AWS_ACCOUNT_ID)
+            .awsPartition(AWS_PARTITION)
             .build();
 
     public static <T> void modifyAttribute(T object, Class<T> clazz, String attributeName, Object attributeValue) throws Exception {
