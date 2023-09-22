@@ -2,7 +2,6 @@ package software.amazon.redshift.cluster;
 
 import com.amazonaws.arn.Arn;
 import com.amazonaws.util.CollectionUtils;;
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
