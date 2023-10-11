@@ -305,7 +305,8 @@
     ],
     "writeOnlyProperties": [
         "/properties/MasterUserPassword",
-        "/properties/Classic"
+        "/properties/Classic",
+        "/properties/SnapshotIdentifier"
     ],
     "tagging": {
         "taggable": true
