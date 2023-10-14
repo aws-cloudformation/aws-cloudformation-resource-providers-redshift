@@ -373,8 +373,21 @@ public class UpdateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
 
-        logger.log(String.format("%s %s modify cluster issued.", ResourceModel.TYPE_NAME,
-                modifyRequest.clusterIdentifier()));
+        /*
+        After the modify-cluster call, it takes 1 or more seconds for the ACTIVE cluster to be changed to MODIFYING,
+        we used to call stabilizer right after the modify-cluster call, and stabilizer immediately returns that the cluster
+        is ACTIVE, because the cluster didn't get a chance to be changed to be MODIFYING, which incorrectly tells
+        CFN that the modify-cluster is done.
+
+        We wait for 10 seconds just to be on the safe side, it's longer than we need most of the time, but 10 seconds
+        is acceptable because the modify-cluster usually takes minutes for the cluster to be ACTIVE again.
+         */
+        logger.log(String.format("%s %s modify cluster issued, waiting for %s seconds for cluster status to be Modifying",
+                ResourceModel.TYPE_NAME,
+                modifyRequest.clusterIdentifier(),
+                WAIT_TIME_IN_SECS_AFTER_INITIAL_MODIFY_CLUSTER_API_CALL));
+
+        sleep(WAIT_TIME_IN_SECS_AFTER_INITIAL_MODIFY_CLUSTER_API_CALL);
 
         return awsResponse;
     }
