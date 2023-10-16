@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -30,6 +31,7 @@ import java.util.Set;
 // Placeholder for the functionality that could be shared across Create/Read/Update/Delete/List Handlers
 
 public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
+  private Logger logger;
 
   protected int CREATE_TAGS_INDEX = 0;
   protected int DELETE_TAGS_INDEX = 1;
@@ -42,6 +44,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   protected final String CLUSTER_STATUS_RESUME = "resume";
   protected final String AQUA_STATUS_APPLYING = "applying";
   protected final int CALLBACK_DELAY_SECONDS = 30;
+  protected final int WAIT_TIME_IN_SECS_AFTER_INITIAL_MODIFY_CLUSTER_API_CALL = 10;
   private static boolean IS_CLUSTER_PATCHED = false;
   private final static int MAX_RETRIES_FOR_AQUA_CHECK = 6;
   private final static int MAX_RETRIES_FOR_PATCHING_CHECK = 6;
@@ -61,6 +64,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final ResourceHandlerRequest<ResourceModel> request,
     final CallbackContext callbackContext,
     final Logger logger) {
+    this.logger = logger;
     return handleRequest(
       proxy,
       request,
@@ -324,5 +328,17 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       return CLUSTER_STATUS_PAUSED.equals(awsResponse.clusters().get(0).clusterStatus());
     }
     return false;
+  }
+
+  // with the existing dependencies,
+  // the static method takes some effort to unit test,
+  // will cover it later when upgrading the dependencies
+  protected void sleep(int seconds) {
+    try {
+      Thread.sleep(seconds * 1000);
+    } catch (InterruptedException e) {
+      throw new CfnGeneralServiceException("Please retry again in a few seconds, ", e);
+    }
+
   }
 }
