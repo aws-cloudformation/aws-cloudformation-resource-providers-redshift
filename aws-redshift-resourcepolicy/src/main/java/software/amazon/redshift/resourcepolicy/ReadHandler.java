@@ -1,6 +1,5 @@
 package software.amazon.redshift.resourcepolicy;
 
-import software.amazon.awssdk.services.cloudwatch.model.InvalidParameterValueException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
 import software.amazon.awssdk.services.redshift.model.GetResourcePolicyResponse;

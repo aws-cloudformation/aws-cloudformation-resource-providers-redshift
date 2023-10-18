@@ -3,7 +3,6 @@ package software.amazon.redshift.resourcepolicy;
 import java.time.Duration;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
-import software.amazon.awssdk.services.redshift.model.GetResourcePolicyResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;

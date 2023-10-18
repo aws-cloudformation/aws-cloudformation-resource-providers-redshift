@@ -2,7 +2,6 @@ package software.amazon.redshift.resourcepolicy;
 
 import java.time.Duration;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.DeleteEventSubscriptionRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteResourcePolicyRequest;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
