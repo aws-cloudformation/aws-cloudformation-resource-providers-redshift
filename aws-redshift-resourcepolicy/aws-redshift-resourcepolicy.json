@@ -1,0 +1,45 @@
+{
+    "typeName": "AWS::Redshift::ResourcePolicy",
+    "description": "The `AWS::Redshift::ResourcePolicy` resource creates an Amazon Redshift Resource Policy",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-resource-providers-redshift",
+    "properties": {
+        "ResourceArn": {
+            "description": "The Amazon Resource Name (ARN) of the resource that a policy is attached to.",
+            "type": "string"
+        },
+        "Policy": {
+            "description": "The content of a resource policy.",
+            "type": "string"
+        }
+    },
+    "tagging": {
+        "taggable": false
+    },
+    "additionalProperties": false,
+    "required": [
+        "ResourceArn"
+    ],
+    "primaryIdentifier": [
+        "/properties/ResourceArn"
+    ],
+    "createOnlyProperties": [
+        "/properties/ResourceArn"
+    ],
+    "handlers": {
+        "create": {
+            "permissions": [
+                "redshift:PutResourcePolicy"
+            ]
+        },
+        "read": {
+            "permissions": [
+                "redshift:GetResourcePolicy"
+            ]
+        },
+        "delete": {
+            "permissions": [
+                "redshift:DeleteResourcePolicy"
+            ]
+        }
+    }
+}
