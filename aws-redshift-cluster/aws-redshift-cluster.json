@@ -269,11 +269,15 @@
             "type": "string"
         },
         "ResourceAction": {
-            "description": "The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster APIs",
+            "description": "The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster, failover-primary-compute APIs",
             "type": "string"
         },
         "RotateEncryptionKey": {
             "description": "A boolean indicating if we want to rotate Encryption Keys.",
+            "type": "boolean"
+        },
+        "MultiAZ": {
+            "description": "A boolean indicating if the resource is a multi-az cluster or single-az cluster. If you don't provide this parameter or set the value to false, the cluster is single-az.",
             "type": "boolean"
         }
     },
@@ -352,7 +356,8 @@
                 "redshift:ModifyClusterDbRevisions",
                 "redshift:PauseCluster",
                 "redshift:ResumeCluster",
-                "redshift:RotateEncryptionKey"
+                "redshift:RotateEncryptionKey",
+                "redshift:FailoverPrimaryCompute"
             ],
             "timeoutInMinutes": 2160
         },

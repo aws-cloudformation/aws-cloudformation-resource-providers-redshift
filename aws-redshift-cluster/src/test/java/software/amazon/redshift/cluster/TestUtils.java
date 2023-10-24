@@ -23,6 +23,8 @@ public class TestUtils {
     final static String BUCKET_NAME = "bucket-enable-logging";
     final static String S3_KEY_PREFIX = "create";
     final static String OWNER_ACCOUNT_NO = "1111";
+    final static String MULTIAZ_ENABLED = "Enabled";
+    final static String MULTIAZ_DISABLED = "Disabled";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterStatus("available")
@@ -34,6 +36,25 @@ public class TestUtils {
             .allowVersionUpgrade(true)
             .automatedSnapshotRetentionPeriod(0)
             .encrypted(false)
+            .enhancedVpcRouting(false)
+            .manualSnapshotRetentionPeriod(1)
+            .publiclyAccessible(false)
+            .clusterSecurityGroups(Collections.emptyList())
+            .iamRoles(Collections.emptyList())
+            .vpcSecurityGroups(Collections.emptyList())
+            .build();
+
+    final static Cluster MULTIAZ_CLUSTER = Cluster.builder()
+            .clusterStatus("available")
+            .clusterAvailabilityStatus("Available")
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
+            .masterUsername(MASTER_USERNAME)
+            .nodeType(NODETYPE)
+            .numberOfNodes(NUMBER_OF_NODES)
+            .allowVersionUpgrade(true)
+            .automatedSnapshotRetentionPeriod(0)
+            .encrypted(true)
+            .multiAZ(MULTIAZ_ENABLED)
             .enhancedVpcRouting(false)
             .manualSnapshotRetentionPeriod(1)
             .publiclyAccessible(false)

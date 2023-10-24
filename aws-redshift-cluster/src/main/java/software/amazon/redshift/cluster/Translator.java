@@ -26,6 +26,7 @@ import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
+import software.amazon.awssdk.services.redshift.model.FailoverPrimaryComputeRequest;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
 import software.amazon.awssdk.services.redshift.model.ModifyAquaConfigurationRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
@@ -66,6 +67,7 @@ public class Translator {
   private static int REMOVE_IAM_ROLES_INDEX = 1;
   private static String CLUSTER_TYPE_SINGLE_NODE = "single-node";
   private static String CLUSTER_TYPE_MULTI_NODE = "multi-node";
+  private static String MULTIAZ_ENABLED = "Enabled";
   /**
    * Request to create a resource
    * @param model resource model
@@ -103,6 +105,7 @@ public class Translator {
             .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
             .enhancedVpcRouting(model.getEnhancedVpcRouting())
             .maintenanceTrackName(model.getMaintenanceTrackName())
+            .multiAZ(model.getMultiAZ())
             .build();
   }
 
@@ -547,6 +550,12 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final String multiAZ = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::multiAZ)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
 
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
@@ -575,6 +584,7 @@ public class Translator {
             .port(endpoint != null ? endpoint.port() : null)
             .endpoint(endpoint != null ? translateEndpointFromSdk(endpoint) : null)
             .tags(translateTagsFromSdk(tags))
+            .multiAZ(multiAZ == null ? null : multiAZ.equals(MULTIAZ_ENABLED))
             .destinationRegion(clusterSnapshotCopyStatus == null ? null : clusterSnapshotCopyStatus.destinationRegion() == null ? null : clusterSnapshotCopyStatus.destinationRegion())
             .manualSnapshotRetentionPeriod(manualSnapshotRetentionPeriod)
             .snapshotCopyRetentionPeriod(clusterSnapshotCopyStatus == null ? null :clusterSnapshotCopyStatus.retentionPeriod() == null ? null : clusterSnapshotCopyStatus.retentionPeriod().intValue())
@@ -657,6 +667,7 @@ public class Translator {
             .elasticIp(model.getElasticIp() == null || model.getElasticIp().equals(prevModel.getElasticIp()) ? null : model.getElasticIp())
             .maintenanceTrackName(model.getMaintenanceTrackName() == null || model.getMaintenanceTrackName().equals(prevModel.getMaintenanceTrackName()) ? null : model.getMaintenanceTrackName())
             .enhancedVpcRouting(model.getEnhancedVpcRouting() == null || model.getEnhancedVpcRouting().equals(prevModel.getEnhancedVpcRouting()) ? null : model.getEnhancedVpcRouting())
+            .multiAZ(model.getMultiAZ() == null || model.getMultiAZ().equals(prevModel.getMultiAZ()) ? null : model.getMultiAZ())
             .build();
 
     return modifyClusterRequest;
@@ -826,6 +837,14 @@ public class Translator {
             .kmsKeyId(model.getKmsKeyId())
             .nodeType(model.getNodeType())
             .numberOfNodes(model.getNumberOfNodes())
+            .encrypted(model.getEncrypted())
+            .multiAZ(model.getMultiAZ())
+            .build();
+  }
+
+  static FailoverPrimaryComputeRequest translateToFailoverPrimaryComputeRequest(ResourceModel model) {
+    return FailoverPrimaryComputeRequest.builder()
+            .clusterIdentifier(model.getClusterIdentifier())
             .build();
   }
 
