@@ -2,6 +2,7 @@ package software.amazon.redshift.cluster;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -110,9 +111,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(new LinkedList<String>())
-                .vpcSecurityGroupIds(new LinkedList<String>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroupIds(Collections.emptyList())
                 .tags(tags)
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
@@ -151,9 +152,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(new LinkedList<ClusterIamRole>())
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroups(Collections.emptyList())
                 .tags(clusterTags)
                 .build();
 
@@ -207,10 +208,10 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(new LinkedList<String>())
-                .vpcSecurityGroupIds(new LinkedList<String>())
-                .tags(new LinkedList<Tag>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroupIds(Collections.emptyList())
+                .tags(Collections.emptyList())
                 .loggingProperties(loggingProperties)
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
@@ -248,10 +249,10 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(new LinkedList<ClusterIamRole>())
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroups(Collections.emptyList())
+                .tags(Collections.emptyList())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
@@ -303,9 +304,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(new LinkedList<String>())
-                .vpcSecurityGroupIds(new LinkedList<String>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroupIds(Collections.emptyList())
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .encrypted(true)
@@ -338,9 +339,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(new LinkedList<ClusterIamRole>())
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroups(Collections.emptyList())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
