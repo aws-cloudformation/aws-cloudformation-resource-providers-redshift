@@ -626,7 +626,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### MultiAZ
 
-A boolean indicating if the resource is a multi-az cluster or single-az cluster. If you don't provide this parameter or set the value to false, the cluster is single-az.
+A boolean indicating if the redshift cluster is multi-az or not. If you don't provide this parameter or set the value to false, the redshift cluster will be single-az.
 
 _Required_: No
 
