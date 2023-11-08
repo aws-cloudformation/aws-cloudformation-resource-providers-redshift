@@ -53,7 +53,8 @@ public class UpdateHandler extends BaseHandlerStd {
             "Port",
             "PreferredMaintenanceWindow",
             "PubliclyAccessible",
-            "VpcSecurityGroupIds"
+            "VpcSecurityGroupIds",
+            "MultiAZ"
     };
     public static final String[] DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE = new String[] {
             "MasterUserPassword"
@@ -342,6 +343,17 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(Translator::translateToPauseClusterRequest)
                                 .makeServiceCall(this::pauseCluster)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterPaused(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+
+                .then(progress -> {
+                    if (model.getResourceAction() != null && FAILOVER_PRIMARY_COMPUTE.equals(model.getResourceAction()) && model.getMultiAZ()) {
+                        return proxy.initiate("AWS-Redshift-Cluster::FailoverPrimaryCompute", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator::translateToFailoverPrimaryComputeRequest)
+                                .makeServiceCall(this::failoverPrimaryComputeCluster)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
                     }
                     return progress;
@@ -743,6 +755,30 @@ public class UpdateHandler extends BaseHandlerStd {
                 rotateEncryptionKeyRequest.clusterIdentifier()));
 
         return rotateEncryptionKeyResponse;
+    }
+
+    private FailoverPrimaryComputeResponse failoverPrimaryComputeCluster(
+            final FailoverPrimaryComputeRequest failoverPrimaryComputeRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        FailoverPrimaryComputeResponse failoverPrimaryComputeResponse = null;
+
+        try {
+            logger.log(String.format("%s %s FailoverPrimaryCompute.", ResourceModel.TYPE_NAME,
+                    failoverPrimaryComputeRequest.clusterIdentifier()));
+            failoverPrimaryComputeResponse = proxyClient.injectCredentialsAndInvokeV2(failoverPrimaryComputeRequest, proxyClient.client()::failoverPrimaryCompute);
+        } catch (final InvalidClusterStateException | DependentServiceRequestThrottlingException |
+                       UnauthorizedOperationException | UnsupportedOperationException e ) {
+            throw new CfnInvalidRequestException(failoverPrimaryComputeRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, failoverPrimaryComputeRequest.clusterIdentifier());
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(failoverPrimaryComputeRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s %s failoverPrimaryCompute issued.", ResourceModel.TYPE_NAME,
+                failoverPrimaryComputeRequest.clusterIdentifier()));
+
+        return failoverPrimaryComputeResponse;
     }
 
     /*

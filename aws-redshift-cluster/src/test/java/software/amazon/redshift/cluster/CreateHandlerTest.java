@@ -2,6 +2,7 @@ package software.amazon.redshift.cluster;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -56,6 +57,8 @@ import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
+import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_CLUSTER;
+import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_ENABLED;
 import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 
@@ -108,9 +111,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(new LinkedList<String>())
-                .vpcSecurityGroupIds(new LinkedList<String>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroupIds(Collections.emptyList())
                 .tags(tags)
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
@@ -149,9 +152,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(new LinkedList<ClusterIamRole>())
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroups(Collections.emptyList())
                 .tags(clusterTags)
                 .build();
 
@@ -205,10 +208,10 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .automatedSnapshotRetentionPeriod(0)
                 .encrypted(false)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<String>())
-                .iamRoles(new LinkedList<String>())
-                .vpcSecurityGroupIds(new LinkedList<String>())
-                .tags(new LinkedList<Tag>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroupIds(Collections.emptyList())
+                .tags(Collections.emptyList())
                 .loggingProperties(loggingProperties)
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
@@ -246,10 +249,10 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .enhancedVpcRouting(false)
                 .manualSnapshotRetentionPeriod(1)
                 .publiclyAccessible(false)
-                .clusterSecurityGroups(new LinkedList<ClusterSecurityGroupMembership>())
-                .iamRoles(new LinkedList<ClusterIamRole>())
-                .vpcSecurityGroups(new LinkedList<VpcSecurityGroupMembership>())
-                .tags(new LinkedList<software.amazon.awssdk.services.redshift.model.Tag>())
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroups(Collections.emptyList())
+                .tags(Collections.emptyList())
                 .build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
@@ -284,6 +287,94 @@ public class CreateHandlerTest extends AbstractTestBase {
                 isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
         verify(proxyClient.client(), times(4))
+                .describeClusters(any(DescribeClustersRequest.class));
+
+    }
+
+    @Test
+    public void testCreateCluster_MultiAZ() {
+        ResourceModel model = ResourceModel.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .masterUserPassword(MASTER_USERPASSWORD)
+                .nodeType(NODETYPE)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterType("multi-node")
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(false)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroupIds(Collections.emptyList())
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .encrypted(true)
+                .multiAZ(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().createCluster(any(CreateClusterRequest.class)))
+                .thenReturn(CreateClusterResponse.builder()
+                        .cluster(MULTIAZ_CLUSTER)
+                        .build());
+
+        Cluster multiAZCluster = Cluster.builder()
+                .clusterIdentifier(CLUSTER_IDENTIFIER)
+                .masterUsername(MASTER_USERNAME)
+                .nodeType(NODETYPE)
+                .numberOfNodes(NUMBER_OF_NODES)
+                .clusterStatus("available")
+                .clusterAvailabilityStatus("Available")
+                .allowVersionUpgrade(true)
+                .automatedSnapshotRetentionPeriod(0)
+                .encrypted(true)
+                .multiAZ(MULTIAZ_ENABLED)
+                .enhancedVpcRouting(false)
+                .manualSnapshotRetentionPeriod(1)
+                .publiclyAccessible(false)
+                .clusterSecurityGroups(Collections.emptyList())
+                .iamRoles(Collections.emptyList())
+                .vpcSecurityGroups(Collections.emptyList())
+                .build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(multiAZCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getClusterIdentifier()).
+                isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
+        assertThat(response.getResourceModel().getMultiAZ()).
+                isEqualTo(request.getDesiredResourceState().getMultiAZ());
+
+        verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
+        verify(proxyClient.client(), times(3))
                 .describeClusters(any(DescribeClustersRequest.class));
 
     }

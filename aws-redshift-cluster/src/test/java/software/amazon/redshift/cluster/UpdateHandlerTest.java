@@ -60,6 +60,7 @@ import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
 import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
 import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
 import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
+import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 import static software.amazon.redshift.cluster.TestUtils.modifyAttribute;
 
@@ -461,6 +462,89 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 "PreferredMaintenanceWindow",
                 "PubliclyAccessible",
                 "VpcSecurityGroupIds"
+        );
+
+        for (int i = 0; i < insensitiveFileds.size(); i++) {
+            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i].equals(
+                    insensitiveFileds.get(i)
+            ));
+        }
+    }
+
+    @Test
+    public void testModifyEncrypted_EnableMultiAZ() {
+        ResourceModel previousModel = BASIC_MODEL.toBuilder().build();
+
+        ResourceModel updateModel = BASIC_MODEL.toBuilder()
+                .encrypted(true)
+                .multiAZ(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .build();
+
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder().build();
+        Cluster modifiedCluster = MULTIAZ_CLUSTER.toBuilder().build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
+
+        // todo: make tests more independent so we can add tests like this elsewhere
+        verify(handler).sleep(10);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length == 1);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length == 18);
+
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("Encrypted"));
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("MultiAZ"));
+
+        List<String> insensitiveFileds = Arrays.asList(
+                "AllowVersionUpgrade",
+                "AutomatedSnapshotRetentionPeriod",
+                "AvailabilityZone",
+                "AvailabilityZoneRelocation",
+                "ClusterSecurityGroups",
+                "ClusterVersion",
+                "ElasticIp",
+                "Encrypted",
+                "EnhancedVpcRouting",
+                "HsmClientCertificateIdentifier",
+                "HsmConfigurationIdentifier",
+                "KmsKeyId",
+                "MaintenanceTrackName",
+                "ManualSnapshotRetentionPeriod",
+                "Port",
+                "PreferredMaintenanceWindow",
+                "PubliclyAccessible",
+                "VpcSecurityGroupIds",
+                "MultiAZ"
         );
 
         for (int i = 0; i < insensitiveFileds.size(); i++) {
