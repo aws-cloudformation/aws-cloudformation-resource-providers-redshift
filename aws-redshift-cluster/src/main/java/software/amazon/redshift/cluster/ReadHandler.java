@@ -4,15 +4,7 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.ClusterNotFoundException;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
-import software.amazon.awssdk.services.redshift.model.InvalidClusterStateException;
-import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
-import software.amazon.awssdk.services.redshift.model.InvalidTagException;
-import software.amazon.awssdk.services.redshift.model.RedshiftException;
+import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -23,6 +15,8 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
+import java.lang.UnsupportedOperationException;
 
 public class ReadHandler extends BaseHandlerStd {
     private Logger logger;
@@ -65,14 +59,27 @@ public class ReadHandler extends BaseHandlerStd {
                             });
                     return progress;
                 })
-
                 .then(progress -> {
-                     progress = proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
+                    progress = proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
                             .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
                             .makeServiceCall(this::describeCluster)
-                            .done(this::constructResourceModelFromResponse);
-                     progress.getResourceModel().setLoggingProperties(callbackContext.getLoggingProperties());
-                     return  progress;
+                            .done((_request, _response, _client, _model, _context) -> {
+                                _model.setClusterNamespaceArn(Translator.translateFromReadResponse(_response).getClusterNamespaceArn());
+                                return ProgressEvent.progress(Translator.translateFromReadResponse(_response), callbackContext);
+                            });
+                    return  progress;
+                })
+                .then(progress -> {
+                    progress = proxy.initiate("AWS-Redshift-Cluster::GetResourcePolicy", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToGetResourcePolicy)
+                            .makeServiceCall(this::getNamespaceResourcePolicy)
+                            .done((_request, _response, _client, _model, _context) -> {
+                                _model.setNamespaceResourcePolicy(Translator.translateFromGetResourcePolicy(_response, logger).getNamespaceResourcePolicy());
+                                return ProgressEvent.progress(_model, callbackContext);
+                            });
+                    progress.getResourceModel().setLoggingProperties(callbackContext.getLoggingProperties());
+                    progress.getResourceModel().setNamespaceResourcePolicy(model.getNamespaceResourcePolicy());
+                    return ProgressEvent.defaultSuccessHandler(model);
                 });
     }
 
@@ -127,6 +134,37 @@ public class ReadHandler extends BaseHandlerStd {
 
         logger.log(String.format("%s %s Logging Status read.", ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier()));
         return awsResponse;
+    }
+
+    /**
+     * Gets resource policy for Cluster
+     * @param awsRequest the aws service request to describe a resource
+     * @param proxyClient the aws service client to make the call
+     * @return getResponse resource response
+     */
+    private GetResourcePolicyResponse getNamespaceResourcePolicy(
+            final GetResourcePolicyRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        GetResourcePolicyResponse getResponse = null;
+
+        try {
+            logger.log(awsRequest.resourceArn());
+            getResponse = proxyClient.injectCredentialsAndInvokeV2(
+                    awsRequest, proxyClient.client()::getResourcePolicy);
+        } catch (ResourceNotFoundException e){
+            logger.log(String.format("NamespaceResourcePolicy not found for namespace %s", awsRequest.resourceArn()));
+            ResourcePolicy resourcePolicy = ResourcePolicy.builder()
+                    .resourceArn(awsRequest.resourceArn())
+                    .policy("")
+                    .build();
+            return GetResourcePolicyResponse.builder().resourcePolicy(resourcePolicy).build();
+        } catch (InvalidPolicyException | UnsupportedOperationException e) {
+            throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
+        } catch (SdkClientException | RedshiftException e) {
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+        logger.log(String.format("%s  resource policy has successfully been read.", ResourceModel.TYPE_NAME));
+        return getResponse;
     }
 
     /**

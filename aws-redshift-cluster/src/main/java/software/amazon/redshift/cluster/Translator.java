@@ -1,56 +1,23 @@
 package software.amazon.redshift.cluster;
 
 import com.amazonaws.util.StringUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
-import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
-import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupStatus;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
-import software.amazon.awssdk.services.redshift.model.ClusterSnapshotCopyStatus;
-import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
-import software.amazon.awssdk.services.redshift.model.CreateSnapshotCopyGrantRequest;
-import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DeferredMaintenanceWindow;
-import software.amazon.awssdk.services.redshift.model.DeleteClusterRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteSnapshotCopyGrantRequest;
-import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeSnapshotCopyGrantsRequest;
-import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.DisableSnapshotCopyRequest;
-import software.amazon.awssdk.services.redshift.model.ElasticIpStatus;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
+import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
-import software.amazon.awssdk.services.redshift.model.FailoverPrimaryComputeRequest;
-import software.amazon.awssdk.services.redshift.model.HsmStatus;
-import software.amazon.awssdk.services.redshift.model.ModifyAquaConfigurationRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
-import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
-import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RebootClusterRequest;
-import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
-import software.amazon.awssdk.services.redshift.model.ResumeClusterRequest;
-import software.amazon.awssdk.services.redshift.model.RotateEncryptionKeyRequest;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
+import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProxyClient;
 
+import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -368,111 +335,117 @@ public class Translator {
    */
   static ResourceModel translateFromReadResponse(final DescribeClustersResponse awsResponse) {
     final String clusterIdentifier = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterIdentifier)
+            .map(Cluster::clusterIdentifier)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String clusterNamespaceArn = streamOfOrEmpty(awsResponse.clusters())
+            .map(Cluster::clusterNamespaceArn)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String masterUsername = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::masterUsername)
+            .map(Cluster::masterUsername)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String nodeType = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::nodeType)
+            .map(Cluster::nodeType)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final Integer numberOfNodes = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::numberOfNodes)
+            .map(Cluster::numberOfNodes)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final Boolean allowVersionUpgrade = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::allowVersionUpgrade)
+            .map(Cluster::allowVersionUpgrade)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final Integer automatedSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::automatedSnapshotRetentionPeriod)
+            .map(Cluster::automatedSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final Integer manualSnapshotRetentionPeriod = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::manualSnapshotRetentionPeriod)
+            .map(Cluster::manualSnapshotRetentionPeriod)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
 
     final String availabilityZone = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZone)
+            .map(Cluster::availabilityZone)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String clusterVersion = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterVersion)
+            .map(Cluster::clusterVersion)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String dbName = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::dbName)
+            .map(Cluster::dbName)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final Boolean encrypted = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::encrypted)
+            .map(Cluster::encrypted)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
 
     final String kmsKeyId = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::kmsKeyId)
+            .map(Cluster::kmsKeyId)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String preferredMaintenanceWindow = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::preferredMaintenanceWindow)
+            .map(Cluster::preferredMaintenanceWindow)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final Boolean publiclyAccessible = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::publiclyAccessible)
+            .map(Cluster::publiclyAccessible)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final List<ClusterSecurityGroupMembership> clusterSecurityGroups = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSecurityGroups)
+            .map(Cluster::clusterSecurityGroups)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final List<ClusterIamRole> iamRoles = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::iamRoles)
+            .map(Cluster::iamRoles)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final List<VpcSecurityGroupMembership> vpcSecurityGroupIds = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::vpcSecurityGroups)
+            .map(Cluster::vpcSecurityGroups)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final List<ClusterParameterGroupStatus> clusterParameterGroups = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterParameterGroups)
+            .map(Cluster::clusterParameterGroups)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
@@ -483,49 +456,49 @@ public class Translator {
             .collect(Collectors.toList());
 
     final String clusterSubnetGroupName = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSubnetGroupName)
+            .map(Cluster::clusterSubnetGroupName)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final ElasticIpStatus elasticIp = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::elasticIpStatus)
+            .map(Cluster::elasticIpStatus)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final HsmStatus hsmStatus = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::hsmStatus)
+            .map(Cluster::hsmStatus)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final Endpoint endpoint = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::endpoint)
+            .map(Cluster::endpoint)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final List<software.amazon.awssdk.services.redshift.model.Tag> tags = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::tags)
+            .map(Cluster::tags)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final ClusterSnapshotCopyStatus clusterSnapshotCopyStatus = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::clusterSnapshotCopyStatus)
+            .map(Cluster::clusterSnapshotCopyStatus)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String availabilityZoneRelocationStatus = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::availabilityZoneRelocationStatus)
+            .map(Cluster::availabilityZoneRelocationStatus)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final AquaConfiguration aquaConfiguration = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::aquaConfiguration)
+            .map(Cluster::aquaConfiguration)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
@@ -533,25 +506,25 @@ public class Translator {
     final String clusterType = numberOfNodes == null || numberOfNodes < 2 ? CLUSTER_TYPE_SINGLE_NODE : CLUSTER_TYPE_MULTI_NODE;
 
     final Boolean enhanceVpcRouting = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::enhancedVpcRouting)
+            .map(Cluster::enhancedVpcRouting)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String maintenanceTrackName = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::maintenanceTrackName)
+            .map(Cluster::maintenanceTrackName)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final List<DeferredMaintenanceWindow> deferMaintenanceWindows = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::deferredMaintenanceWindows)
+            .map(Cluster::deferredMaintenanceWindows)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
 
     final String multiAZ = streamOfOrEmpty(awsResponse.clusters())
-            .map(software.amazon.awssdk.services.redshift.model.Cluster::multiAZ)
+            .map(Cluster::multiAZ)
             .filter(Objects::nonNull)
             .findAny()
             .orElse(null);
@@ -559,6 +532,7 @@ public class Translator {
 
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
+            .clusterNamespaceArn(clusterNamespaceArn)
             .masterUsername(masterUsername)
             .nodeType(nodeType)
             .clusterType(clusterType)
@@ -871,4 +845,72 @@ public class Translator {
             .nodeType(desiredNodeType).build();
   }
 
+  /**
+   * Request to put a policy on resource
+   * @param model resource model
+   * @return putResourcePolicyRequest the service request to put a policy on resource
+   */
+  static PutResourcePolicyRequest translateToPutResourcePolicy(final ResourceModel model, Logger logger) {
+    return PutResourcePolicyRequest.builder()
+            .resourceArn(model.getClusterNamespaceArn())
+            .policy(convertJsonToString(model.getNamespaceResourcePolicy(), logger))
+            .build();
+  }
+
+  static GetResourcePolicyRequest translateToGetResourcePolicy(final ResourceModel model) {
+    return GetResourcePolicyRequest.builder()
+            .resourceArn(model.getClusterNamespaceArn())
+            .build();
+  }
+
+  static ResourceModel translateFromGetResourcePolicy(final GetResourcePolicyResponse awsResponse, Logger logger) {
+    return ResourceModel.builder()
+            .clusterNamespaceArn(awsResponse.resourcePolicy().resourceArn())
+            .namespaceResourcePolicy(convertStringToJson(awsResponse.resourcePolicy().policy(), logger))
+            .build();
+  }
+
+  static DeleteResourcePolicyRequest translateToDeleteResourcePolicyRequest(final ResourceModel model) {
+    return DeleteResourcePolicyRequest.builder()
+            .resourceArn(model.getClusterNamespaceArn())
+            .build();
+  }
+
+  /**
+   * Json to String converter
+   * @param policy Policy Document Map
+   * @param logger Logger to log Json processing error
+   * @return Json converted String
+   */
+  static String convertJsonToString(Map<String, Object> policy, Logger logger) {
+    ObjectMapper mapper = new ObjectMapper();
+    String json = "";
+    try {
+      json = mapper.writeValueAsString(policy);
+    } catch (JsonProcessingException e) {
+      logger.log("Error parsing Policy Json to String");
+    }
+    return json;
+  }
+
+  /**
+   *
+   * @param policy Policy Document String
+   * @param logger Logger to log Json processing error
+   * @return Json object Map
+   */
+  static Map<String, Object> convertStringToJson(String policy, Logger logger) {
+    ObjectMapper mapper = new ObjectMapper();
+    Map<String, Object> json = null;
+    TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+    };
+    try {
+      if (policy != null) {
+        json = mapper.readValue(URLDecoder.decode(policy, StandardCharsets.UTF_8.toString()), typeRef);
+      }
+    } catch (IOException e) {
+      logger.log("Error parsing Policy String to Json");
+    }
+    return json;
+  }
 }

@@ -60,6 +60,10 @@
             "type": "string",
             "maxLength": 63
         },
+        "ClusterNamespaceArn": {
+            "description": "The Amazon Resource Name (ARN) of the cluster namespace.",
+            "type": "string"
+        },
         "MasterUsername": {
             "description": "The user name associated with the master user account for the cluster that is being created. The user name can't be PUBLIC and first character must be a letter.",
             "type": "string",
@@ -279,6 +283,10 @@
         "MultiAZ": {
             "description": "A boolean indicating if the redshift cluster is multi-az or not. If you don't provide this parameter or set the value to false, the redshift cluster will be single-az.",
             "type": "boolean"
+        },
+        "NamespaceResourcePolicy": {
+            "description": "The namespace resource policy document that will be attached to a Redshift cluster.",
+            "type": "object"
         }
     },
     "additionalProperties": false,
@@ -296,7 +304,8 @@
         "/properties/Id",
         "/properties/DeferMaintenanceIdentifier",
         "/properties/Endpoint/Port",
-        "/properties/Endpoint/Address"
+        "/properties/Endpoint/Address",
+        "/properties/ClusterNamespaceArn"
     ],
     "createOnlyProperties": [
         "/properties/ClusterIdentifier",
@@ -322,7 +331,9 @@
                 "redshift:CreateCluster",
                 "redshift:RestoreFromClusterSnapshot",
                 "redshift:EnableLogging",
-                "redshift:DescribeTags"
+                "redshift:DescribeTags",
+                "redshift:GetResourcePolicy",
+                "redshift:PutResourcePolicy"
             ],
             "timeoutInMinutes": 2160
         },
@@ -332,7 +343,8 @@
                 "redshift:DescribeLoggingStatus",
                 "redshift:DescribeSnapshotCopyGrant",
                 "redshift:DescribeClusterDbRevisions",
-                "redshift:DescribeTags"
+                "redshift:DescribeTags",
+                "redshift:GetResourcePolicy"
             ]
         },
         "update": {
@@ -357,7 +369,9 @@
                 "redshift:PauseCluster",
                 "redshift:ResumeCluster",
                 "redshift:RotateEncryptionKey",
-                "redshift:FailoverPrimaryCompute"
+                "redshift:FailoverPrimaryCompute",
+                "redshift:PutResourcePolicy",
+                "redshift:DeleteResourcePolicy"
             ],
             "timeoutInMinutes": 2160
         },

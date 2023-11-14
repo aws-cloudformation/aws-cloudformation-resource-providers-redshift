@@ -6,29 +6,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.Cluster;
-import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
-import software.amazon.awssdk.services.redshift.model.ClusterSecurityGroupMembership;
-import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
-import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
-import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupRequest;
-import software.amazon.awssdk.services.redshift.model.CreateClusterSubnetGroupResponse;
-import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
-import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClusterSubnetGroupsResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
-import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
-import software.amazon.awssdk.services.redshift.model.TaggedResource;
-import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -49,18 +28,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static software.amazon.redshift.cluster.TestUtils.AWS_REGION;
-import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
-import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER_READ;
-import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
-import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
-import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
-import static software.amazon.redshift.cluster.TestUtils.MASTER_USERNAME;
-import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
 import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_ENABLED;
-import static software.amazon.redshift.cluster.TestUtils.NODETYPE;
-import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -100,24 +69,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         List<Tag> tags = new LinkedList<>();
         tags.add(tag);
 
-        ResourceModel model = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType(NODETYPE)
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterType("multi-node")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(Collections.emptyList())
-                .iamRoles(Collections.emptyList())
-                .vpcSecurityGroupIds(Collections.emptyList())
-                .tags(tags)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .build();
+        ResourceModel model = createClusterRequestModel();
+        model.setTags(tags);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -126,10 +79,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .clientRequestToken("token")
                 .build();
 
-        when(proxyClient.client().createCluster(any(CreateClusterRequest.class)))
-                .thenReturn(CreateClusterResponse.builder()
-                        .cluster(BASIC_CLUSTER)
-                        .build());
+        when(proxyClient.client().createCluster(any(CreateClusterRequest.class))).thenReturn(createClusterResponseSdk());
 
         software.amazon.awssdk.services.redshift.model.Tag clusterTag = software.amazon.awssdk.services.redshift.model.Tag.builder()
                 .key("foo")
@@ -139,24 +89,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         List<software.amazon.awssdk.services.redshift.model.Tag> clusterTags = new LinkedList<>();
         clusterTags.add(clusterTag);
 
-        Cluster clusterWithTags = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType(NODETYPE)
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(Collections.emptyList())
-                .iamRoles(Collections.emptyList())
-                .vpcSecurityGroups(Collections.emptyList())
-                .tags(clusterTags)
-                .build();
+        Cluster clusterWithTags = responseCluster();
+        clusterWithTags.toBuilder().tags(clusterTags).build();
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenReturn(DescribeClustersResponse.builder()
@@ -165,6 +99,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -182,6 +117,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getClusterNamespaceArn()).isNotNull();
         assertThat(response.getResourceModel().getClusterIdentifier()).
                 isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
 
@@ -193,29 +129,8 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testCreateClusterAndEnableLogging() {
-        LoggingProperties loggingProperties = LoggingProperties.builder()
-                .bucketName(BUCKET_NAME)
-                .s3KeyPrefix("test")
-                .build();
-        ResourceModel model = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType(NODETYPE)
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterType("multi-node")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(Collections.emptyList())
-                .iamRoles(Collections.emptyList())
-                .vpcSecurityGroupIds(Collections.emptyList())
-                .tags(Collections.emptyList())
-                .loggingProperties(loggingProperties)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .build();
+        ResourceModel model = createClusterRequestModel();
+        model.setLoggingProperties(LOGGING_PROPERTIES);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -224,10 +139,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .clientRequestToken("token")
                 .build();
 
-        when(proxyClient.client().createCluster(any(CreateClusterRequest.class)))
-                .thenReturn(CreateClusterResponse.builder()
-                        .cluster(BASIC_CLUSTER)
-                        .build());
+        when(proxyClient.client().createCluster(any(CreateClusterRequest.class))).thenReturn(createClusterResponseSdk());
 
         when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
                 .thenReturn(EnableLoggingResponse.builder()
@@ -236,29 +148,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .lastSuccessfulDeliveryTime(Instant.now())
                         .build());
 
-        Cluster clusterWithLogging = Cluster.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .nodeType(NODETYPE)
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterStatus("available")
-                .clusterAvailabilityStatus("Available")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(Collections.emptyList())
-                .iamRoles(Collections.emptyList())
-                .vpcSecurityGroups(Collections.emptyList())
-                .tags(Collections.emptyList())
-                .build();
-
-        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(clusterWithLogging)
-                        .build());
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseSdk());
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
                 .thenReturn(DescribeLoggingStatusResponse.builder()
@@ -266,10 +156,9 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .loggingEnabled(true)
                         .lastSuccessfulDeliveryTime(Instant.now())
                         .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
-
-        response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
@@ -283,6 +172,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModels()).isNull();
         assertThat(response.getMessage()).isNull();
         assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getClusterNamespaceArn()).
+                isEqualTo(request.getDesiredResourceState().getClusterNamespaceArn());
         assertThat(response.getResourceModel().getClusterIdentifier()).
                 isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
@@ -293,28 +184,11 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Test
     public void testCreateCluster_MultiAZ() {
-        ResourceModel model = ResourceModel.builder()
-                .clusterIdentifier(CLUSTER_IDENTIFIER)
-                .masterUsername(MASTER_USERNAME)
-                .masterUserPassword(MASTER_USERPASSWORD)
-                .nodeType(NODETYPE)
-                .numberOfNodes(NUMBER_OF_NODES)
-                .clusterType("multi-node")
-                .allowVersionUpgrade(true)
-                .automatedSnapshotRetentionPeriod(0)
-                .encrypted(false)
-                .publiclyAccessible(false)
-                .clusterSecurityGroups(Collections.emptyList())
-                .iamRoles(Collections.emptyList())
-                .vpcSecurityGroupIds(Collections.emptyList())
-                .enhancedVpcRouting(false)
-                .manualSnapshotRetentionPeriod(1)
-                .encrypted(true)
-                .multiAZ(true)
-                .build();
+        ResourceModel requestModel = createClusterRequestModel();
+        requestModel.setMultiAZ(true);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
-                .desiredResourceState(model)
+                .desiredResourceState(requestModel)
                 .region(AWS_REGION)
                 .logicalResourceIdentifier("logicalId")
                 .clientRequestToken("token")
@@ -351,6 +225,7 @@ public class CreateHandlerTest extends AbstractTestBase {
 
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -373,6 +248,49 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModel().getMultiAZ()).
                 isEqualTo(request.getDesiredResourceState().getMultiAZ());
 
+        verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
+        verify(proxyClient.client(), times(3))
+                .describeClusters(any(DescribeClustersRequest.class));
+    }
+    @Test
+    public void testPutNamespaceResourcePolicy() {
+        ResourceModel requestModel = createClusterRequestModel();
+        requestModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY, logger));
+
+        ResourceModel responseModel = createClusterResponseModel();
+        responseModel.setLoggingProperties(LOGGING_PROPERTIES_DISABLED);
+        responseModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY, logger));
+        responseModel.setMasterUserPassword(MASTER_USERPASSWORD);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(requestModel)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().createCluster(any(CreateClusterRequest.class))).thenReturn(createClusterResponseSdk());
+        when(proxyClient.client().putResourcePolicy(any(PutResourcePolicyRequest.class))).thenReturn(putResourcePolicyResponseSdk());
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseSdk());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getResourcePolicyResponseSdk());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel()).isEqualTo(responseModel);
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
         verify(proxyClient.client(), times(3))
                 .describeClusters(any(DescribeClustersRequest.class));

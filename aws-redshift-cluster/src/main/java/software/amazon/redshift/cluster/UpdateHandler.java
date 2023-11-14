@@ -5,6 +5,7 @@ import com.amazonaws.util.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.cloudwatch.model.InvalidParameterValueException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
@@ -166,7 +167,35 @@ public class UpdateHandler extends BaseHandlerStd {
                     }
                     return progress;
                 })
-
+                .then(progress -> {
+                    progress = proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
+                            .makeServiceCall(this::describeCluster)
+                            .done((_request, _response, _client, _model, _context) -> {
+                                _model.setClusterNamespaceArn(Translator.translateFromReadResponse(_response).getClusterNamespaceArn());
+                                return ProgressEvent.progress(Translator.translateFromReadResponse(_response), callbackContext);
+                            });
+                    return  progress;
+                })
+                .then(progress -> {
+                    if (model.getClusterNamespaceArn() != null && model.getNamespaceResourcePolicy() != null)  {
+                        if (model.getNamespaceResourcePolicy().isEmpty()) {
+                            if (request.getPreviousResourceState().getNamespaceResourcePolicy() != null) {
+                                return proxy.initiate("AWS-Redshift-Cluster::DeleteNamespaceResourcePolicy", proxyClient, model, callbackContext)
+                                        .translateToServiceRequest(Translator::translateToDeleteResourcePolicyRequest)
+                                        .makeServiceCall(this::deleteNamespaceResourcePolicy)
+                                        .progress();
+                            }
+                        }
+                        else {
+                            return proxy.initiate("AWS-Redshift-Cluster::PutNamespaceResourcePolicy", proxyClient, model, callbackContext)
+                                    .translateToServiceRequest(resourceModel -> Translator.translateToPutResourcePolicy(resourceModel, logger))
+                                    .makeServiceCall(this::putNamespaceResourcePolicy)
+                                    .progress();
+                        }
+                    }
+                    return progress;
+                })
                 .then(progress -> {
                     if ((ObjectUtils.allNotNull(model.getSnapshotCopyRetentionPeriod()) && issueModifySnapshotCopyRetentionPeriod(request.getPreviousResourceState(), model)) &&
                             isCrossRegionCopyEnabled(proxyClient, model)) {
@@ -362,6 +391,25 @@ public class UpdateHandler extends BaseHandlerStd {
 
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
         }
+    private DescribeClustersResponse describeCluster (
+            final DescribeClustersRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeClustersResponse awsResponse = null;
+        try {
+            logger.log(String.format("%s %s describeClusters.", ResourceModel.TYPE_NAME,
+                    awsRequest.clusterIdentifier()));
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
+        } catch (final InvalidTagException e) {
+            throw new CfnInvalidRequestException(e);
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(e);
+        }
+        logger.log(awsResponse.toString());
+        logger.log(String.format("%s %s has successfully been read.", ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier()));
+        return awsResponse;
+    }
 
     private ModifyClusterResponse updateCluster(
             final ModifyClusterRequest modifyRequest,
@@ -755,6 +803,42 @@ public class UpdateHandler extends BaseHandlerStd {
                 rotateEncryptionKeyRequest.clusterIdentifier()));
 
         return rotateEncryptionKeyResponse;
+    }
+
+    private PutResourcePolicyResponse putNamespaceResourcePolicy(
+            final PutResourcePolicyRequest putRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        PutResourcePolicyResponse putResponse = null;
+
+        try {
+            putResponse = proxyClient.injectCredentialsAndInvokeV2(putRequest, proxyClient.client()::putResourcePolicy);
+        } catch (ResourceNotFoundException e){
+            throw new CfnNotFoundException(e);
+        } catch (InvalidPolicyException | UnsupportedOperationException | InvalidParameterValueException e) {
+            throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
+        } catch (SdkClientException | RedshiftException  e) {
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s successfully put resource policy.", ResourceModel.TYPE_NAME));
+        return putResponse;
+    }
+
+    private DeleteResourcePolicyResponse deleteNamespaceResourcePolicy(final DeleteResourcePolicyRequest deleteRequest,
+                                                                       final ProxyClient<RedshiftClient> proxyClient) {
+        DeleteResourcePolicyResponse deleteResponse = null;
+        try{
+            deleteResponse = proxyClient.injectCredentialsAndInvokeV2(deleteRequest, proxyClient.client()::deleteResourcePolicy);
+        } catch (ResourceNotFoundException e){
+            throw new CfnNotFoundException(e);
+        } catch ( UnsupportedOperationException e) {
+            throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
+        } catch (SdkClientException | RedshiftException  e) {
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+        }
+
+        logger.log(String.format("%s successfully deleted resource policy.", ResourceModel.TYPE_NAME));
+        return deleteResponse;
     }
 
     private FailoverPrimaryComputeResponse failoverPrimaryComputeCluster(
