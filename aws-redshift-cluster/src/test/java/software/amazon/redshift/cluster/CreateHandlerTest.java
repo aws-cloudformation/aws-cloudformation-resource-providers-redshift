@@ -7,7 +7,17 @@ import java.util.LinkedList;
 import java.util.List;
 
 import software.amazon.awssdk.services.redshift.RedshiftClient;
-import software.amazon.awssdk.services.redshift.model.*;
+import software.amazon.awssdk.services.redshift.model.Cluster;
+import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
+import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusResponse;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
+import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
+import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
+import software.amazon.awssdk.services.redshift.model.PutResourcePolicyRequest;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;

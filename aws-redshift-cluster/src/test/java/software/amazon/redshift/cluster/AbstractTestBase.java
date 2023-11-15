@@ -1,10 +1,7 @@
 package software.amazon.redshift.cluster;
 
 import java.lang.UnsupportedOperationException;
-import java.time.Instant;
 import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.awscore.AwsRequest;
