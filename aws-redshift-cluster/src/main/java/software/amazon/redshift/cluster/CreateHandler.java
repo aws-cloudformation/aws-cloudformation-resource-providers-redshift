@@ -1,9 +1,9 @@
 package software.amazon.redshift.cluster;
 
-import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.services.cloudwatch.model.InvalidParameterValueException;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AccessToSnapshotDeniedException;
 import software.amazon.awssdk.services.redshift.model.BucketNotFoundException;
@@ -16,8 +16,6 @@ import software.amazon.awssdk.services.redshift.model.ClusterSnapshotNotFoundExc
 import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFoundException;
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
-import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
-import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
@@ -32,6 +30,7 @@ import software.amazon.awssdk.services.redshift.model.InvalidClusterStateExcepti
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterTrackException;
 import software.amazon.awssdk.services.redshift.model.InvalidElasticIpException;
+import software.amazon.awssdk.services.redshift.model.InvalidPolicyException;
 import software.amazon.awssdk.services.redshift.model.InvalidRestoreException;
 import software.amazon.awssdk.services.redshift.model.InvalidRetentionPeriodException;
 import software.amazon.awssdk.services.redshift.model.InvalidS3BucketNameException;
@@ -42,6 +41,8 @@ import software.amazon.awssdk.services.redshift.model.InvalidVpcNetworkStateExce
 import software.amazon.awssdk.services.redshift.model.LimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
+import software.amazon.awssdk.services.redshift.model.PutResourcePolicyRequest;
+import software.amazon.awssdk.services.redshift.model.PutResourcePolicyResponse;
 import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
@@ -49,14 +50,13 @@ import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshot
 import software.amazon.awssdk.services.redshift.model.SnapshotScheduleNotFoundException;
 import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
+import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnServiceLimitExceededException;
+import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
-import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
@@ -125,8 +125,10 @@ public class CreateHandler extends BaseHandlerStd {
                                         logger.log(String.format("Cluster Create done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, resourceModel.getClusterIdentifier()));
                                         callbackContext.setCallbackAfterClusterCreate(true);
                                         logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Cluster Create.");
+                                        _model.setClusterNamespaceArn(_response.cluster().clusterNamespaceArn());
                                         return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
                                     }
+                                    resourceModel.setClusterNamespaceArn(_response.cluster().clusterNamespaceArn());
                                     return ProgressEvent.progress(_model, callbackContext);
                                 });
                     }
@@ -138,6 +140,27 @@ public class CreateHandler extends BaseHandlerStd {
                                 .translateToServiceRequest(Translator::translateToEnableLoggingRequest)
                                 .makeServiceCall(this::enableLogging)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    if (resourceModel.getClusterIdentifier() != null) {
+                        return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
+                                .makeServiceCall(this::describeCluster)
+                                .done((_request, _response, _client, _model, _context) -> {
+                                    _model.setClusterNamespaceArn(Translator.translateFromReadResponse(_response).getClusterNamespaceArn());
+                                    return ProgressEvent.progress(_model, callbackContext);
+                                });
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    if (resourceModel.getClusterNamespaceArn() != null && resourceModel.getNamespaceResourcePolicy() != null) {
+                        return proxy.initiate("AWS-Redshift-Cluster::putResourcePolicy", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(resourceModelRequest -> Translator.translateToPutResourcePolicy(resourceModelRequest, logger))
+                                .makeServiceCall(this::putNamespaceResourcePolicy)
                                 .progress();
                     }
                     return progress;
@@ -220,6 +243,47 @@ public class CreateHandler extends BaseHandlerStd {
                 ResourceModel.TYPE_NAME, enableLoggingRequest.clusterIdentifier()));
         return enableLoggingResponse;
     }
+
+    private DescribeClustersResponse describeCluster (
+        final DescribeClustersRequest awsRequest,
+        final ProxyClient<RedshiftClient> proxyClient) {
+            DescribeClustersResponse awsResponse = null;
+            try {
+                logger.log(String.format("%s %s describeClusters.", ResourceModel.TYPE_NAME,
+                        awsRequest.clusterIdentifier()));
+                awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+            } catch (final ClusterNotFoundException e) {
+                throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
+            } catch (final InvalidTagException e) {
+                throw new CfnInvalidRequestException(e);
+            } catch (SdkClientException | AwsServiceException e) {
+                throw new CfnGeneralServiceException(e);
+            }
+
+            logger.log(String.format("%s %s has successfully been read.", ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier()));
+            return awsResponse;
+        }
+
+    private PutResourcePolicyResponse putNamespaceResourcePolicy(
+        final PutResourcePolicyRequest putRequest,
+        final ProxyClient<RedshiftClient> proxyClient) {
+            PutResourcePolicyResponse putResponse = null;
+
+            try {
+                logger.log(String.format("%s %s putResourcePolicy.", ResourceModel.TYPE_NAME,
+                        putRequest.resourceArn()));
+                putResponse = proxyClient.injectCredentialsAndInvokeV2(putRequest, proxyClient.client()::putResourcePolicy);
+            } catch (ResourceNotFoundException e){
+                throw new CfnNotFoundException(e);
+            } catch (InvalidPolicyException | UnsupportedOperationException | InvalidParameterValueException e) {
+                throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
+            } catch (SdkClientException | RedshiftException  e) {
+                throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+            }
+
+            logger.log(String.format("%s successfully put resource policy.", putRequest.resourceArn()));
+            return putResponse;
+        }
 
     private void prepareResourceModel(ResourceHandlerRequest<ResourceModel> request) {
         if (request.getDesiredResourceState() == null) {

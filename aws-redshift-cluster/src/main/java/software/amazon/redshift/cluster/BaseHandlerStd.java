@@ -51,6 +51,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
 
   protected static final Constant BACKOFF_STRATEGY = Constant.of().
           timeout(Duration.ofDays(5L)).delay(Duration.ofSeconds(10L)).build();
+  protected static final String FAILOVER_PRIMARY_COMPUTE = "failover-primary-compute";
   protected static final String PAUSE_CLUSTER = "pause-cluster";
   protected static final String RESUME_CLUSTER = "resume-cluster";
   protected static final String ROTATE_ENCRYPTION_KEY = "rotate-encryption-key";
