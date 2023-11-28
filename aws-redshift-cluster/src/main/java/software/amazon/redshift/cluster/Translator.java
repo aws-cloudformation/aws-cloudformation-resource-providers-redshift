@@ -50,6 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -71,7 +72,7 @@ public class Translator {
    * @param model resource model
    * @return awsRequest the aws service request to create a resource
    */
-  static CreateClusterRequest translateToCreateRequest(final ResourceModel model) {
+  static CreateClusterRequest translateToCreateRequest(final ResourceModel model, final Map<String, String> tags) {
     return CreateClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
             .masterUsername(model.getMasterUsername())
@@ -97,7 +98,7 @@ public class Translator {
             .publiclyAccessible(model.getPubliclyAccessible())
             .vpcSecurityGroupIds(model.getVpcSecurityGroupIds())
             .iamRoles(model.getIamRoles())
-            .tags(translateTagsToSdk(model.getTags()))
+            .tags(translateTagsToSdk(translateTagsMapToTagCollection(tags)))
             .availabilityZoneRelocation(model.getAvailabilityZoneRelocation())
             .aquaConfigurationStatus(model.getAquaConfigurationStatus())
             .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
@@ -288,6 +289,21 @@ public class Translator {
     return Optional.ofNullable(tags).orElse(Collections.emptyList())
             .stream()
             .map(software.amazon.redshift.cluster.Tag ::getValue)
+            .collect(Collectors.toList());
+  }
+
+  static Map<String, String> translateFromResourceModelToSdkTags(final List<software.amazon.redshift.cluster.Tag> listOfTags){
+
+    Map<String, String> sdkTags = streamOfOrEmpty(listOfTags)
+            .collect(Collectors.toMap(software.amazon.redshift.cluster.Tag::getKey, software.amazon.redshift.cluster.Tag::getValue ));
+
+    return sdkTags.isEmpty() ? null : sdkTags;
+  }
+
+  static List<software.amazon.redshift.cluster.Tag> translateTagsMapToTagCollection(final Map<String, String> tags) {
+    if (tags == null) return null;
+    return tags.keySet().stream()
+            .map(key -> Tag.builder().key(key).value(tags.get(key)).build())
             .collect(Collectors.toList());
   }
 
