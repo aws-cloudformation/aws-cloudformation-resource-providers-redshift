@@ -63,6 +63,10 @@ import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.resource.IdentifierUtils;
 
 import java.util.UUID;
+import java.util.Map;
+import java.util.Collections;
+import java.util.Optional;
+import com.google.common.collect.Maps;
 
 
 public class CreateHandler extends BaseHandlerStd {
@@ -80,6 +84,14 @@ public class CreateHandler extends BaseHandlerStd {
 
         prepareResourceModel(request);
         final ResourceModel resourceModel = request.getDesiredResourceState();
+
+        //Resource level + stack level tags
+        Map<String, String> convertedTags = Translator.translateFromResourceModelToSdkTags(resourceModel.getTags());
+        Map<String, String> mergedTags = Maps.newHashMap();
+
+        mergedTags.putAll(Optional.ofNullable(request.getDesiredResourceTags()).orElse(Collections.emptyMap()));
+        mergedTags.putAll(Optional.ofNullable(request.getSystemTags()).orElse(Collections.emptyMap()));
+        mergedTags.putAll(Optional.ofNullable(convertedTags).orElse(Collections.emptyMap()));
 
         return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> {
@@ -104,7 +116,7 @@ public class CreateHandler extends BaseHandlerStd {
                 .then(progress -> {
                     if (StringUtils.isNullOrEmpty(resourceModel.getSnapshotIdentifier()) && !invalidCreateClusterRequest(resourceModel)) {
                         return proxy.initiate("AWS-Redshift-Cluster::createCluster", proxyClient, resourceModel, callbackContext)
-                                .translateToServiceRequest(Translator::translateToCreateRequest)
+                                .translateToServiceRequest(model -> Translator.translateToCreateRequest(resourceModel, mergedTags))
                                 .backoffDelay(CREATE_BACKOFF_STRATEGY)
                                 .makeServiceCall(this::createClusterResource)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
