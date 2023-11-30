@@ -90,7 +90,6 @@ public class CreateHandler extends BaseHandlerStd {
         Map<String, String> mergedTags = Maps.newHashMap();
 
         mergedTags.putAll(Optional.ofNullable(request.getDesiredResourceTags()).orElse(Collections.emptyMap()));
-        mergedTags.putAll(Optional.ofNullable(request.getSystemTags()).orElse(Collections.emptyMap()));
         mergedTags.putAll(Optional.ofNullable(convertedTags).orElse(Collections.emptyMap()));
 
         return ProgressEvent.progress(resourceModel, callbackContext)
