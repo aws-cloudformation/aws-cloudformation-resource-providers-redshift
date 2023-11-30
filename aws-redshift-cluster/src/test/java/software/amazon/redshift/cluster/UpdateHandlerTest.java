@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
+import software.amazon.awssdk.services.redshift.model.DeleteResourcePolicyRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
@@ -24,12 +25,17 @@ import software.amazon.awssdk.services.redshift.model.DisableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.DisableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
+import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
+import software.amazon.awssdk.services.redshift.model.GetResourcePolicyResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterResponse;
+import software.amazon.awssdk.services.redshift.model.PutResourcePolicyRequest;
+import software.amazon.awssdk.services.redshift.model.PutResourcePolicyResponse;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ResizeClusterResponse;
+import software.amazon.awssdk.services.redshift.model.ResourcePolicy;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -52,15 +58,10 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static software.amazon.redshift.cluster.TestUtils.AWS_ACCOUNT_ID;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_RESOURCE_HANDLER_REQUEST;
-import static software.amazon.redshift.cluster.TestUtils.BUCKET_NAME;
-import static software.amazon.redshift.cluster.TestUtils.CLUSTER_IDENTIFIER;
-import static software.amazon.redshift.cluster.TestUtils.IAM_ROLE_ARN;
-import static software.amazon.redshift.cluster.TestUtils.MASTER_USERPASSWORD;
-import static software.amazon.redshift.cluster.TestUtils.NUMBER_OF_NODES;
+import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.modifyAttribute;
 
 @ExtendWith(MockitoExtension.class)
@@ -90,6 +91,83 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(sdkClient, atLeastOnce()).serviceName();
         verifyNoMoreInteractions(sdkClient);
     }
+
+    @Test
+    public void testDeleteNamespaceResourcePolicy() {
+        ResourceModel previousModel = createClusterResponseModel();
+        previousModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY, logger));
+
+        ResourceModel updateModel = createClusterResponseModel();
+        updateModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY_EMPTY, logger));
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .awsAccountId(AWS_ACCOUNT_ID)
+                .awsPartition(AWS_PARTITION)
+                .region(AWS_REGION)
+                .build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseSdk());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class))).thenReturn(describeLoggingStatusFalseResponseSdk());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+        when(proxyClient.client().deleteResourcePolicy(any(DeleteResourcePolicyRequest.class))).thenReturn(null);
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void testModifyNamespaceResourcePolicy() {
+        final String NEW_NAMESPACE_RESOURCE_POLICY = "{\"Version\":\"2012-10-17\"}";
+        ResourceModel previousModel = createClusterResponseModel();
+        previousModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY, logger));
+
+        ResourceModel updateModel = createClusterResponseModel();
+        updateModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NEW_NAMESPACE_RESOURCE_POLICY, logger));
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .awsAccountId(AWS_ACCOUNT_ID)
+                .awsPartition(AWS_PARTITION)
+                .region(AWS_REGION)
+                .build();
+
+        ResourcePolicy newResourcePolicy = ResourcePolicy.builder()
+                .resourceArn(CLUSTER_NAMESPACE_ARN)
+                .policy(NEW_NAMESPACE_RESOURCE_POLICY)
+                .build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseSdk());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class))).thenReturn(describeLoggingStatusFalseResponseSdk());
+
+        when(proxyClient.client().putResourcePolicy(any(PutResourcePolicyRequest.class))).thenReturn(PutResourcePolicyResponse.builder()
+                .resourcePolicy(newResourcePolicy)
+                .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(GetResourcePolicyResponse.builder()
+                .resourcePolicy(newResourcePolicy)
+                .build());
+
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        request.getDesiredResourceState().setMasterUserPassword(null);
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(request.getDesiredResourceState());
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
 
     @Test
     public void testRemoveTags_RemoveIamRole_DisableLogging_ModifyNumOfNodes() {
@@ -173,21 +251,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .clusters(existingCluster)
                         .build())
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled)
                         .build())
                 .thenReturn(DescribeClustersResponse.builder()
@@ -213,6 +276,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(ResizeClusterResponse.builder()
                         .cluster(modifiedCluster_tagRemoved_iamRoleRemoved_loggingDisabled_ModifyNumberOfNodes)
                         .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -318,24 +382,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .clusters(existingCluster)
                         .build())
                 .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
-                        .clusters(existingCluster)
-                        .build())
-                .thenReturn(DescribeClustersResponse.builder()
                         .clusters(modifiedCluster_tagAdded_iamRoleAdded)
                         .build())
                 .thenReturn(DescribeClustersResponse.builder()
@@ -360,6 +406,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(ResizeClusterResponse.builder()
                         .cluster(modifiedCluster_tagAdded_iamRoleAdded_loggingEnabled_NodeTypeModify)
                         .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
@@ -421,6 +468,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(ModifyClusterResponse.builder()
                         .cluster(modifiedCluster)
                         .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
@@ -461,6 +509,90 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 "PreferredMaintenanceWindow",
                 "PubliclyAccessible",
                 "VpcSecurityGroupIds"
+        );
+
+        for (int i = 0; i < insensitiveFileds.size(); i++) {
+            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i].equals(
+                    insensitiveFileds.get(i)
+            ));
+        }
+    }
+
+    @Test
+    public void testModifyEncrypted_EnableMultiAZ() {
+        ResourceModel previousModel = BASIC_MODEL.toBuilder().build();
+
+        ResourceModel updateModel = BASIC_MODEL.toBuilder()
+                .encrypted(true)
+                .multiAZ(true)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .build();
+
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder().build();
+        Cluster modifiedCluster = MULTIAZ_CLUSTER.toBuilder().build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
+
+        // todo: make tests more independent so we can add tests like this elsewhere
+        verify(handler).sleep(10);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length == 1);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length == 18);
+
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("Encrypted"));
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("MultiAZ"));
+
+        List<String> insensitiveFileds = Arrays.asList(
+                "AllowVersionUpgrade",
+                "AutomatedSnapshotRetentionPeriod",
+                "AvailabilityZone",
+                "AvailabilityZoneRelocation",
+                "ClusterSecurityGroups",
+                "ClusterVersion",
+                "ElasticIp",
+                "Encrypted",
+                "EnhancedVpcRouting",
+                "HsmClientCertificateIdentifier",
+                "HsmConfigurationIdentifier",
+                "KmsKeyId",
+                "MaintenanceTrackName",
+                "ManualSnapshotRetentionPeriod",
+                "Port",
+                "PreferredMaintenanceWindow",
+                "PubliclyAccessible",
+                "VpcSecurityGroupIds",
+                "MultiAZ"
         );
 
         for (int i = 0; i < insensitiveFileds.size(); i++) {
@@ -558,6 +690,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .thenReturn(ModifyClusterResponse.builder()
                         .cluster(modifiedCluster)
                         .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);

@@ -59,7 +59,9 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#defermaintenanceduration" title="DeferMaintenanceDuration">DeferMaintenanceDuration</a>" : <i>Integer</i>,
         "<a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>" : <i>String</i>,
         "<a href="#resourceaction" title="ResourceAction">ResourceAction</a>" : <i>String</i>,
-        "<a href="#rotateencryptionkey" title="RotateEncryptionKey">RotateEncryptionKey</a>" : <i>Boolean</i>
+        "<a href="#rotateencryptionkey" title="RotateEncryptionKey">RotateEncryptionKey</a>" : <i>Boolean</i>,
+        "<a href="#multiaz" title="MultiAZ">MultiAZ</a>" : <i>Boolean</i>,
+        "<a href="#namespaceresourcepolicy" title="NamespaceResourcePolicy">NamespaceResourcePolicy</a>" : <i>Map</i>
     }
 }
 </pre>
@@ -121,6 +123,8 @@ Properties:
     <a href="#revisiontarget" title="RevisionTarget">RevisionTarget</a>: <i>String</i>
     <a href="#resourceaction" title="ResourceAction">ResourceAction</a>: <i>String</i>
     <a href="#rotateencryptionkey" title="RotateEncryptionKey">RotateEncryptionKey</a>: <i>Boolean</i>
+    <a href="#multiaz" title="MultiAZ">MultiAZ</a>: <i>Boolean</i>
+    <a href="#namespaceresourcepolicy" title="NamespaceResourcePolicy">NamespaceResourcePolicy</a>: <i>Map</i>
 </pre>
 
 ## Properties
@@ -604,7 +608,7 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### ResourceAction
 
-The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster APIs
+The Redshift operation to be performed. Resource Action supports pause-cluster, resume-cluster, failover-primary-compute APIs
 
 _Required_: No
 
@@ -619,6 +623,26 @@ A boolean indicating if we want to rotate Encryption Keys.
 _Required_: No
 
 _Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### MultiAZ
+
+A boolean indicating if the redshift cluster is multi-az or not. If you don't provide this parameter or set the value to false, the redshift cluster will be single-az.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### NamespaceResourcePolicy
+
+The namespace resource policy document that will be attached to a Redshift cluster.
+
+_Required_: No
+
+_Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
@@ -649,3 +673,7 @@ Returns the <code>Port</code> value.
 #### Address
 
 Returns the <code>Address</code> value.
+
+#### ClusterNamespaceArn
+
+The Amazon Resource Name (ARN) of the cluster namespace.
