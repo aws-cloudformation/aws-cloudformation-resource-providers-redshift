@@ -86,7 +86,6 @@ import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnknownSnapshotCopyRegionException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
-import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOptionException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -103,6 +102,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.HashMap;
 import java.util.stream.Stream;
 
 public class UpdateHandler extends BaseHandlerStd {
@@ -150,6 +153,18 @@ public class UpdateHandler extends BaseHandlerStd {
         this.logger = logger;
 
         final ResourceModel model = request.getDesiredResourceState();
+
+        Map<String, String> allDesiredTags = new HashMap<>();
+        allDesiredTags.putAll(Optional.ofNullable(request.getDesiredResourceTags()).orElse(Collections.emptyMap()));
+        allDesiredTags.putAll(Optional.ofNullable(
+                Translator.translateFromResourceModelToSdkTags(model.getTags()))
+                .orElse(Collections.emptyMap()));
+
+        Map<String, String> allPreviousTags = new HashMap<>();
+        allPreviousTags.putAll(Optional.ofNullable(request.getPreviousResourceTags()).orElse(Collections.emptyMap()));
+        allPreviousTags.putAll(Optional.ofNullable(Translator.translateFromResourceModelToSdkTags(
+                request.getPreviousResourceState().getTags())).orElse(Collections.emptyMap()));
+
         if (!callbackContext.getClusterExistsCheck()) {
             boolean clusterExists = doesClusterExist(proxyClient, model, model.getClusterIdentifier());
             callbackContext.setClusterExistsCheck(true);
@@ -188,7 +203,8 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
 
                 .then(progress -> {
-                    List<List<Tag>> updateTags = updateTags(request.getPreviousResourceState().getTags(), model.getTags());
+                    List<List<Tag>> updateTags = updateTags(Translator.translateTagsMapToTagCollection(allPreviousTags),
+                            Translator.translateTagsMapToTagCollection(allDesiredTags));
 
                     final String resourceName = Arn.builder()
                             .withService("redshift")
