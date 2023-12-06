@@ -73,26 +73,24 @@ public class ReadHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
-                    progress = proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, model, callbackContext)
+                    progress = proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, progress.getResourceModel(), callbackContext)
                             .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
                             .makeServiceCall(this::describeCluster)
                             .done((_request, _response, _client, _model, _context) -> {
-                                _model.setClusterNamespaceArn(Translator.translateFromReadResponse(_response).getClusterNamespaceArn());
                                 return ProgressEvent.progress(Translator.translateFromReadResponse(_response), callbackContext);
                             });
                     return  progress;
                 })
                 .then(progress -> {
-                    progress = proxy.initiate("AWS-Redshift-Cluster::GetResourcePolicy", proxyClient, model, callbackContext)
+                    logger.log("In Get");
+                    return proxy.initiate("AWS-Redshift-ResourcePolicy::Get", proxyClient, progress.getResourceModel(), callbackContext)
                             .translateToServiceRequest(Translator::translateToGetResourcePolicy)
                             .makeServiceCall(this::getNamespaceResourcePolicy)
                             .done((_request, _response, _client, _model, _context) -> {
-                                _model.setNamespaceResourcePolicy(Translator.translateFromGetResourcePolicy(_response, logger).getNamespaceResourcePolicy());
-                                return ProgressEvent.progress(_model, callbackContext);
+                                _model.setNamespaceResourcePolicy(Translator.convertStringToJson(_response.resourcePolicy().policy(), logger));
+                                _model.setLoggingProperties(callbackContext.getLoggingProperties());
+                                return ProgressEvent.defaultSuccessHandler(_model);
                             });
-                    progress.getResourceModel().setLoggingProperties(callbackContext.getLoggingProperties());
-                    progress.getResourceModel().setNamespaceResourcePolicy(model.getNamespaceResourcePolicy());
-                    return ProgressEvent.defaultSuccessHandler(model);
                 });
     }
 

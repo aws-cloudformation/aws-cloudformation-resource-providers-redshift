@@ -270,7 +270,6 @@ public class CreateHandlerTest extends AbstractTestBase {
         ResourceModel responseModel = createClusterResponseModel();
         responseModel.setLoggingProperties(LOGGING_PROPERTIES_DISABLED);
         responseModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY, logger));
-        responseModel.setMasterUserPassword(MASTER_USERPASSWORD);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(requestModel)

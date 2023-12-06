@@ -30,6 +30,21 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
+                - "cloudwatch:PutMetricData"
+                - "ec2:AssociateAddress"
+                - "ec2:CreateNetworkInterface"
+                - "ec2:CreateVpcEndpoint"
+                - "ec2:DeleteNetworkInterface"
+                - "ec2:DeleteVpcEndpoints"
+                - "ec2:DescribeAddresses"
+                - "ec2:DescribeNetworkInterfaces"
+                - "ec2:DescribeSubnets"
+                - "ec2:DescribeVpcEndpoints"
+                - "ec2:DescribeVpcs"
+                - "ec2:DisassociateAddress"
+                - "ec2:ModifyNetworkInterfaceAttribute"
+                - "ec2:ModifyVpcEndpoint"
+                - "iam:CreateServiceLinkedRole"
                 - "redshift:CreateCluster"
                 - "redshift:CreateTags"
                 - "redshift:DeleteCluster"

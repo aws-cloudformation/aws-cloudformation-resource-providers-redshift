@@ -906,9 +906,9 @@ public class Translator {
    * @param model resource model
    * @return putResourcePolicyRequest the service request to put a policy on resource
    */
-  static PutResourcePolicyRequest translateToPutResourcePolicy(final ResourceModel model, Logger logger) {
+  static PutResourcePolicyRequest translateToPutResourcePolicy(final ResourceModel model, final String namespaceArn, Logger logger) {
     return PutResourcePolicyRequest.builder()
-            .resourceArn(model.getClusterNamespaceArn())
+            .resourceArn(namespaceArn)
             .policy(convertJsonToString(model.getNamespaceResourcePolicy(), logger))
             .build();
   }
@@ -916,13 +916,6 @@ public class Translator {
   static GetResourcePolicyRequest translateToGetResourcePolicy(final ResourceModel model) {
     return GetResourcePolicyRequest.builder()
             .resourceArn(model.getClusterNamespaceArn())
-            .build();
-  }
-
-  static ResourceModel translateFromGetResourcePolicy(final GetResourcePolicyResponse awsResponse, Logger logger) {
-    return ResourceModel.builder()
-            .clusterNamespaceArn(awsResponse.resourcePolicy().resourceArn())
-            .namespaceResourcePolicy(convertStringToJson(awsResponse.resourcePolicy().policy(), logger))
             .build();
   }
 

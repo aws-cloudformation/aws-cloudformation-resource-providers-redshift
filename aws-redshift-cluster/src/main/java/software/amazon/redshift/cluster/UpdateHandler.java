@@ -268,7 +268,7 @@ public class UpdateHandler extends BaseHandlerStd {
                         }
                         else {
                             return proxy.initiate("AWS-Redshift-Cluster::PutNamespaceResourcePolicy", proxyClient, model, callbackContext)
-                                    .translateToServiceRequest(resourceModel -> Translator.translateToPutResourcePolicy(resourceModel, logger))
+                                    .translateToServiceRequest(resourceModel -> Translator.translateToPutResourcePolicy(resourceModel, model.getClusterNamespaceArn(), logger))
                                     .makeServiceCall(this::putNamespaceResourcePolicy)
                                     .progress();
                         }
