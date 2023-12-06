@@ -123,8 +123,8 @@ public class CreateHandler extends BaseHandlerStd {
                                     if(!callbackContext.getCallbackAfterClusterCreate()) {
                                         logger.log(String.format("Cluster Create done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, resourceModel.getClusterIdentifier()));
                                         callbackContext.setCallbackAfterClusterCreate(true);
+                                        callbackContext.setNamespaceArn(_response.cluster().clusterNamespaceArn());
                                         logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Cluster Create.");
-                                        _model.setClusterNamespaceArn(_response.cluster().clusterNamespaceArn());
                                         return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
                                     }
                                     resourceModel.setClusterNamespaceArn(_response.cluster().clusterNamespaceArn());
@@ -144,21 +144,9 @@ public class CreateHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
-                    if (resourceModel.getClusterIdentifier() != null) {
-                        return proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, resourceModel, callbackContext)
-                                .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
-                                .makeServiceCall(this::describeCluster)
-                                .done((_request, _response, _client, _model, _context) -> {
-                                    _model.setClusterNamespaceArn(Translator.translateFromReadResponse(_response).getClusterNamespaceArn());
-                                    return ProgressEvent.progress(_model, callbackContext);
-                                });
-                    }
-                    return progress;
-                })
-                .then(progress -> {
                     if (resourceModel.getClusterNamespaceArn() != null && resourceModel.getNamespaceResourcePolicy() != null) {
-                        return proxy.initiate("AWS-Redshift-Cluster::putResourcePolicy", proxyClient, resourceModel, callbackContext)
-                                .translateToServiceRequest(resourceModelRequest -> Translator.translateToPutResourcePolicy(resourceModelRequest, logger))
+                        return proxy.initiate("AWS-Redshift-ResourcePolicy::Put", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(resourceModelRequest -> Translator.translateToPutResourcePolicy(resourceModelRequest, callbackContext.getNamespaceArn(), logger))
                                 .makeServiceCall(this::putNamespaceResourcePolicy)
                                 .progress();
                     }
@@ -205,6 +193,7 @@ public class CreateHandler extends BaseHandlerStd {
         try {
             logger.log(String.format("createCluster for %s", createRequest.clusterIdentifier()));
             createResponse = proxyClient.injectCredentialsAndInvokeV2(createRequest, proxyClient.client()::createCluster);
+            logger.log(createResponse.toString());
         } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createRequest.clusterIdentifier());
         }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException | InsufficientClusterCapacityException |
@@ -243,26 +232,6 @@ public class CreateHandler extends BaseHandlerStd {
         return enableLoggingResponse;
     }
 
-    private DescribeClustersResponse describeCluster (
-        final DescribeClustersRequest awsRequest,
-        final ProxyClient<RedshiftClient> proxyClient) {
-            DescribeClustersResponse awsResponse = null;
-            try {
-                logger.log(String.format("%s %s describeClusters.", ResourceModel.TYPE_NAME,
-                        awsRequest.clusterIdentifier()));
-                awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
-            } catch (final ClusterNotFoundException e) {
-                throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
-            } catch (final InvalidTagException e) {
-                throw new CfnInvalidRequestException(e);
-            } catch (SdkClientException | AwsServiceException e) {
-                throw new CfnGeneralServiceException(e);
-            }
-
-            logger.log(String.format("%s %s has successfully been read.", ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier()));
-            return awsResponse;
-        }
-
     private PutResourcePolicyResponse putNamespaceResourcePolicy(
         final PutResourcePolicyRequest putRequest,
         final ProxyClient<RedshiftClient> proxyClient) {
@@ -272,6 +241,7 @@ public class CreateHandler extends BaseHandlerStd {
                 logger.log(String.format("%s %s putResourcePolicy.", ResourceModel.TYPE_NAME,
                         putRequest.resourceArn()));
                 putResponse = proxyClient.injectCredentialsAndInvokeV2(putRequest, proxyClient.client()::putResourcePolicy);
+                logger.log(putResponse.toString());
             } catch (ResourceNotFoundException e){
                 throw new CfnNotFoundException(e);
             } catch (InvalidPolicyException | UnsupportedOperationException | InvalidParameterValueException e) {

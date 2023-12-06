@@ -98,7 +98,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         previousModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY, logger));
 
         ResourceModel updateModel = createClusterResponseModel();
-        updateModel.setNamespaceResourcePolicy(Translator.convertStringToJson(NAMESPACE_POLICY_EMPTY, logger));
+        updateModel.setNamespaceResourcePolicy(null);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(updateModel)
@@ -111,7 +111,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseSdk());
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class))).thenReturn(describeLoggingStatusFalseResponseSdk());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
-        when(proxyClient.client().deleteResourcePolicy(any(DeleteResourcePolicyRequest.class))).thenReturn(null);
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 

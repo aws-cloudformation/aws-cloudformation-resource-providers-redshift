@@ -301,7 +301,6 @@
         "/properties/ClusterIdentifier"
     ],
     "readOnlyProperties": [
-        "/properties/Id",
         "/properties/DeferMaintenanceIdentifier",
         "/properties/Endpoint/Port",
         "/properties/Endpoint/Address",
@@ -331,9 +330,25 @@
                 "redshift:CreateCluster",
                 "redshift:RestoreFromClusterSnapshot",
                 "redshift:EnableLogging",
+                "redshift:CreateTags",
                 "redshift:DescribeTags",
                 "redshift:GetResourcePolicy",
-                "redshift:PutResourcePolicy"
+                "redshift:PutResourcePolicy",
+                "ec2:DescribeVpcs",
+                "ec2:DescribeSubnets",
+                "ec2:DescribeNetworkInterfaces",
+                "ec2:DescribeAddresses",
+                "ec2:AssociateAddress",
+                "ec2:DisassociateAddress",
+                "ec2:CreateNetworkInterface",
+                "ec2:DeleteNetworkInterface",
+                "ec2:ModifyNetworkInterfaceAttribute",
+                "ec2:CreateVpcEndpoint",
+                "ec2:DeleteVpcEndpoints",
+                "ec2:DescribeVpcEndpoints",
+                "ec2:ModifyVpcEndpoint",
+                "iam:CreateServiceLinkedRole",
+                "cloudwatch:PutMetricData"
             ],
             "timeoutInMinutes": 2160
         },
