@@ -25,6 +25,8 @@ public class TestUtils {
 
     final static List<Tag> TAGS = Arrays.asList(new Tag("key1", "val1"), new Tag("key2", "val2"), new Tag("key3", "val3"));
 
+    final static Map<String, String> PREVIOUS_TAGS = ImmutableMap.of("key4", "val4", "key2", "val2");
+
     final static List<software.amazon.awssdk.services.redshift.model.Tag> SDK_TAGS = Arrays.asList(
             software.amazon.awssdk.services.redshift.model.Tag.builder().key("key1").value("val1").build(),
             software.amazon.awssdk.services.redshift.model.Tag.builder().key("key2").value("val2").build(),

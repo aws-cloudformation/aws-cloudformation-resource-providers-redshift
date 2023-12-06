@@ -18,7 +18,10 @@ import software.amazon.awssdk.services.redshift.model.ResetClusterParameterGroup
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
 import java.util.Collections;
+import java.util.Collection;
+import java.util.stream.Stream;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -33,12 +36,12 @@ public class Translator {
      * @param model resource model
      * @return awsRequest the aws service request to create a resource
      */
-    static CreateClusterParameterGroupRequest translateToCreateRequest(final ResourceModel model) {
+    static CreateClusterParameterGroupRequest translateToCreateRequest(final ResourceModel model, final Map<String, String> tags) {
         return CreateClusterParameterGroupRequest.builder()
                 .parameterGroupName(model.getParameterGroupName())
                 .parameterGroupFamily(model.getParameterGroupFamily())
                 .description(model.getDescription())
-                .tags(translateToSdkTags(model.getTags()))
+                .tags(translateToSdkTags(translateTagsMapToTagCollection(tags)))
                 .build();
     }
 
@@ -174,11 +177,11 @@ public class Translator {
      * @param resourceName         the arn of the requested resource
      * @return awsRequest the aws service request to update tags of a resource
      */
-    static ModifyTagsRequest translateToUpdateTagsRequest(final ResourceModel desiredResourceState,
-                                                          final ResourceModel currentResourceState,
+    static ModifyTagsRequest translateToUpdateTagsRequest(List<Tag> desiredTags,
+                                                          List<Tag> currentTags,
                                                           final String resourceName) {
-        List<Tag> toBeCreatedTags = subtract(desiredResourceState.getTags(), currentResourceState.getTags());
-        List<Tag> toBeDeletedTags = subtract(currentResourceState.getTags(), desiredResourceState.getTags());
+        List<Tag> toBeCreatedTags = subtract(desiredTags, currentTags);
+        List<Tag> toBeDeletedTags = subtract(currentTags, desiredTags);
 
         return ModifyTagsRequest.builder()
                 .createNewTagsRequest(CreateTagsRequest.builder()
@@ -256,6 +259,21 @@ public class Translator {
                 .orElse(null);
     }
 
+    static List<Tag> translateTagsMapToTagCollection(final Map<String, String> tags) {
+        if (tags == null) return null;
+        return tags.keySet().stream()
+                .map(key -> Tag.builder().key(key).value(tags.get(key)).build())
+                .collect(Collectors.toList());
+    }
+
+    static Map<String, String> translateFromResourceModelToSdkTags(final List<Tag> listOfTags){
+
+        Map<String, String> sdkTags = streamOfOrEmpty(listOfTags)
+                .collect(Collectors.toMap(Tag::getKey, Tag::getValue ));
+
+        return sdkTags.isEmpty() ? null : sdkTags;
+    }
+
     private static software.amazon.awssdk.services.redshift.model.Tag translateToSdkTag(Tag tag) {
         return GSON.fromJson(GSON.toJson(tag), software.amazon.awssdk.services.redshift.model.Tag.class);
     }
@@ -280,6 +298,12 @@ public class Translator {
                         .map(Translator::translateToModelTag)
                         .collect(Collectors.toList()))
                 .orElse(null);
+    }
+
+    private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
+        return Optional.ofNullable(collection)
+                .map(Collection::stream)
+                .orElseGet(Stream::empty);
     }
 
     /**

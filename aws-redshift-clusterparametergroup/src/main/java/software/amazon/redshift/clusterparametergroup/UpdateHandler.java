@@ -29,6 +29,7 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,9 +51,24 @@ public class UpdateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
-        final String resourceName = String.format("arn:%s:redshift:%s:%s:parametergroup:%s", request.getAwsPartition(), request.getRegion(), request.getAwsAccountId(), request.getDesiredResourceState().getParameterGroupName());
+        final ResourceModel desiredResourceState = request.getDesiredResourceState();
+        final String resourceName = String.format("arn:%s:redshift:%s:%s:parametergroup:%s", request.getAwsPartition(), request.getRegion(), request.getAwsAccountId(), desiredResourceState.getParameterGroupName());
+        Map<String, String> allDesiredTags = new HashMap<>();
+        allDesiredTags.putAll(Optional.ofNullable(request.getDesiredResourceTags()).orElse(Collections.emptyMap()));
+        allDesiredTags.putAll(Optional.ofNullable(
+                        Translator.translateFromResourceModelToSdkTags(desiredResourceState.getTags()))
+                .orElse(Collections.emptyMap()));
+        List<Tag> desiredTags = Translator.translateTagsMapToTagCollection(allDesiredTags);
 
-        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+
+        List<Tag> previousTags = request.getPreviousResourceState() == null ? null : request.getPreviousResourceState().getTags();
+        Map<String, String> allPreviousTags = new HashMap<>();
+        allPreviousTags.putAll(Optional.ofNullable(request.getPreviousResourceTags()).orElse(Collections.emptyMap()));
+        allPreviousTags.putAll(Optional.ofNullable(Translator.translateFromResourceModelToSdkTags(previousTags))
+                .orElse(Collections.emptyMap()));
+        List<Tag> currentTags = Translator.translateTagsMapToTagCollection(allPreviousTags);
+
+        return ProgressEvent.progress(desiredResourceState, callbackContext)
                 .then(progress -> proxy.initiate(String.format("%s::Update::ReadTags", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(resourceModel -> Translator.translateToReadTagsRequest(resourceName))
                         .makeServiceCall(this::readTags)
@@ -65,13 +81,13 @@ public class UpdateHandler extends BaseHandlerStd {
                                 .build()))
 
                 .then(progress -> proxy.initiate(String.format("%s::Update::UpdateTags", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                        .translateToServiceRequest(resourceModel -> Translator.translateToUpdateTagsRequest(request.getDesiredResourceState(), resourceModel, resourceName))
+                        .translateToServiceRequest(model -> Translator.translateToUpdateTagsRequest(desiredTags, currentTags, resourceName))
                         .makeServiceCall(this::updateTags)
                         .handleError(this::operateTagsErrorHandler)
                         .done((tagsRequest, tagsResponse, client, model, context) -> ProgressEvent.<ResourceModel, CallbackContext>builder()
                                 .callbackContext(callbackContext)
                                 .callbackDelaySeconds(0)
-                                .resourceModel(request.getDesiredResourceState())
+                                .resourceModel(desiredResourceState)
                                 .status(OperationStatus.IN_PROGRESS)
                                 .build()))
 
