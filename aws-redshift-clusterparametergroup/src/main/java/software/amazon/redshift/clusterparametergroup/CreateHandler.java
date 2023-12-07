@@ -20,6 +20,9 @@ import software.amazon.cloudformation.resource.IdentifierUtils;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.Map;
+import java.util.Collections;
+import com.google.common.collect.Maps;
 
 public class CreateHandler extends BaseHandlerStd {
     private static final int MAX_CLUSTER_PARAMETER_GROUP_NAME_LENGTH = 255;
@@ -34,7 +37,16 @@ public class CreateHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
-        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+        final ResourceModel resourceModel = request.getDesiredResourceState();
+
+        //Resource level + stack level tags
+        Map<String, String> convertedTags = Translator.translateFromResourceModelToSdkTags(resourceModel.getTags());
+        Map<String, String> mergedTags = Maps.newHashMap();
+
+        mergedTags.putAll(Optional.ofNullable(request.getDesiredResourceTags()).orElse(Collections.emptyMap()));
+        mergedTags.putAll(Optional.ofNullable(convertedTags).orElse(Collections.emptyMap()));
+
+        return ProgressEvent.progress(resourceModel, callbackContext)
                 .then(progress -> proxy.initiate(String.format("%s::GeneratePrimaryIdentifier", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest((model) -> null)
                         .makeServiceCall((awsRequest, client) -> null)
@@ -56,7 +68,7 @@ public class CreateHandler extends BaseHandlerStd {
                 )
 
                 .then(progress -> proxy.initiate(String.format("%s::Create", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                        .translateToServiceRequest(Translator::translateToCreateRequest)
+                        .translateToServiceRequest(model -> Translator.translateToCreateRequest(resourceModel, mergedTags))
                         .makeServiceCall(this::createClusterParameterGroup)
                         .handleError(this::createClusterParameterGroupErrorHandler)
                         .progress()

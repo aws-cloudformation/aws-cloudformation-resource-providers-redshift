@@ -51,6 +51,7 @@ import static software.amazon.redshift.clusterparametergroup.TestUtils.DESIRED_R
 import static software.amazon.redshift.clusterparametergroup.TestUtils.PARAMETER_GROUP_FAMILY;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.PARAMETER_GROUP_NAME;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.PREVIOUS_PARAMETERS;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.PREVIOUS_TAGS;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.TAGS;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.WLM_JSON_CONFIGURATION;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.getSdkParametersFromParameters;
@@ -82,6 +83,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 .desiredResourceState(COMPLETE_MODEL)
                 .desiredResourceTags(DESIRED_RESOURCE_TAGS)
                 .region(AWS_REGION)
+                .previousResourceTags(PREVIOUS_TAGS)
                 .build();
 
         when(proxyClient.client().modifyClusterParameterGroup(any(ModifyClusterParameterGroupRequest.class)))
