@@ -26,6 +26,12 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
 
@@ -37,9 +43,24 @@ public class UpdateHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
+        final ResourceModel desiredResourceState = request.getDesiredResourceState();
         final String resourceName = "arn:" + request.getAwsPartition() + ":redshift:" + request.getRegion() + ":" + request.getAwsAccountId() + ":eventsubscription:" + request.getDesiredResourceState().getSubscriptionName();
+        Map<String, String> allDesiredTags = new HashMap<>();
+        allDesiredTags.putAll(Optional.ofNullable(request.getDesiredResourceTags()).orElse(Collections.emptyMap()));
+        allDesiredTags.putAll(Optional.ofNullable(
+                        Translator.translateFromResourceModelToSdkTags(desiredResourceState.getTags()))
+                .orElse(Collections.emptyMap()));
+        List<Tag> desiredTags = Translator.translateTagsMapToTagCollection(allDesiredTags);
 
-        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+
+        List<Tag> previousTags = request.getPreviousResourceState() == null ? null : request.getPreviousResourceState().getTags();
+        Map<String, String> allPreviousTags = new HashMap<>();
+        allPreviousTags.putAll(Optional.ofNullable(request.getPreviousResourceTags()).orElse(Collections.emptyMap()));
+        allPreviousTags.putAll(Optional.ofNullable(Translator.translateFromResourceModelToSdkTags(previousTags))
+                .orElse(Collections.emptyMap()));
+        List<Tag> currentTags = Translator.translateTagsMapToTagCollection(allPreviousTags);
+
+        return ProgressEvent.progress(desiredResourceState, callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-EventSubscription::Update::ReadTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                                 .translateToServiceRequest(resourceModel -> Translator.translateToReadTagsRequest(resourceName))
@@ -54,13 +75,13 @@ public class UpdateHandler extends BaseHandlerStd {
 
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-EventSubscription::Update::UpdateTags", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                                .translateToServiceRequest(resourceModel -> Translator.translateToUpdateTagsRequest(request.getDesiredResourceState(), resourceModel, resourceName))
+                                .translateToServiceRequest(resourceModel -> Translator.translateToUpdateTagsRequest(desiredTags, currentTags, resourceName))
                                 .makeServiceCall(this::updateTags)
                                 .handleError(this::operateTagsErrorHandler)
                                 .done((tagsRequest, tagsResponse, client, model, context) -> ProgressEvent.<ResourceModel, CallbackContext>builder()
                                         .callbackContext(callbackContext)
                                         .callbackDelaySeconds(0)
-                                        .resourceModel(request.getDesiredResourceState())
+                                        .resourceModel(desiredResourceState)
                                         .status(OperationStatus.IN_PROGRESS)
                                         .build()))
 

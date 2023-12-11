@@ -68,8 +68,8 @@ public class AbstractTestBase {
         SEVERITY = "DummySeverity";
         ENABLED = true;
         TAGS = new ArrayList<Tag>() {{
-            add(Tag.builder().key("DummyTag1").build());
-            add(Tag.builder().key("DummyTag2").build());
+            add(Tag.builder().key("DummyTag1").value("dummy1").build());
+            add(Tag.builder().key("DummyTag2").value("dummy2").build());
         }};
 
         CUSTOMER_AWS_ID = "DummyCustomerAwsId";
