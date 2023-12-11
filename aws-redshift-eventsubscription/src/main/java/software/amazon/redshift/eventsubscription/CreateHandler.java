@@ -21,6 +21,11 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
+import java.util.Map;
+import java.util.Collections;
+import java.util.Optional;
+import com.google.common.collect.Maps;
+
 public class CreateHandler extends BaseHandlerStd {
     private Logger logger;
 
@@ -33,10 +38,18 @@ public class CreateHandler extends BaseHandlerStd {
 
         this.logger = logger;
 
+        final ResourceModel resourceModel = request.getDesiredResourceState();
+        //Resource level + stack level tags
+        Map<String, String> convertedTags = Translator.translateFromResourceModelToSdkTags(resourceModel.getTags());
+        Map<String, String> mergedTags = Maps.newHashMap();
+
+        mergedTags.putAll(Optional.ofNullable(request.getDesiredResourceTags()).orElse(Collections.emptyMap()));
+        mergedTags.putAll(Optional.ofNullable(convertedTags).orElse(Collections.emptyMap()));
+
         return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
                 .then(progress ->
                         proxy.initiate("AWS-Redshift-EventSubscription::Create", proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                                .translateToServiceRequest(Translator::translateToCreateRequest)
+                                .translateToServiceRequest(model -> Translator.translateToCreateRequest(resourceModel, mergedTags))
                                 .makeServiceCall(this::createEventSubscription)
                                 .handleError(this::createEventSubscriptionErrorHandler)
                                 .progress()

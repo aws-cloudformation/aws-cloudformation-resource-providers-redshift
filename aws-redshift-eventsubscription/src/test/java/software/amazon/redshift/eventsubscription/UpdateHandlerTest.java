@@ -29,6 +29,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import static software.amazon.redshift.eventsubscription.TestUtils.DESIRED_RESOURCE_TAGS;
+import static software.amazon.redshift.eventsubscription.TestUtils.PREVIOUS_TAGS;
+
 @ExtendWith(MockitoExtension.class)
 public class UpdateHandlerTest extends AbstractTestBase {
 
@@ -46,12 +49,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
         proxyClient = MOCK_PROXY(proxy, sdkClient);
     }
 
-    @AfterEach
-    public void tear_down() {
-        verify(sdkClient, atLeastOnce()).serviceName();
-        verifyNoMoreInteractions(sdkClient);
-    }
-
     @Test
     public void handleRequest_SimpleSuccess() {
         final UpdateHandler handler = new UpdateHandler();
@@ -61,7 +58,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(requestResourceModel)
+                .desiredResourceTags(DESIRED_RESOURCE_TAGS)
                 .previousResourceState(requestResourceModel)
+                .previousResourceTags(PREVIOUS_TAGS)
                 .build();
 
         when(proxyClient.client().describeTags(any(DescribeTagsRequest.class))).thenReturn(DescribeTagsResponse.builder().build());

@@ -14,11 +14,14 @@ import software.amazon.awssdk.services.redshift.model.ModifyEventSubscriptionReq
 import software.amazon.awssdk.services.redshift.model.TaggedResource;
 
 import java.util.Collections;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class is a centralized placeholder for
@@ -34,9 +37,10 @@ public class Translator {
      * Request to create a resource
      *
      * @param model resource model
+     * @param tags  resource+stack tags
      * @return awsRequest the aws service request to create a resource
      */
-    static CreateEventSubscriptionRequest translateToCreateRequest(final ResourceModel model) {
+    static CreateEventSubscriptionRequest translateToCreateRequest(final ResourceModel model, final Map<String, String> tags) {
         return CreateEventSubscriptionRequest.builder()
                 .subscriptionName(model.getSubscriptionName())
                 .snsTopicArn(model.getSnsTopicArn())
@@ -45,7 +49,7 @@ public class Translator {
                 .eventCategories(model.getEventCategories())
                 .severity(model.getSeverity())
                 .enabled(model.getEnabled())
-                .tags(translateToSdkTags(model.getTags()))
+                .tags(translateToSdkTags(translateTagsMapToTagCollection(tags)))
                 .build();
     }
 
@@ -181,11 +185,11 @@ public class Translator {
      * @param resourceName         the arn of the requested resource
      * @return awsRequest the aws service request to update tags of a resource
      */
-    static ModifyTagsRequest translateToUpdateTagsRequest(final ResourceModel desiredResourceState,
-                                                          final ResourceModel currentResourceState,
+    static ModifyTagsRequest translateToUpdateTagsRequest(List<Tag> desiredTags,
+                                                          List<Tag> currentTags,
                                                           final String resourceName) {
-        List<Tag> toBeCreatedTags = subtract(desiredResourceState.getTags(), currentResourceState.getTags());
-        List<Tag> toBeDeletedTags = subtract(currentResourceState.getTags(), desiredResourceState.getTags());
+        List<Tag> toBeCreatedTags = subtract(desiredTags, currentTags);
+        List<Tag> toBeDeletedTags = subtract(currentTags, desiredTags);
 
         return ModifyTagsRequest.builder()
                 .createNewTagsRequest(CreateTagsRequest.builder()
@@ -206,6 +210,12 @@ public class Translator {
         return GSON.fromJson(GSON.toJson(tag), software.amazon.awssdk.services.redshift.model.Tag.class);
     }
 
+    private static <T> Stream<T> streamOfOrEmpty(final Collection<T> collection) {
+        return Optional.ofNullable(collection)
+                .map(Collection::stream)
+                .orElseGet(Stream::empty);
+    }
+
     public static List<software.amazon.awssdk.services.redshift.model.Tag> translateToSdkTags(List<Tag> modelTags) {
         return Optional.ofNullable(modelTags)
                 .map(tags -> tags
@@ -213,6 +223,21 @@ public class Translator {
                         .map(Translator::translateToSdkTag)
                         .collect(Collectors.toList()))
                 .orElse(null);
+    }
+
+    static List<Tag> translateTagsMapToTagCollection(final Map<String, String> tags) {
+        if (tags == null) return null;
+        return tags.keySet().stream()
+                .map(key -> Tag.builder().key(key).value(tags.get(key)).build())
+                .collect(Collectors.toList());
+    }
+
+    static Map<String, String> translateFromResourceModelToSdkTags(final List<Tag> listOfTags){
+
+        Map<String, String> sdkTags = streamOfOrEmpty(listOfTags)
+                .collect(Collectors.toMap(Tag::getKey, Tag::getValue ));
+
+        return sdkTags.isEmpty() ? null : sdkTags;
     }
 
     private static Tag translateToModelTag(software.amazon.awssdk.services.redshift.model.Tag tag) {
