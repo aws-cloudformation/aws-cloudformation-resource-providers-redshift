@@ -76,22 +76,17 @@ public class ReadHandler extends BaseHandlerStd {
                     progress = proxy.initiate("AWS-Redshift-Cluster::DescribeCluster", proxyClient, progress.getResourceModel(), callbackContext)
                             .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
                             .makeServiceCall(this::describeCluster)
-                            .done((_request, _response, _client, _model, _context) -> {
-                                return ProgressEvent.progress(Translator.translateFromReadResponse(_response), callbackContext);
-                            });
+                            .done(describeResponse -> ProgressEvent.progress(Translator.translateFromReadResponse(describeResponse), callbackContext));
                     return  progress;
                 })
-                .then(progress -> {
-                    logger.log("In Get");
-                    return proxy.initiate("AWS-Redshift-ResourcePolicy::Get", proxyClient, progress.getResourceModel(), callbackContext)
-                            .translateToServiceRequest(Translator::translateToGetResourcePolicy)
-                            .makeServiceCall(this::getNamespaceResourcePolicy)
-                            .done((_request, _response, _client, _model, _context) -> {
-                                _model.setNamespaceResourcePolicy(Translator.convertStringToJson(_response.resourcePolicy().policy(), logger));
-                                _model.setLoggingProperties(callbackContext.getLoggingProperties());
-                                return ProgressEvent.defaultSuccessHandler(_model);
-                            });
-                });
+                .then(progress -> proxy.initiate("AWS-Redshift-ResourcePolicy::Get", proxyClient, progress.getResourceModel(), callbackContext)
+                        .translateToServiceRequest(Translator::translateToGetResourcePolicy)
+                        .makeServiceCall(this::getNamespaceResourcePolicy)
+                        .done((_request, _response, _client, _model, _context) -> {
+                            _model.setNamespaceResourcePolicy(Translator.convertStringToJson(_response.resourcePolicy().policy(), logger));
+                            _model.setLoggingProperties(callbackContext.getLoggingProperties());
+                            return ProgressEvent.defaultSuccessHandler(_model);
+                        }));
     }
 
     /**

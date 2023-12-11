@@ -267,24 +267,36 @@ public class UpdateHandler extends BaseHandlerStd {
                             .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
                             .makeServiceCall(this::describeCluster)
                             .done((_request, _response, _client, _model, _context) -> {
-                                _model.setClusterNamespaceArn(Translator.translateFromReadResponse(_response).getClusterNamespaceArn());
-                                return ProgressEvent.progress(Translator.translateFromReadResponse(_response), callbackContext);
+                                _model = Translator.translateFromReadResponse(_response);
+                                model.setDeferMaintenanceIdentifier(_model.getDeferMaintenanceIdentifier());
+                                callbackContext.setNamespaceArn(_model.getClusterNamespaceArn());
+                                return ProgressEvent.progress(model, callbackContext);
                             });
                     return  progress;
                 })
                 .then(progress -> {
-                    if (model.getClusterNamespaceArn() != null && model.getNamespaceResourcePolicy() != null)  {
+                    if(issueModifyClusterMaintenanceRequest(model)) {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterMaintenance", proxyClient, model, callbackContext)
+                                .translateToServiceRequest(Translator:: translateToModifyClusterMaintenanceRequest)
+                                .makeServiceCall(this::modifyClusterMaintenance)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    if (callbackContext.getNamespaceArn() != null && model.getNamespaceResourcePolicy() != null)  {
                         if (model.getNamespaceResourcePolicy().isEmpty()) {
                             if (request.getPreviousResourceState().getNamespaceResourcePolicy() != null) {
                                 return proxy.initiate("AWS-Redshift-Cluster::DeleteNamespaceResourcePolicy", proxyClient, model, callbackContext)
-                                        .translateToServiceRequest(Translator::translateToDeleteResourcePolicyRequest)
+                                        .translateToServiceRequest(resourceModel -> Translator.translateToDeleteResourcePolicyRequest(resourceModel, callbackContext.getNamespaceArn()))
                                         .makeServiceCall(this::deleteNamespaceResourcePolicy)
                                         .progress();
                             }
                         }
                         else {
                             return proxy.initiate("AWS-Redshift-Cluster::PutNamespaceResourcePolicy", proxyClient, model, callbackContext)
-                                    .translateToServiceRequest(resourceModel -> Translator.translateToPutResourcePolicy(resourceModel, model.getClusterNamespaceArn(), logger))
+                                    .translateToServiceRequest(resourceModel -> Translator.translateToPutResourcePolicy(resourceModel, callbackContext.getNamespaceArn(), logger))
                                     .makeServiceCall(this::putNamespaceResourcePolicy)
                                     .progress();
                         }
@@ -327,17 +339,6 @@ public class UpdateHandler extends BaseHandlerStd {
                                     .message(String.format("Snapshot Copy is already enabled on Cluster %s. Invalid Request  %s", model.getClusterIdentifier(),HandlerErrorCode.InvalidRequest.getMessage()))
                                     .build();
                         }
-                    }
-                    return progress;
-                })
-
-                .then(progress -> {
-                    if (issueModifyClusterMaintenanceRequest(request.getPreviousResourceState(), model)) {
-                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterMaintenance", proxyClient, model, callbackContext)
-                                .translateToServiceRequest(Translator:: translateToModifyClusterMaintenanceRequest)
-                                .makeServiceCall(this::modifyClusterMaintenance)
-                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
-                                .progress();
                     }
                     return progress;
                 })
@@ -501,7 +502,6 @@ public class UpdateHandler extends BaseHandlerStd {
         } catch (SdkClientException | AwsServiceException e) {
             throw new CfnGeneralServiceException(e);
         }
-        logger.log(awsResponse.toString());
         logger.log(String.format("%s %s has successfully been read.", ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier()));
         return awsResponse;
     }

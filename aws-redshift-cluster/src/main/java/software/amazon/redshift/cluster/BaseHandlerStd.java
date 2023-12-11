@@ -196,12 +196,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
             ObjectUtils.notEqual(prevModel.getClusterType(), model.getClusterType());
   }
 
-  protected boolean issueModifyClusterMaintenanceRequest(ResourceModel prevModel, ResourceModel model) {
-    return ObjectUtils.allNotNull(model.getDeferMaintenance()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceDuration()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceStartTime()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceEndTime()) ||
-            ObjectUtils.allNotNull(model.getDeferMaintenanceIdentifier());
+  protected boolean issueModifyClusterMaintenanceRequest(ResourceModel model) {
+    return model.getDeferMaintenance() != null && (model.getDeferMaintenance() || model.getDeferMaintenanceIdentifier() != null);
   }
 
   // check for required parameters to not have null values

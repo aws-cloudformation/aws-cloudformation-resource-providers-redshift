@@ -17,8 +17,6 @@ import software.amazon.awssdk.services.redshift.model.ClusterSubnetGroupNotFound
 import software.amazon.awssdk.services.redshift.model.CreateClusterRequest;
 import software.amazon.awssdk.services.redshift.model.CreateClusterResponse;
 import software.amazon.awssdk.services.redshift.model.DependentServiceRequestThrottlingException;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
-import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.HsmClientCertificateNotFoundException;
@@ -39,6 +37,8 @@ import software.amazon.awssdk.services.redshift.model.InvalidSubnetException;
 import software.amazon.awssdk.services.redshift.model.InvalidTagException;
 import software.amazon.awssdk.services.redshift.model.InvalidVpcNetworkStateException;
 import software.amazon.awssdk.services.redshift.model.LimitExceededException;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceResponse;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesPerClusterLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.NumberOfNodesQuotaExceededException;
 import software.amazon.awssdk.services.redshift.model.PutResourcePolicyRequest;
@@ -148,6 +148,17 @@ public class CreateHandler extends BaseHandlerStd {
                         return proxy.initiate("AWS-Redshift-ResourcePolicy::Put", proxyClient, resourceModel, callbackContext)
                                 .translateToServiceRequest(resourceModelRequest -> Translator.translateToPutResourcePolicy(resourceModelRequest, callbackContext.getNamespaceArn(), logger))
                                 .makeServiceCall(this::putNamespaceResourcePolicy)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
+                                .progress();
+                    }
+                    return progress;
+                })
+                .then(progress -> {
+                    if (resourceModel.getDeferMaintenance() != null && resourceModel.getDeferMaintenance())  {
+                        return proxy.initiate("AWS-Redshift-Cluster::ModifyClusterMaintenance", proxyClient, resourceModel, callbackContext)
+                                .translateToServiceRequest(Translator:: translateToModifyClusterMaintenanceRequest)
+                                .makeServiceCall(this::modifyClusterMaintenance)
+                                .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();
                     }
                     return progress;
@@ -193,7 +204,6 @@ public class CreateHandler extends BaseHandlerStd {
         try {
             logger.log(String.format("createCluster for %s", createRequest.clusterIdentifier()));
             createResponse = proxyClient.injectCredentialsAndInvokeV2(createRequest, proxyClient.client()::createCluster);
-            logger.log(createResponse.toString());
         } catch (final ClusterAlreadyExistsException e) {
             throw new CfnAlreadyExistsException(ResourceModel.TYPE_NAME, createRequest.clusterIdentifier());
         }  catch (final InvalidClusterStateException | InvalidRetentionPeriodException | InsufficientClusterCapacityException |
@@ -209,7 +219,6 @@ public class CreateHandler extends BaseHandlerStd {
             throw new CfnGeneralServiceException(e);
         }
         logger.log(String.format("%s %s Create issued.", ResourceModel.TYPE_NAME, createRequest.clusterIdentifier()));
-
         return createResponse;
     }
 
@@ -237,22 +246,43 @@ public class CreateHandler extends BaseHandlerStd {
         final ProxyClient<RedshiftClient> proxyClient) {
             PutResourcePolicyResponse putResponse = null;
 
-            try {
-                logger.log(String.format("%s %s putResourcePolicy.", ResourceModel.TYPE_NAME,
-                        putRequest.resourceArn()));
-                putResponse = proxyClient.injectCredentialsAndInvokeV2(putRequest, proxyClient.client()::putResourcePolicy);
-                logger.log(putResponse.toString());
-            } catch (ResourceNotFoundException e){
-                throw new CfnNotFoundException(e);
-            } catch (InvalidPolicyException | UnsupportedOperationException | InvalidParameterValueException e) {
-                throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
-            } catch (SdkClientException | RedshiftException  e) {
-                throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
-            }
-
-            logger.log(String.format("%s successfully put resource policy.", putRequest.resourceArn()));
-            return putResponse;
+        try {
+            logger.log(String.format("%s %s putResourcePolicy.", ResourceModel.TYPE_NAME,
+                    putRequest.resourceArn()));
+            putResponse = proxyClient.injectCredentialsAndInvokeV2(putRequest, proxyClient.client()::putResourcePolicy);
+        } catch (ResourceNotFoundException e){
+            throw new CfnNotFoundException(e);
+        } catch (InvalidPolicyException | UnsupportedOperationException | InvalidParameterValueException e) {
+            throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
+        } catch (SdkClientException | RedshiftException  e) {
+            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
+
+        logger.log(String.format("%s successfully put resource policy.",  ResourceModel.TYPE_NAME));
+        return putResponse;
+    }
+
+    private ModifyClusterMaintenanceResponse modifyClusterMaintenance(
+            final ModifyClusterMaintenanceRequest modifyClusterMaintenanceRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        ModifyClusterMaintenanceResponse modifyClusterMaintenanceResponse = null;
+
+        try {
+            logger.log(String.format("%s %s modifyClusterMaintenance.", ResourceModel.TYPE_NAME,
+                    modifyClusterMaintenanceRequest.clusterIdentifier()));
+            modifyClusterMaintenanceResponse = proxyClient.injectCredentialsAndInvokeV2(modifyClusterMaintenanceRequest, proxyClient.client()::modifyClusterMaintenance);
+        } catch (final InvalidClusterStateException e ) {
+            throw new CfnInvalidRequestException(modifyClusterMaintenanceRequest.toString(), e);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, modifyClusterMaintenanceRequest.clusterIdentifier());
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(modifyClusterMaintenanceRequest.toString(), e);
+        }
+
+        logger.log(String.format("%s %s modifyClusterMaintenance issued.", ResourceModel.TYPE_NAME,
+                modifyClusterMaintenanceRequest.clusterIdentifier()));
+        return modifyClusterMaintenanceResponse;
+    }
 
     private void prepareResourceModel(ResourceHandlerRequest<ResourceModel> request) {
         if (request.getDesiredResourceState() == null) {
