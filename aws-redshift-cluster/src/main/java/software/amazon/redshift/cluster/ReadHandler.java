@@ -35,6 +35,9 @@ public class ReadHandler extends BaseHandlerStd {
     private Logger logger;
     private final String DESCRIBE_LOGGING_ERROR = "not authorized to perform: redshift:DescribeLoggingStatus";
     private final String DESCRIBE_LOGGING_ERROR_CODE = "403";
+    private final String GET_RESOURCE_POLICY_ERROR = "not authorized to perform: redshift:GetResourcePolicy";
+    private final String GET_RESOURCE_POLICY_ERROR_CODE = "403";
+
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
@@ -166,26 +169,18 @@ public class ReadHandler extends BaseHandlerStd {
             return GetResourcePolicyResponse.builder().resourcePolicy(resourcePolicy).build();
         } catch (InvalidPolicyException | UnsupportedOperationException e) {
             throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (RedshiftException e) {
+            if (e.awsErrorDetails().errorCode().equals(GET_RESOURCE_POLICY_ERROR_CODE) &&
+                    e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
+                logger.log(String.format("RedshiftException: User is not authorized to perform: redshift:GetResourcePolicy on resource %s",
+                        e.getMessage()));
+            } else {
+                throw new CfnGeneralServiceException(e);
+            }
+        } catch (SdkClientException | AwsServiceException e ) {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
         logger.log(String.format("%s  resource policy has successfully been read.", ResourceModel.TYPE_NAME));
         return getResponse;
-    }
-
-    /**
-     * Implement client invocation of the read request through the proxyClient, which is already initialised with
-     * caller credentials, correct region and retry settings
-     * @param awsResponse the aws service describe resource response
-     * @return progressEvent indicating success, in progress with delay callback or failed state
-     */
-    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromResponse(
-            final DescribeClustersResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse));
-    }
-
-    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeLoggingResponse(
-            final DescribeLoggingStatusResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeLoggingResponse(awsResponse));
     }
 }
