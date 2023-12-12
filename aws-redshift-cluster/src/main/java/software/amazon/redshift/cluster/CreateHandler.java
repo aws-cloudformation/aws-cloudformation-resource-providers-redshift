@@ -123,7 +123,6 @@ public class CreateHandler extends BaseHandlerStd {
                                     if(!callbackContext.getCallbackAfterClusterCreate()) {
                                         logger.log(String.format("Cluster Create done. %s %s stabilized and available.",ResourceModel.TYPE_NAME, resourceModel.getClusterIdentifier()));
                                         callbackContext.setCallbackAfterClusterCreate(true);
-                                        callbackContext.setNamespaceArn(_response.cluster().clusterNamespaceArn());
                                         logger.log ("Initiate a CallBack Delay of "+CALLBACK_DELAY_SECONDS+" seconds after Cluster Create.");
                                         return ProgressEvent.defaultInProgressHandler(callbackContext, CALLBACK_DELAY_SECONDS, _model);
                                     }
@@ -146,7 +145,7 @@ public class CreateHandler extends BaseHandlerStd {
                 .then(progress -> {
                     if (resourceModel.getClusterNamespaceArn() != null && resourceModel.getNamespaceResourcePolicy() != null) {
                         return proxy.initiate("AWS-Redshift-ResourcePolicy::Put", proxyClient, resourceModel, callbackContext)
-                                .translateToServiceRequest(resourceModelRequest -> Translator.translateToPutResourcePolicy(resourceModelRequest, callbackContext.getNamespaceArn(), logger))
+                                .translateToServiceRequest(model -> Translator.translateToPutResourcePolicy(resourceModel, logger))
                                 .makeServiceCall(this::putNamespaceResourcePolicy)
                                 .stabilize((_request, _response, _client, _model, _context) -> isClusterActive(_client, _model, _context))
                                 .progress();

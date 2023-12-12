@@ -914,9 +914,9 @@ public class Translator {
    * @param model resource model
    * @return putResourcePolicyRequest the service request to put a policy on resource
    */
-  static PutResourcePolicyRequest translateToPutResourcePolicy(final ResourceModel model, final String namespaceArn, Logger logger) {
+  static PutResourcePolicyRequest translateToPutResourcePolicy(final ResourceModel model, Logger logger) {
     return PutResourcePolicyRequest.builder()
-            .resourceArn(namespaceArn)
+            .resourceArn(model.getClusterNamespaceArn())
             .policy(convertJsonToString(model.getNamespaceResourcePolicy(), logger))
             .build();
   }
@@ -927,9 +927,9 @@ public class Translator {
             .build();
   }
 
-  static DeleteResourcePolicyRequest translateToDeleteResourcePolicyRequest(final ResourceModel model, final String namespaceArn) {
+  static DeleteResourcePolicyRequest translateToDeleteResourcePolicyRequest(final ResourceModel model) {
     return DeleteResourcePolicyRequest.builder()
-            .resourceArn(namespaceArn)
+            .resourceArn(model.getClusterNamespaceArn())
             .build();
   }
 
