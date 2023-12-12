@@ -37,6 +37,7 @@ public class ReadHandler extends BaseHandlerStd {
     private final String DESCRIBE_LOGGING_ERROR_CODE = "403";
     private final String GET_RESOURCE_POLICY_ERROR = "not authorized to perform: redshift:GetResourcePolicy";
     private final String GET_RESOURCE_POLICY_ERROR_CODE = "403";
+    private boolean NAMESPACE_RESOURCE_POLICY_ACTION = false;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
@@ -57,6 +58,13 @@ public class ReadHandler extends BaseHandlerStd {
                     .message(String.format("Cluster %s Not Found %s", model.getClusterIdentifier(),HandlerErrorCode.NotFound.getMessage()))
                     .build();
         }
+
+        /*
+        NAMESPACE_RESOURCE_POLICY_ACTION will be true if NamespaceResourcePolicy property is included in the template.
+        This attribute will be used to decide if "not authorized to perform: redshift:GetResourcePolicy" errors
+        in Read handler should be suppressed or not.
+         */
+        NAMESPACE_RESOURCE_POLICY_ACTION = model.getNamespaceResourcePolicy() != null;
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
@@ -156,7 +164,6 @@ public class ReadHandler extends BaseHandlerStd {
         GetResourcePolicyResponse getResponse = null;
 
         try {
-            logger.log(awsRequest.resourceArn());
             getResponse = proxyClient.injectCredentialsAndInvokeV2(
                     awsRequest, proxyClient.client()::getResourcePolicy);
         } catch (ResourceNotFoundException e){
@@ -169,13 +176,10 @@ public class ReadHandler extends BaseHandlerStd {
         } catch (InvalidPolicyException | UnsupportedOperationException e) {
             throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
         } catch (RedshiftException e) {
-            /* This error handling is required for backward compatibility. Since ResourcePolicy APIs
-            are new and might not be updated in the roles that create Clusters. Instead of throwing an
-            exception, we need to catch this and log the error, and continue with create cluster.
-            For new customers who want to use ResourcePolicy APIs, they first have to first CreateCluster
-            with NamespaceResourcePolicy property which needs both PutResourcePolicy and GetResourcePolicy
-            permissions, it's rare to hit this exception while creating cluster with namespace resource policy*/
-            if (e.awsErrorDetails().errorCode().equals(GET_RESOURCE_POLICY_ERROR_CODE) &&
+            /* This error handling is required for backward compatibility. Without this exception handling, existing customers creating
+            or updating their clusters will see an error with permission issues - "is not authorized to perform: redshift:GetResourcePolicy",
+            as Read handler is trying to hit getResourcePolicy APIs to get namespaceResourcePolicy details.*/
+            if(!NAMESPACE_RESOURCE_POLICY_ACTION && e.awsErrorDetails().errorCode().equals(GET_RESOURCE_POLICY_ERROR_CODE) &&
                     e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
                 logger.log(String.format("RedshiftException: User is not authorized to perform: redshift:GetResourcePolicy on resource %s",
                         e.getMessage()));
