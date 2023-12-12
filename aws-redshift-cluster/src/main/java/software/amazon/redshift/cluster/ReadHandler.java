@@ -169,6 +169,9 @@ public class ReadHandler extends BaseHandlerStd {
         } catch (InvalidPolicyException | UnsupportedOperationException e) {
             throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
         } catch (RedshiftException e) {
+            /* This error handling is required for backward compatibility. Since ResourcePolicy APIs
+            are new and might not be updated in the roles that create Clusters. Instead of throwing an
+            exception, we need to catch this and log the error, and continue with create cluster.*/
             if (e.awsErrorDetails().errorCode().equals(GET_RESOURCE_POLICY_ERROR_CODE) &&
                     e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
                 logger.log(String.format("RedshiftException: User is not authorized to perform: redshift:GetResourcePolicy on resource %s",
