@@ -265,12 +265,10 @@ public class UpdateHandler extends BaseHandlerStd {
                 .then(progress -> {
                     if (model.getClusterNamespaceArn() != null && model.getNamespaceResourcePolicy() != null)  {
                         if (model.getNamespaceResourcePolicy().isEmpty()) {
-                            if (request.getPreviousResourceState().getNamespaceResourcePolicy() != null) {
                                 return proxy.initiate("AWS-Redshift-Cluster::DeleteNamespaceResourcePolicy", proxyClient, model, callbackContext)
                                         .translateToServiceRequest(Translator::translateToDeleteResourcePolicyRequest)
                                         .makeServiceCall(this::deleteNamespaceResourcePolicy)
                                         .progress();
-                            }
                         }
                         else {
                             return proxy.initiate("AWS-Redshift-Cluster::PutNamespaceResourcePolicy", proxyClient, model, callbackContext)
