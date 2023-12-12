@@ -38,7 +38,6 @@ public class ReadHandler extends BaseHandlerStd {
     private final String GET_RESOURCE_POLICY_ERROR = "not authorized to perform: redshift:GetResourcePolicy";
     private final String GET_RESOURCE_POLICY_ERROR_CODE = "403";
 
-
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
         final ResourceHandlerRequest<ResourceModel> request,
