@@ -17,6 +17,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRespo
 import software.amazon.awssdk.services.redshift.model.EnableLoggingRequest;
 import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
 import software.amazon.awssdk.services.redshift.model.PutResourcePolicyRequest;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
@@ -262,6 +263,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(3))
                 .describeClusters(any(DescribeClustersRequest.class));
     }
+
     @Test
     public void testPutNamespaceResourcePolicy() {
         ResourceModel requestModel = createClusterRequestModel();
@@ -301,8 +303,54 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
         assertThat(response.getResourceModel()).isEqualTo(responseModel);
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
-        verify(proxyClient.client(), times(3))
+        verify(proxyClient.client(), times(4))
                 .describeClusters(any(DescribeClustersRequest.class));
+    }
 
+    @Test
+    public void testCreateClusterModifyClusterMaintenance() {
+        ResourceModel requestModel = createClusterRequestModel();
+        requestModel.setDeferMaintenance(true);
+        requestModel.setDeferMaintenanceDuration(DEFER_MAINTENANCE_DURATION);
+        requestModel.setDeferMaintenanceStartTime(DEFER_MAINTENANCE_START_TIME);
+
+        ResourceModel responseModel = createClusterResponseModel();
+        responseModel.setLoggingProperties(LOGGING_PROPERTIES_DISABLED);
+        responseModel.setDeferMaintenanceIdentifier(DEFER_MAINTENANCE_IDENTIFIER);
+        responseModel.setDeferMaintenanceEndTime(DEFER_MAINTENANCE_END_TIME);
+        responseModel.setDeferMaintenanceStartTime(DEFER_MAINTENANCE_START_TIME);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(requestModel)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().createCluster(any(CreateClusterRequest.class))).thenReturn(createClusterResponseSdk());
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseWithDeferMaintenanceSdk());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+        when(proxyClient.client().modifyClusterMaintenance(any(ModifyClusterMaintenanceRequest.class))).thenReturn(getModifyClusterMaintenanceResponseSdk());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel()).isEqualTo(responseModel);
+        verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
+        verify(proxyClient.client(), times(4))
+                .describeClusters(any(DescribeClustersRequest.class));
     }
 }

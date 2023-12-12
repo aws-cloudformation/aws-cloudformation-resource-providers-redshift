@@ -1,6 +1,7 @@
 package software.amazon.redshift.cluster;
 
 import java.lang.UnsupportedOperationException;
+import java.time.Instant;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -38,6 +39,10 @@ public class AbstractTestBase {
   protected static final LoggingProperties LOGGING_PROPERTIES;
   protected static final LoggingProperties LOGGING_PROPERTIES_DISABLED;
   protected static final software.amazon.awssdk.services.redshift.model.Tag TAG;
+  protected  static final Integer DEFER_MAINTENANCE_DURATION;
+  protected  static final String DEFER_MAINTENANCE_IDENTIFIER;
+  protected  static final String DEFER_MAINTENANCE_START_TIME;
+  protected  static final String DEFER_MAINTENANCE_END_TIME;
 
   static {
     MOCK_CREDENTIALS = new Credentials("accessKey", "secretKey", "token");
@@ -54,9 +59,12 @@ public class AbstractTestBase {
     BUCKET_NAME = "bucket-enable-logging";
     IAM_ROLE_ARN = "arn:aws:iam::" + AWS_ACCOUNT_ID + ":role/cfn_migration_test_IAM_role";
     CLUSTER_NAMESPACE_ARN = "arn:aws:redshift:" + AWS_REGION + ":" + AWS_ACCOUNT_ID + ":namespace/" + CLUSTER_NAMESPACE_UUID;
-
     NAMESPACE_POLICY = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Resource\": \"*\",\"Action\":\"test:test\"}]}";
     NAMESPACE_POLICY_EMPTY = "{}";
+    DEFER_MAINTENANCE_DURATION = 40;
+    DEFER_MAINTENANCE_IDENTIFIER = "cfn-defer-maintenance-identifier";
+    DEFER_MAINTENANCE_START_TIME = "2023-12-10T00:00:00Z";
+    DEFER_MAINTENANCE_END_TIME = "2024-01-19T00:00:00Z";
 
     RESOURCE_POLICY = ResourcePolicy.builder()
             .resourceArn(CLUSTER_NAMESPACE_ARN)
@@ -151,6 +159,7 @@ public class AbstractTestBase {
             .clusterNamespaceArn(CLUSTER_NAMESPACE_ARN)
             .build();
   }
+
   public static ResourceModel createClusterRequestModel() {
     return ResourceModel.builder()
             .clusterIdentifier(CLUSTER_IDENTIFIER)
@@ -239,4 +248,27 @@ public class AbstractTestBase {
             .build();
   }
 
+  public static DeferredMaintenanceWindow deferredMaintenanceWindow() {
+    return DeferredMaintenanceWindow.builder()
+            .deferMaintenanceIdentifier(DEFER_MAINTENANCE_IDENTIFIER)
+            .deferMaintenanceStartTime(Instant.parse(DEFER_MAINTENANCE_START_TIME))
+            .deferMaintenanceEndTime(Instant.parse(DEFER_MAINTENANCE_END_TIME))
+            .build();
+  }
+
+  public static ModifyClusterMaintenanceResponse getModifyClusterMaintenanceResponseSdk() {
+    return ModifyClusterMaintenanceResponse.builder()
+            .cluster(responseCluster().toBuilder()
+                    .deferredMaintenanceWindows(deferredMaintenanceWindow())
+                    .build())
+            .build();
+  }
+
+  public static DescribeClustersResponse describeClustersResponseWithDeferMaintenanceSdk() {
+    return DescribeClustersResponse.builder()
+            .clusters(responseCluster().toBuilder()
+                    .deferredMaintenanceWindows(deferredMaintenanceWindow())
+                    .build())
+            .build();
+  }
 }

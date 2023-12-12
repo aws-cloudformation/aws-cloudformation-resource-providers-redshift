@@ -36,10 +36,7 @@
                 "S3KeyPrefix": {
                     "type": "string"
                 }
-            },
-            "required": [
-                "BucketName"
-            ]
+            }
         },
         "Endpoint": {
             "type": "object",
@@ -192,9 +189,6 @@
             "description": "The name of the snapshot from which to create the new cluster. This parameter isn't case sensitive.",
             "type": "string"
         },
-        "Id": {
-            "type": "string"
-        },
         "OwnerAccount": {
             "type": "string"
         },
@@ -291,7 +285,6 @@
     },
     "additionalProperties": false,
     "required": [
-        "MasterUserPassword",
         "NodeType",
         "MasterUsername",
         "DBName",
@@ -318,7 +311,9 @@
     "writeOnlyProperties": [
         "/properties/MasterUserPassword",
         "/properties/Classic",
-        "/properties/SnapshotIdentifier"
+        "/properties/SnapshotIdentifier",
+        "/properties/DeferMaintenance",
+        "/properties/DeferMaintenanceDuration"
     ],
     "tagging": {
         "taggable": true
@@ -326,28 +321,37 @@
     "handlers": {
         "create": {
             "permissions": [
+                "iam:PassRole",
+                "iam:CreateServiceLinkedRole",
                 "redshift:DescribeClusters",
                 "redshift:CreateCluster",
                 "redshift:RestoreFromClusterSnapshot",
                 "redshift:EnableLogging",
+                "redshift:DescribeLoggingStatus",
                 "redshift:CreateTags",
                 "redshift:DescribeTags",
                 "redshift:GetResourcePolicy",
                 "redshift:PutResourcePolicy",
+                "redshift:ModifyClusterMaintenance",
                 "ec2:DescribeVpcs",
                 "ec2:DescribeSubnets",
                 "ec2:DescribeNetworkInterfaces",
                 "ec2:DescribeAddresses",
                 "ec2:AssociateAddress",
-                "ec2:DisassociateAddress",
                 "ec2:CreateNetworkInterface",
-                "ec2:DeleteNetworkInterface",
                 "ec2:ModifyNetworkInterfaceAttribute",
                 "ec2:CreateVpcEndpoint",
-                "ec2:DeleteVpcEndpoints",
                 "ec2:DescribeVpcEndpoints",
                 "ec2:ModifyVpcEndpoint",
-                "iam:CreateServiceLinkedRole",
+                "ec2:AllocateAddress",
+                "ec2:CreateSecurityGroup",
+                "ec2:DescribeVpcAttribute",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeInternetGateways",
+                "ec2:DescribeSecurityGroupRules",
+                "ec2:DescribeAvailabilityZones",
+                "ec2:DescribeNetworkAcls",
+                "ec2:DescribeRouteTables",
                 "cloudwatch:PutMetricData"
             ],
             "timeoutInMinutes": 2160
@@ -364,6 +368,7 @@
         },
         "update": {
             "permissions": [
+                "iam:PassRole",
                 "redshift:DescribeClusters",
                 "redshift:ModifyCluster",
                 "redshift:ModifyClusterIamRoles",
@@ -372,6 +377,7 @@
                 "redshift:DeleteTags",
                 "redshift:DescribeTags",
                 "redshift:DisableLogging",
+                "redshift:DescribeLoggingStatus",
                 "redshift:RebootCluster",
                 "redshift:EnableSnapshotCopy",
                 "redshift:DisableSnapshotCopy",
@@ -386,7 +392,9 @@
                 "redshift:RotateEncryptionKey",
                 "redshift:FailoverPrimaryCompute",
                 "redshift:PutResourcePolicy",
-                "redshift:DeleteResourcePolicy"
+                "redshift:GetResourcePolicy",
+                "redshift:DeleteResourcePolicy",
+                "cloudwatch:PutMetricData"
             ],
             "timeoutInMinutes": 2160
         },

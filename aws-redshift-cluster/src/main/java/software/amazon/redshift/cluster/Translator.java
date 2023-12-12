@@ -33,12 +33,12 @@ import software.amazon.awssdk.services.redshift.model.EnableSnapshotCopyRequest;
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.FailoverPrimaryComputeRequest;
 import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
-import software.amazon.awssdk.services.redshift.model.GetResourcePolicyResponse;
 import software.amazon.awssdk.services.redshift.model.HsmStatus;
 import software.amazon.awssdk.services.redshift.model.ModifyAquaConfigurationRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterDbRevisionRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterIamRolesRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
+import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceResponse;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterRequest;
 import software.amazon.awssdk.services.redshift.model.ModifySnapshotCopyRetentionPeriodRequest;
 import software.amazon.awssdk.services.redshift.model.PauseClusterRequest;
@@ -247,6 +247,14 @@ public class Translator {
             .deferMaintenanceIdentifier(model.getDeferMaintenanceIdentifier())
             .deferMaintenanceStartTime(model.getDeferMaintenanceStartTime() == null ? null : Instant.parse(model.getDeferMaintenanceStartTime()))
             .deferMaintenanceEndTime(model.getDeferMaintenanceEndTime() == null ? null : Instant.parse(model.getDeferMaintenanceEndTime()))
+            .build();
+  }
+
+  static ResourceModel translateFromModifyClusterMaintenanceRequest(final ModifyClusterMaintenanceResponse awsResponse) {
+    return ResourceModel.builder()
+            .deferMaintenanceIdentifier(awsResponse.cluster().deferredMaintenanceWindows().get(0).deferMaintenanceIdentifier())
+            .deferMaintenanceStartTime(awsResponse.cluster().deferredMaintenanceWindows().get(0).deferMaintenanceStartTime().toString())
+            .deferMaintenanceEndTime(awsResponse.cluster().deferredMaintenanceWindows().get(0).deferMaintenanceEndTime().toString())
             .build();
   }
 
@@ -906,9 +914,9 @@ public class Translator {
    * @param model resource model
    * @return putResourcePolicyRequest the service request to put a policy on resource
    */
-  static PutResourcePolicyRequest translateToPutResourcePolicy(final ResourceModel model, final String namespaceArn, Logger logger) {
+  static PutResourcePolicyRequest translateToPutResourcePolicy(final ResourceModel model, Logger logger) {
     return PutResourcePolicyRequest.builder()
-            .resourceArn(namespaceArn)
+            .resourceArn(model.getClusterNamespaceArn())
             .policy(convertJsonToString(model.getNamespaceResourcePolicy(), logger))
             .build();
   }
