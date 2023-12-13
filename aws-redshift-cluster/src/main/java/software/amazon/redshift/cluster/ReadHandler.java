@@ -37,7 +37,7 @@ public class ReadHandler extends BaseHandlerStd {
     private final String DESCRIBE_LOGGING_ERROR_CODE = "403";
     private final String GET_RESOURCE_POLICY_ERROR = "not authorized to perform: redshift:GetResourcePolicy";
     private final String GET_RESOURCE_POLICY_ERROR_CODE = "403";
-    private boolean NAMESPACE_RESOURCE_POLICY_ACTION = false;
+    private boolean containsResourcePolicy = false;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
@@ -60,11 +60,11 @@ public class ReadHandler extends BaseHandlerStd {
         }
 
         /*
-        NAMESPACE_RESOURCE_POLICY_ACTION will be true if NamespaceResourcePolicy property is included in the template.
+        containsResourcePolicy will be true if NamespaceResourcePolicy property is included in the template.
         This attribute will be used to decide if "not authorized to perform: redshift:GetResourcePolicy" errors
         in Read handler should be suppressed or not.
          */
-        NAMESPACE_RESOURCE_POLICY_ACTION = model.getNamespaceResourcePolicy() != null;
+        containsResourcePolicy = model.getNamespaceResourcePolicy() != null;
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
@@ -179,7 +179,7 @@ public class ReadHandler extends BaseHandlerStd {
             /* This error handling is required for backward compatibility. Without this exception handling, existing customers creating
             or updating their clusters will see an error with permission issues - "is not authorized to perform: redshift:GetResourcePolicy",
             as Read handler is trying to hit getResourcePolicy APIs to get namespaceResourcePolicy details.*/
-            if(!NAMESPACE_RESOURCE_POLICY_ACTION && e.awsErrorDetails().errorCode().equals(GET_RESOURCE_POLICY_ERROR_CODE) &&
+            if(!containsResourcePolicy && e.awsErrorDetails().errorCode().equals(GET_RESOURCE_POLICY_ERROR_CODE) &&
                     e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
                 logger.log(String.format("RedshiftException: User is not authorized to perform: redshift:GetResourcePolicy on resource %s",
                         e.getMessage()));
