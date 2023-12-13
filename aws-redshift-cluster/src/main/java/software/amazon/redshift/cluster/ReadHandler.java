@@ -35,6 +35,9 @@ public class ReadHandler extends BaseHandlerStd {
     private Logger logger;
     private final String DESCRIBE_LOGGING_ERROR = "not authorized to perform: redshift:DescribeLoggingStatus";
     private final String DESCRIBE_LOGGING_ERROR_CODE = "403";
+    private final String GET_RESOURCE_POLICY_ERROR = "not authorized to perform: redshift:GetResourcePolicy";
+    private final String GET_RESOURCE_POLICY_ERROR_CODE = "403";
+    private boolean containsResourcePolicy = false;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
         final AmazonWebServicesClientProxy proxy,
@@ -55,6 +58,13 @@ public class ReadHandler extends BaseHandlerStd {
                     .message(String.format("Cluster %s Not Found %s", model.getClusterIdentifier(),HandlerErrorCode.NotFound.getMessage()))
                     .build();
         }
+
+        /*
+        containsResourcePolicy will be true if NamespaceResourcePolicy property is included in the template.
+        This attribute will be used to decide if "not authorized to perform: redshift:GetResourcePolicy" errors
+        in Read handler should be suppressed or not.
+         */
+        containsResourcePolicy = model.getNamespaceResourcePolicy() != null;
 
         return ProgressEvent.progress(model, callbackContext)
                 .then(progress -> {
@@ -154,7 +164,6 @@ public class ReadHandler extends BaseHandlerStd {
         GetResourcePolicyResponse getResponse = null;
 
         try {
-            logger.log(awsRequest.resourceArn());
             getResponse = proxyClient.injectCredentialsAndInvokeV2(
                     awsRequest, proxyClient.client()::getResourcePolicy);
         } catch (ResourceNotFoundException e){
@@ -166,26 +175,21 @@ public class ReadHandler extends BaseHandlerStd {
             return GetResourcePolicyResponse.builder().resourcePolicy(resourcePolicy).build();
         } catch (InvalidPolicyException | UnsupportedOperationException e) {
             throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
-        } catch (SdkClientException | RedshiftException e) {
+        } catch (RedshiftException e) {
+            /* This error handling is required for backward compatibility. Without this exception handling, existing customers creating
+            or updating their clusters will see an error with permission issues - "is not authorized to perform: redshift:GetResourcePolicy",
+            as Read handler is trying to hit getResourcePolicy APIs to get namespaceResourcePolicy details.*/
+            if(!containsResourcePolicy && e.awsErrorDetails().errorCode().equals(GET_RESOURCE_POLICY_ERROR_CODE) &&
+                    e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
+                logger.log(String.format("RedshiftException: User is not authorized to perform: redshift:GetResourcePolicy on resource %s",
+                        e.getMessage()));
+            } else {
+                throw new CfnGeneralServiceException(e);
+            }
+        } catch (SdkClientException | AwsServiceException e ) {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
         logger.log(String.format("%s  resource policy has successfully been read.", ResourceModel.TYPE_NAME));
         return getResponse;
-    }
-
-    /**
-     * Implement client invocation of the read request through the proxyClient, which is already initialised with
-     * caller credentials, correct region and retry settings
-     * @param awsResponse the aws service describe resource response
-     * @return progressEvent indicating success, in progress with delay callback or failed state
-     */
-    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromResponse(
-            final DescribeClustersResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadResponse(awsResponse));
-    }
-
-    private ProgressEvent<ResourceModel, CallbackContext> constructResourceModelFromDescribeLoggingResponse(
-            final DescribeLoggingStatusResponse awsResponse) {
-        return ProgressEvent.defaultSuccessHandler(Translator.translateFromDescribeLoggingResponse(awsResponse));
     }
 }
