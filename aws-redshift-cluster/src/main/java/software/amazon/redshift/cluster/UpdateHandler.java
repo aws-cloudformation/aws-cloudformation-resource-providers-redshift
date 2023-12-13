@@ -263,6 +263,18 @@ public class UpdateHandler extends BaseHandlerStd {
                     return progress;
                 })
                 .then(progress -> {
+                    progress = proxy.initiate("AWS-Redshift-Cluster::DescribeClustersReadOnly", proxyClient, model, callbackContext)
+                            .translateToServiceRequest(Translator::translateToDescribeClusterRequest)
+                            .makeServiceCall(this::describeCluster)
+                            .done((_request, _response, _client, _model, _context) -> {
+                                _model = Translator.translateFromReadResponse(_response);
+                                model.setDeferMaintenanceIdentifier(_model.getDeferMaintenanceIdentifier());
+                                model.setClusterNamespaceArn(_model.getClusterNamespaceArn());
+                                return ProgressEvent.progress(model, callbackContext);
+                            });
+                    return  progress;
+                })
+                .then(progress -> {
                     if (model.getClusterNamespaceArn() != null && model.getNamespaceResourcePolicy() != null)  {
                         if (model.getNamespaceResourcePolicy().isEmpty()) {
                                 return proxy.initiate("AWS-Redshift-Cluster::DeleteNamespaceResourcePolicy", proxyClient, model, callbackContext)
@@ -472,6 +484,25 @@ public class UpdateHandler extends BaseHandlerStd {
                 })
                 .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
         }
+
+    private DescribeClustersResponse describeCluster (
+            final DescribeClustersRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
+        DescribeClustersResponse awsResponse = null;
+        try {
+            logger.log(String.format("%s %s describeClusters.", ResourceModel.TYPE_NAME,
+                    awsRequest.clusterIdentifier()));
+            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+        } catch (final ClusterNotFoundException e) {
+            throw new CfnNotFoundException(ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier(), e);
+        } catch (final InvalidTagException e) {
+            throw new CfnInvalidRequestException(e);
+        } catch (SdkClientException | AwsServiceException e) {
+            throw new CfnGeneralServiceException(e);
+        }
+        logger.log(String.format("%s %s has successfully been read.", ResourceModel.TYPE_NAME, awsRequest.clusterIdentifier()));
+        return awsResponse;
+    }
 
     private ModifyClusterResponse updateCluster(
             final ModifyClusterRequest modifyRequest,
