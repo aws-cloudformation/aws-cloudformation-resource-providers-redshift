@@ -963,7 +963,11 @@ public class Translator {
     };
     try {
       if (policy != null) {
-        json = mapper.readValue(URLDecoder.decode(policy, StandardCharsets.UTF_8.toString()), typeRef);
+          if (policy.isEmpty()) {
+              logger.log("Empty NamespaceResourcePolicy");
+          } else {
+              json = mapper.readValue(URLDecoder.decode(policy, StandardCharsets.UTF_8.toString()), typeRef);
+        }
       }
     } catch (IOException e) {
       logger.log("Error parsing Policy String to Json");
