@@ -246,8 +246,7 @@ public class CreateHandler extends BaseHandlerStd {
             PutResourcePolicyResponse putResponse = null;
 
         try {
-            logger.log(String.format("%s %s putResourcePolicy.", ResourceModel.TYPE_NAME,
-                    putRequest.resourceArn()));
+            logger.log(String.format("PutResourcePolicy for Cluster Namespace %s", putRequest.resourceArn()));
             putResponse = proxyClient.injectCredentialsAndInvokeV2(putRequest, proxyClient.client()::putResourcePolicy);
         } catch (ResourceNotFoundException e){
             throw new CfnNotFoundException(e);
