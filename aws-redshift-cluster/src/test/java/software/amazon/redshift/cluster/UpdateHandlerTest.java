@@ -486,10 +486,10 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         // todo: make tests more independent so we can add tests like this elsewhere
         verify(handler).sleep(10);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length == 1);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length == 17);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length).isEqualTo(1);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length).isEqualTo(21);
 
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("MasterUserPassword"));
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0]).isEqualTo("MasterUserPassword");
 
         List<String> insensitiveFileds = Arrays.asList(
                 "AllowVersionUpgrade",
@@ -513,9 +513,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         );
 
         for (int i = 0; i < insensitiveFileds.size(); i++) {
-            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i].equals(
-                    insensitiveFileds.get(i)
-            ));
+            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i]).isEqualTo(
+                    insensitiveFileds.get(i));
         }
     }
 
@@ -568,11 +567,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         // todo: make tests more independent so we can add tests like this elsewhere
         verify(handler).sleep(10);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length == 1);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length == 18);
-
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("Encrypted"));
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0].equals("MultiAZ"));
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length).isEqualTo(1);
+        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length).isEqualTo(21);
 
         List<String> insensitiveFileds = Arrays.asList(
                 "AllowVersionUpgrade",
@@ -597,9 +593,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
         );
 
         for (int i = 0; i < insensitiveFileds.size(); i++) {
-            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i].equals(
+            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i]).isEqualTo(
                     insensitiveFileds.get(i)
-            ));
+            );
         }
     }
 
