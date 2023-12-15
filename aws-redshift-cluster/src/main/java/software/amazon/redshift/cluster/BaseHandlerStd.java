@@ -207,7 +207,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   // check for required parameters to not have null values
   protected boolean invalidCreateClusterRequest(ResourceModel model) {
     return model.getClusterIdentifier() == null || model.getNodeType() == null
-            || model.getMasterUsername() == null || model.getMasterUserPassword() == null;
+            || model.getMasterUsername() == null;
   }
 
   protected boolean issueModifyClusterParameterGroupRequest(ResourceModel prevModel, ResourceModel model) {

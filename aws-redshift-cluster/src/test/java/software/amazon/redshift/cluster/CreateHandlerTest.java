@@ -19,6 +19,8 @@ import software.amazon.awssdk.services.redshift.model.EnableLoggingResponse;
 import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
 import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRequest;
 import software.amazon.awssdk.services.redshift.model.PutResourcePolicyRequest;
+import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
+import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -41,6 +43,9 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_ENABLED;
+import static software.amazon.redshift.cluster.TestUtils.MANAGED_ADMIN_PASSWORD_CLUSTER;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_PASSWORD_SECRET_ARN;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_PASSWORD_SECRET_KMS_KEY_ID;
 
 @ExtendWith(MockitoExtension.class)
 public class CreateHandlerTest extends AbstractTestBase {
@@ -353,4 +358,110 @@ public class CreateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client(), times(4))
                 .describeClusters(any(DescribeClustersRequest.class));
     }
+
+    @Test
+    public void testCreateCluster_ManagedAdminPassword() {
+        ResourceModel requestModel = createClusterRequestModel();
+        requestModel.setMasterUserPassword(null);
+        requestModel.setManageMasterPassword(true);
+        requestModel.setMasterPasswordSecretKmsKeyId(MASTER_PASSWORD_SECRET_KMS_KEY_ID);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(requestModel)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().createCluster(any(CreateClusterRequest.class)))
+                .thenReturn(CreateClusterResponse.builder()
+                        .cluster(MANAGED_ADMIN_PASSWORD_CLUSTER)
+                        .build());
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(MANAGED_ADMIN_PASSWORD_CLUSTER)
+                        .build());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getClusterIdentifier()).
+                isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
+        assertThat(response.getResourceModel().getMasterPasswordSecretArn()).
+                isEqualTo(MASTER_PASSWORD_SECRET_ARN);
+        assertThat(response.getResourceModel().getMasterPasswordSecretKmsKeyId()).
+                isEqualTo(request.getDesiredResourceState().getMasterPasswordSecretKmsKeyId());
+        assertThat(response.getResourceModel().getMasterUserPassword()).isNull();
+
+        verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
+        verify(proxyClient.client(), times(3))
+                .describeClusters(any(DescribeClustersRequest.class));
+    }
+
+    @Test
+    public void testRestoreCluster_ManagedAdminPassword() {
+        ResourceModel requestModel = restoreClusterRequestModel();
+        requestModel.setMasterUserPassword(null);
+        requestModel.setManageMasterPassword(true);
+        requestModel.setMasterPasswordSecretKmsKeyId(MASTER_PASSWORD_SECRET_KMS_KEY_ID);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(requestModel)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .build();
+
+        when(proxyClient.client().restoreFromClusterSnapshot(any(RestoreFromClusterSnapshotRequest.class))).thenReturn(RestoreFromClusterSnapshotResponse.builder()
+                .cluster(MANAGED_ADMIN_PASSWORD_CLUSTER)
+                .build());
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(MANAGED_ADMIN_PASSWORD_CLUSTER)
+                        .build());
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+        assertThat(response.getResourceModel().getClusterIdentifier()).
+                isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
+        assertThat(response.getResourceModel().getMasterPasswordSecretArn()).
+                isEqualTo(MASTER_PASSWORD_SECRET_ARN);
+        assertThat(response.getResourceModel().getMasterPasswordSecretKmsKeyId()).
+                isEqualTo(request.getDesiredResourceState().getMasterPasswordSecretKmsKeyId());
+        assertThat(response.getResourceModel().getMasterUserPassword()).isNull();
+
+        verify(proxyClient.client()).restoreFromClusterSnapshot(any(RestoreFromClusterSnapshotRequest.class));
+        verify(proxyClient.client(), times(3))
+                .describeClusters(any(DescribeClustersRequest.class));
+    }
+
 }

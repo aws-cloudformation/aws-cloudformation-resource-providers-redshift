@@ -14,7 +14,6 @@ import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.ClusterIamRole;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
-import software.amazon.awssdk.services.redshift.model.DeleteResourcePolicyRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
 import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
@@ -61,7 +60,10 @@ import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_RESOURCE_HANDLER_REQUEST;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_PASSWORD_SECRET_ARN;
 import static software.amazon.redshift.cluster.TestUtils.MULTIAZ_CLUSTER;
+import static software.amazon.redshift.cluster.TestUtils.MANAGED_ADMIN_PASSWORD_CLUSTER;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_PASSWORD_SECRET_KMS_KEY_ID;
 import static software.amazon.redshift.cluster.TestUtils.modifyAttribute;
 
 @ExtendWith(MockitoExtension.class)
@@ -601,6 +603,171 @@ public class UpdateHandlerTest extends AbstractTestBase {
         }
     }
 
+    @Test
+    public void testModify_OptInManagedMasterPassword() {
+        ResourceModel previousModel = BASIC_MODEL.toBuilder().build();
+
+        ResourceModel updateModel = BASIC_MODEL.toBuilder()
+                .manageMasterPassword(true)
+                .masterPasswordSecretKmsKeyId(MASTER_PASSWORD_SECRET_KMS_KEY_ID)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .build();
+
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder().build();
+        Cluster modifiedCluster = MANAGED_ADMIN_PASSWORD_CLUSTER.toBuilder().build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+
+        assertThat(response.getResourceModel().getMasterPasswordSecretArn()).
+                isEqualTo(MASTER_PASSWORD_SECRET_ARN);
+        assertThat(response.getResourceModel().getMasterPasswordSecretKmsKeyId()).
+                isEqualTo(request.getDesiredResourceState().getMasterPasswordSecretKmsKeyId());
+        assertThat(response.getResourceModel().getMasterUserPassword()).isNull();
+
+
+        verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
+     }
+
+    @Test
+    public void testModify_OptOutManagedMasterPassword() {
+        ResourceModel previousModel = BASIC_MODEL.toBuilder()
+                .masterUserPassword(null)
+                .manageMasterPassword(true)
+                .masterPasswordSecretKmsKeyId(MASTER_PASSWORD_SECRET_KMS_KEY_ID)
+                .build();
+
+        ResourceModel updateModel = BASIC_MODEL.toBuilder().build();
+
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .build();
+
+        Cluster existingCluster = MANAGED_ADMIN_PASSWORD_CLUSTER.toBuilder().build();
+        Cluster modifiedCluster = BASIC_CLUSTER.toBuilder().build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+
+        assertThat(response.getResourceModel().getMasterPasswordSecretArn()).isNull();
+        assertThat(response.getResourceModel().getMasterPasswordSecretKmsKeyId()).isNull();
+
+        verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
+    }
+
+    @Test
+    public void testModify_UpdateMasterPasswordSecretKmsKeyId() {
+        ResourceModel previousModel = BASIC_MODEL.toBuilder()
+                .manageMasterPassword(true)
+                .masterPasswordSecretKmsKeyId(MASTER_PASSWORD_SECRET_KMS_KEY_ID)
+                .build();
+
+        String newMasterPasswordSecretKmsKeyId = MASTER_PASSWORD_SECRET_KMS_KEY_ID + "2";
+        ResourceModel updateModel = BASIC_MODEL.toBuilder()
+                .manageMasterPassword(true)
+                .masterPasswordSecretKmsKeyId(newMasterPasswordSecretKmsKeyId)
+                .build();
+
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .build();
+
+        Cluster existingCluster = MANAGED_ADMIN_PASSWORD_CLUSTER.toBuilder().build();
+        Cluster modifiedCluster = MANAGED_ADMIN_PASSWORD_CLUSTER.toBuilder().masterPasswordSecretKmsKeyId(newMasterPasswordSecretKmsKeyId).build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
+
+        when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+
+        assertThat(response.getResourceModel().getMasterPasswordSecretArn()).
+                isEqualTo(MASTER_PASSWORD_SECRET_ARN);
+        assertThat(response.getResourceModel().getMasterPasswordSecretKmsKeyId()).
+                isEqualTo(request.getDesiredResourceState().getMasterPasswordSecretKmsKeyId());
+        assertThat(response.getResourceModel().getMasterUserPassword()).isNull();
+
+        verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
+    }
+
     private static boolean BOOLEAN_BEFORE = true;
     private static boolean BOOLEAN_AFTER = false;
 
@@ -628,7 +795,9 @@ public class UpdateHandlerTest extends AbstractTestBase {
                 Arguments.of("Port", 100, 200),
                 Arguments.of("PreferredMaintenanceWindow", "before-window", "after-window"),
                 Arguments.of("PubliclyAccessible", BOOLEAN_BEFORE, BOOLEAN_AFTER),
-                Arguments.of("VpcSecurityGroupIds", Arrays.asList("before-sg-id"), Arrays.asList("after-sg-id"))
+                Arguments.of("VpcSecurityGroupIds", Arrays.asList("before-sg-id"), Arrays.asList("after-sg-id")),
+                Arguments.of("ManageMasterPassword", BOOLEAN_BEFORE, BOOLEAN_AFTER),
+                Arguments.of("MasterPasswordSecretKmsKeyId", "before-kms", "after-kms")
         );
     }
 
@@ -690,7 +859,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
                         .cluster(modifiedCluster)
                         .build());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
-
 
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
