@@ -67,7 +67,7 @@
             "maxLength": 128
         },
         "MasterUserPassword": {
-            "description": "The password associated with the master user account for the cluster that is being created. Password must be between 8 and 64 characters in length, should have at least one uppercase letter.Must contain at least one lowercase letter.Must contain one number.Can be any printable ASCII character.",
+            "description": "The password associated with the master user account for the cluster that is being created. You can't use MasterUserPassword if ManageMasterPassword is true. Password must be between 8 and 64 characters in length, should have at least one uppercase letter.Must contain at least one lowercase letter.Must contain one number.Can be any printable ASCII character.",
             "type": "string",
             "maxLength": 64
         },
@@ -281,6 +281,18 @@
         "NamespaceResourcePolicy": {
             "description": "The namespace resource policy document that will be attached to a Redshift cluster.",
             "type": "object"
+        },
+        "ManageMasterPassword": {
+            "description": "A boolean indicating if the redshift cluster's admin user credentials is managed by Redshift or not. You can't use MasterUserPassword if ManageMasterPassword is true. If ManageMasterPassword is false or not set, Amazon Redshift uses MasterUserPassword for the admin user account's password.",
+            "type": "boolean"
+        },
+        "MasterPasswordSecretKmsKeyId": {
+            "description": "The ID of the Key Management Service (KMS) key used to encrypt and store the cluster's admin user credentials secret.",
+            "type": "string"
+        },
+        "MasterPasswordSecretArn": {
+            "description": "The Amazon Resource Name (ARN) for the cluster's admin user credentials secret.",
+            "type": "string"
         }
     },
     "additionalProperties": false,
@@ -297,7 +309,8 @@
         "/properties/DeferMaintenanceIdentifier",
         "/properties/Endpoint/Port",
         "/properties/Endpoint/Address",
-        "/properties/ClusterNamespaceArn"
+        "/properties/ClusterNamespaceArn",
+        "/properties/MasterPasswordSecretArn"
     ],
     "createOnlyProperties": [
         "/properties/ClusterIdentifier",
@@ -313,7 +326,8 @@
         "/properties/Classic",
         "/properties/SnapshotIdentifier",
         "/properties/DeferMaintenance",
-        "/properties/DeferMaintenanceDuration"
+        "/properties/DeferMaintenanceDuration",
+        "/properties/ManageMasterPassword"
     ],
     "tagging": {
         "taggable": true

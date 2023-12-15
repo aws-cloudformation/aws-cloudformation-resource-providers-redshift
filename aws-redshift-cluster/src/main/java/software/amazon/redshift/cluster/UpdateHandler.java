@@ -137,7 +137,9 @@ public class UpdateHandler extends BaseHandlerStd {
             "PreferredMaintenanceWindow",
             "PubliclyAccessible",
             "VpcSecurityGroupIds",
-            "MultiAZ"
+            "MultiAZ",
+            "ManageMasterPassword",
+            "MasterPasswordSecretKmsKeyId"
     };
     public static final String[] DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE = new String[] {
             "MasterUserPassword"

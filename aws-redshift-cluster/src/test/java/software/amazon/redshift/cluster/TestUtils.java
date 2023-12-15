@@ -25,6 +25,8 @@ public class TestUtils {
     final static String OWNER_ACCOUNT_NO = "1111";
     final static String MULTIAZ_ENABLED = "Enabled";
     final static String MULTIAZ_DISABLED = "Disabled";
+    final static String MASTER_PASSWORD_SECRET_KMS_KEY_ID = "master-password-secret-kms-key-id";
+    final static String MASTER_PASSWORD_SECRET_ARN = "secret-arn";
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterStatus("available")
@@ -61,6 +63,26 @@ public class TestUtils {
             .clusterSecurityGroups(Collections.emptyList())
             .iamRoles(Collections.emptyList())
             .vpcSecurityGroups(Collections.emptyList())
+            .build();
+
+    final static Cluster MANAGED_ADMIN_PASSWORD_CLUSTER = Cluster.builder()
+            .clusterStatus("available")
+            .clusterAvailabilityStatus("Available")
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
+            .masterUsername(MASTER_USERNAME)
+            .nodeType(NODETYPE)
+            .numberOfNodes(NUMBER_OF_NODES)
+            .allowVersionUpgrade(true)
+            .automatedSnapshotRetentionPeriod(0)
+            .encrypted(false)
+            .enhancedVpcRouting(false)
+            .manualSnapshotRetentionPeriod(1)
+            .publiclyAccessible(false)
+            .clusterSecurityGroups(Collections.emptyList())
+            .iamRoles(Collections.emptyList())
+            .vpcSecurityGroups(Collections.emptyList())
+            .masterPasswordSecretArn(MASTER_PASSWORD_SECRET_ARN)
+            .masterPasswordSecretKmsKeyId(MASTER_PASSWORD_SECRET_KMS_KEY_ID)
             .build();
 
     final static Cluster BASIC_CLUSTER_READ = Cluster.builder()

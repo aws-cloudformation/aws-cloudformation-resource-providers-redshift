@@ -61,7 +61,9 @@ To declare this entity in your AWS CloudFormation template, use the following sy
         "<a href="#resourceaction" title="ResourceAction">ResourceAction</a>" : <i>String</i>,
         "<a href="#rotateencryptionkey" title="RotateEncryptionKey">RotateEncryptionKey</a>" : <i>Boolean</i>,
         "<a href="#multiaz" title="MultiAZ">MultiAZ</a>" : <i>Boolean</i>,
-        "<a href="#namespaceresourcepolicy" title="NamespaceResourcePolicy">NamespaceResourcePolicy</a>" : <i>Map</i>
+        "<a href="#namespaceresourcepolicy" title="NamespaceResourcePolicy">NamespaceResourcePolicy</a>" : <i>Map</i>,
+        "<a href="#managemasterpassword" title="ManageMasterPassword">ManageMasterPassword</a>" : <i>Boolean</i>,
+        "<a href="#masterpasswordsecretkmskeyid" title="MasterPasswordSecretKmsKeyId">MasterPasswordSecretKmsKeyId</a>" : <i>String</i>,
     }
 }
 </pre>
@@ -125,6 +127,8 @@ Properties:
     <a href="#rotateencryptionkey" title="RotateEncryptionKey">RotateEncryptionKey</a>: <i>Boolean</i>
     <a href="#multiaz" title="MultiAZ">MultiAZ</a>: <i>Boolean</i>
     <a href="#namespaceresourcepolicy" title="NamespaceResourcePolicy">NamespaceResourcePolicy</a>: <i>Map</i>
+    <a href="#managemasterpassword" title="ManageMasterPassword">ManageMasterPassword</a>: <i>Boolean</i>
+    <a href="#masterpasswordsecretkmskeyid" title="MasterPasswordSecretKmsKeyId">MasterPasswordSecretKmsKeyId</a>: <i>String</i>
 </pre>
 
 ## Properties
@@ -155,7 +159,7 @@ _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/l
 
 #### MasterUserPassword
 
-The password associated with the master user account for the cluster that is being created. Password must be between 8 and 64 characters in length, should have at least one uppercase letter.Must contain at least one lowercase letter.Must contain one number.Can be any printable ASCII character.
+The password associated with the master user account for the cluster that is being created. You can't use MasterUserPassword if ManageMasterPassword is true. Password must be between 8 and 64 characters in length, should have at least one uppercase letter.Must contain at least one lowercase letter.Must contain one number.Can be any printable ASCII character.
 
 _Required_: No
 
@@ -646,6 +650,26 @@ _Type_: Map
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
+#### ManageMasterPassword
+
+A boolean indicating if the redshift cluster's admin user credentials is managed by Redshift or not. You can't use MasterUserPassword if ManageMasterPassword is true. If ManageMasterPassword is false or not set, Amazon Redshift uses MasterUserPassword for the admin user account's password.
+
+_Required_: No
+
+_Type_: Boolean
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
+#### MasterPasswordSecretKmsKeyId
+
+The ID of the Key Management Service (KMS) key used to encrypt and store the cluster's admin user credentials secret.
+
+_Required_: No
+
+_Type_: String
+
+_Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
+
 ## Return Values
 
 ### Ref
@@ -673,3 +697,7 @@ Returns the <code>Address</code> value.
 #### ClusterNamespaceArn
 
 The Amazon Resource Name (ARN) of the cluster namespace.
+
+#### MasterPasswordSecretArn
+
+The Amazon Resource Name (ARN) for the cluster's admin user credentials secret.
