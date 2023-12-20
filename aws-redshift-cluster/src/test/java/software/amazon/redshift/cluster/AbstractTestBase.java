@@ -24,6 +24,7 @@ public class AbstractTestBase {
   protected static final String AWS_PARTITION;
   protected static final String AWS_ACCOUNT_ID;
   protected static final String CLUSTER_IDENTIFIER;
+  protected static final String SNAPSHOT_IDENTIFIER;
   protected static final String CLUSTER_NAMESPACE_UUID;
   protected static final String MASTER_USERNAME;
   protected static final String MASTER_USERPASSWORD;
@@ -65,6 +66,7 @@ public class AbstractTestBase {
     DEFER_MAINTENANCE_IDENTIFIER = "cfn-defer-maintenance-identifier";
     DEFER_MAINTENANCE_START_TIME = "2023-12-10T00:00:00Z";
     DEFER_MAINTENANCE_END_TIME = "2024-01-19T00:00:00Z";
+    SNAPSHOT_IDENTIFIER = "redshift-cluster-1-snapshot";
 
     RESOURCE_POLICY = ResourcePolicy.builder()
             .resourceArn(CLUSTER_NAMESPACE_ARN)
@@ -178,6 +180,12 @@ public class AbstractTestBase {
             .iamRoles(Collections.emptyList())
             .vpcSecurityGroupIds(Collections.emptyList())
             .tags(Collections.emptyList())
+            .build();
+  }
+
+  public static ResourceModel restoreClusterRequestModel() {
+    return createClusterRequestModel().toBuilder()
+            .snapshotIdentifier(SNAPSHOT_IDENTIFIER)
             .build();
   }
 

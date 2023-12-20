@@ -114,6 +114,8 @@ public class Translator {
             .enhancedVpcRouting(model.getEnhancedVpcRouting())
             .maintenanceTrackName(model.getMaintenanceTrackName())
             .multiAZ(model.getMultiAZ())
+            .manageMasterPassword(model.getManageMasterPassword())
+            .masterPasswordSecretKmsKeyId(model.getMasterPasswordSecretKmsKeyId())
             .build();
   }
 
@@ -593,6 +595,17 @@ public class Translator {
             .findAny()
             .orElse(null);
 
+    final String masterPasswordSecretArn = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::masterPasswordSecretArn)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
+
+    final String masterPasswordSecretKmsKeyId = streamOfOrEmpty(awsResponse.clusters())
+            .map(software.amazon.awssdk.services.redshift.model.Cluster::masterPasswordSecretKmsKeyId)
+            .filter(Objects::nonNull)
+            .findAny()
+            .orElse(null);
 
     return ResourceModel.builder()
             .clusterIdentifier(clusterIdentifier)
@@ -634,6 +647,8 @@ public class Translator {
             .deferMaintenanceIdentifier(translateDeferMaintenanceIdentifierFromSdk(deferMaintenanceWindows))
             .deferMaintenanceStartTime(translateDeferMaintenanceStartTimeFromSdk(deferMaintenanceWindows))
             .deferMaintenanceEndTime(translateDeferMaintenanceEndTimeFromSdk(deferMaintenanceWindows))
+            .masterPasswordSecretArn(masterPasswordSecretArn)
+            .masterPasswordSecretKmsKeyId(masterPasswordSecretKmsKeyId)
             .build();
   }
 
@@ -683,7 +698,7 @@ public class Translator {
   static ModifyClusterRequest translateToUpdateRequest(final ResourceModel model, final ResourceModel prevModel) {
     ModifyClusterRequest modifyClusterRequest =  ModifyClusterRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
-            .masterUserPassword(model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
+            .masterUserPassword(model.getMasterUserPassword() == null || model.getMasterUserPassword().equals(prevModel.getMasterUserPassword()) ? null : model.getMasterUserPassword())
             .allowVersionUpgrade(model.getAllowVersionUpgrade() == null || model.getAllowVersionUpgrade().equals(prevModel.getAllowVersionUpgrade()) ? null : model.getAllowVersionUpgrade())
             .automatedSnapshotRetentionPeriod(model.getAutomatedSnapshotRetentionPeriod() == null || model.getAutomatedSnapshotRetentionPeriod().equals(prevModel.getAutomatedSnapshotRetentionPeriod()) ? null : model.getAutomatedSnapshotRetentionPeriod())
             //.clusterParameterGroupName(model.getClusterParameterGroupName() == null || model.getClusterParameterGroupName().equals(prevModel.getClusterParameterGroupName()) ? null : model.getClusterParameterGroupName())
@@ -706,6 +721,8 @@ public class Translator {
             .maintenanceTrackName(model.getMaintenanceTrackName() == null || model.getMaintenanceTrackName().equals(prevModel.getMaintenanceTrackName()) ? null : model.getMaintenanceTrackName())
             .enhancedVpcRouting(model.getEnhancedVpcRouting() == null || model.getEnhancedVpcRouting().equals(prevModel.getEnhancedVpcRouting()) ? null : model.getEnhancedVpcRouting())
             .multiAZ(model.getMultiAZ() == null || model.getMultiAZ().equals(prevModel.getMultiAZ()) ? null : model.getMultiAZ())
+            .manageMasterPassword(model.getManageMasterPassword())
+            .masterPasswordSecretKmsKeyId(model.getMasterPasswordSecretKmsKeyId() == null || model.getMasterPasswordSecretKmsKeyId().equals(prevModel.getMasterPasswordSecretKmsKeyId()) ? null : model.getMasterPasswordSecretKmsKeyId())
             .build();
 
     return modifyClusterRequest;
@@ -877,6 +894,8 @@ public class Translator {
             .numberOfNodes(model.getNumberOfNodes())
             .encrypted(model.getEncrypted())
             .multiAZ(model.getMultiAZ())
+            .manageMasterPassword(model.getManageMasterPassword())
+            .masterPasswordSecretKmsKeyId(model.getMasterPasswordSecretKmsKeyId())
             .build();
   }
 

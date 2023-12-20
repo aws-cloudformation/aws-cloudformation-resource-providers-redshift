@@ -3,6 +3,8 @@ package software.amazon.redshift.cluster;
 import com.amazonaws.util.CollectionUtils;
 import com.amazonaws.util.StringUtils;
 import com.google.common.collect.Sets;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
@@ -204,10 +206,16 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
               ObjectUtils.allNotNull(model.getDeferMaintenanceIdentifier());
   }
 
-  // check for required parameters to not have null values
   protected boolean invalidCreateClusterRequest(ResourceModel model) {
-    return model.getClusterIdentifier() == null || model.getNodeType() == null
-            || model.getMasterUsername() == null || model.getMasterUserPassword() == null;
+    // check for required parameters to not have null values
+    boolean isInvalid = model.getClusterIdentifier() == null || model.getNodeType() == null
+        || model.getMasterUsername() == null;
+
+    // check if either MasterUserPassword is provided or ManageMasterPassword is true
+    if (model.getMasterUserPassword() == null) {
+      return !BooleanUtils.isTrue(model.getManageMasterPassword()) || isInvalid;
+    }
+    return isInvalid;
   }
 
   protected boolean issueModifyClusterParameterGroupRequest(ResourceModel prevModel, ResourceModel model) {
