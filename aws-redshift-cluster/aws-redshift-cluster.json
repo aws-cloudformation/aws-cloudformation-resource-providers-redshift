@@ -306,11 +306,9 @@
         "/properties/ClusterIdentifier"
     ],
     "readOnlyProperties": [
-        "/properties/DeferMaintenanceIdentifier",
         "/properties/Endpoint/Port",
         "/properties/Endpoint/Address",
-        "/properties/ClusterNamespaceArn",
-        "/properties/MasterPasswordSecretArn"
+        "/properties/ClusterNamespaceArn"
     ],
     "createOnlyProperties": [
         "/properties/ClusterIdentifier",
@@ -322,12 +320,38 @@
         "/properties/MasterUsername"
     ],
     "writeOnlyProperties": [
-        "/properties/MasterUserPassword",
         "/properties/Classic",
         "/properties/SnapshotIdentifier",
+        "/properties/SnapshotClusterIdentifier",
+        "/properties/SnapshotCopyManual",
+        "/properties/SnapshotCopyGrantName",
+        "/properties/SnapshotCopyRetentionPeriod",
         "/properties/DeferMaintenance",
+        "/properties/DeferMaintenanceIdentifier",
+        "/properties/DeferMaintenanceStartTime",
+        "/properties/DeferMaintenanceEndTime",
         "/properties/DeferMaintenanceDuration",
-        "/properties/ManageMasterPassword"
+        "/properties/MasterUserPassword",
+        "/properties/ManageMasterPassword",
+        "/properties/MasterPasswordSecretKmsKeyId",
+        "/properties/MasterPasswordSecretArn",
+        "/properties/KmsKeyId",
+        "/properties/RotateEncryptionKey",
+        "/properties/ResourceAction",
+        "/properties/AvailabilityZoneRelocation",
+        "/properties/HsmConfigurationIdentifier",
+        "/properties/HsmClientCertificateIdentifier",
+        "/properties/NamespaceResourcePolicy",
+        "/properties/RevisionTarget",
+        "/properties/NamespaceResourcePolicy",
+        "/properties/ElasticIp",
+        "/properties/NamespaceResourcePolicy",
+        "/properties/Tags",
+        "/properties/Tags/*/Key",
+        "/properties/Tags/*/Value",
+        "/properties/OwnerAccount",
+        "/properties/DestinationRegion",
+        "/properties/LoggingProperties"
     ],
     "tagging": {
         "taggable": true
