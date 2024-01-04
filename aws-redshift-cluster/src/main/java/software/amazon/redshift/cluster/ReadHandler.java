@@ -171,7 +171,8 @@ public class ReadHandler extends BaseHandlerStd {
             logger.log(String.format("NamespaceResourcePolicy not found for namespace %s", awsRequest.resourceArn()));
             return noOpNamespaceResourcePoliy(awsRequest);
         } catch (InvalidPolicyException | UnsupportedOperationException e) {
-            // ResourcePolicy is not enabled in all regions.
+            /* ResourcePolicy is not enabled in all regions, we should handle unsupported operation exception
+            if NamespaceResourcePolicy is not added as a property while creating Cluster resource. */
             if(!containsResourcePolicy && e.statusCode() == RESOURCE_POLICY_UNSUPPORTED_ERR_STATUS_CODE &&
                     e.awsErrorDetails().errorMessage().contains(RESOURCE_POLICY_UNSUPPORTED_ERROR)) {
                 logger.log(e.getMessage());
