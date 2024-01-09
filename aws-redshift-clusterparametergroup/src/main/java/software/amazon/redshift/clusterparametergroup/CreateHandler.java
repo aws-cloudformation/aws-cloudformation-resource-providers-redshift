@@ -1,6 +1,7 @@
 package software.amazon.redshift.clusterparametergroup;
 
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.ClusterParameterGroupAlreadyExistsException;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.Collections;
 import com.google.common.collect.Maps;
 
+
 public class CreateHandler extends BaseHandlerStd {
     private static final int MAX_CLUSTER_PARAMETER_GROUP_NAME_LENGTH = 255;
     private Logger logger;
@@ -39,6 +41,15 @@ public class CreateHandler extends BaseHandlerStd {
 
         final ResourceModel resourceModel = request.getDesiredResourceState();
 
+        if (StringUtils.isBlank(resourceModel.getParameterGroupName())) {
+            logger.log(String.format("%s Updating cluster paramater group identifier", ResourceModel.TYPE_NAME));
+            resourceModel.setParameterGroupName(IdentifierUtils.generateResourceIdentifier(
+                    ObjectUtils.defaultIfNull(request.getStackId(), RandomStringUtils.randomAlphabetic(1)),
+                    ObjectUtils.defaultIfNull(request.getLogicalResourceIdentifier(), UUID.randomUUID().toString()),
+                    ObjectUtils.defaultIfNull(request.getClientRequestToken(), UUID.randomUUID().toString()),
+                    MAX_CLUSTER_PARAMETER_GROUP_NAME_LENGTH).toLowerCase());
+        }
+
         //Resource level + stack level tags
         Map<String, String> convertedTags = Translator.translateFromResourceModelToSdkTags(resourceModel.getTags());
         Map<String, String> mergedTags = Maps.newHashMap();
@@ -47,26 +58,6 @@ public class CreateHandler extends BaseHandlerStd {
         mergedTags.putAll(Optional.ofNullable(convertedTags).orElse(Collections.emptyMap()));
 
         return ProgressEvent.progress(resourceModel, callbackContext)
-                .then(progress -> proxy.initiate(String.format("%s::GeneratePrimaryIdentifier", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
-                        .translateToServiceRequest((model) -> null)
-                        .makeServiceCall((awsRequest, client) -> null)
-                        .done((awsRequest, awsResponse, client, model, context) -> ProgressEvent.<ResourceModel, CallbackContext>builder()
-                                .callbackContext(context)
-                                .callbackDelaySeconds(0)
-                                .resourceModel(Optional.ofNullable(model.getParameterGroupName())
-                                        .map(s -> model)
-                                        .orElse(model.toBuilder()
-                                                .parameterGroupName(IdentifierUtils.generateResourceIdentifier(
-                                                                ObjectUtils.defaultIfNull(request.getStackId(), RandomStringUtils.randomAlphabetic(1)),
-                                                                ObjectUtils.defaultIfNull(request.getLogicalResourceIdentifier(), UUID.randomUUID().toString()),
-                                                                ObjectUtils.defaultIfNull(request.getClientRequestToken(), UUID.randomUUID().toString()),
-                                                                MAX_CLUSTER_PARAMETER_GROUP_NAME_LENGTH)
-                                                        .toLowerCase())
-                                                .build()))
-                                .status(OperationStatus.IN_PROGRESS)
-                                .build())
-                )
-
                 .then(progress -> proxy.initiate(String.format("%s::Create", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(model -> Translator.translateToCreateRequest(resourceModel, mergedTags))
                         .makeServiceCall(this::createClusterParameterGroup)
