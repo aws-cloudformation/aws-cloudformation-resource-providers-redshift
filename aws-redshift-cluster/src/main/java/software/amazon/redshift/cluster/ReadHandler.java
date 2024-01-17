@@ -171,27 +171,16 @@ public class ReadHandler extends BaseHandlerStd {
             logger.log(String.format("NamespaceResourcePolicy not found for namespace %s", awsRequest.resourceArn()));
             return noOpNamespaceResourcePoliy(awsRequest);
         } catch (InvalidPolicyException | UnsupportedOperationException e) {
-            /* ResourcePolicy is not enabled in all regions, we should handle unsupported operation exception
-            if NamespaceResourcePolicy is not added as a property while creating Cluster resource. */
-            if(!containsResourcePolicy && e.statusCode() == RESOURCE_POLICY_UNSUPPORTED_ERR_STATUS_CODE &&
+            logger.log(String.format("Status Code: %s , Error Message: %s ", e.statusCode(), e.awsErrorDetails().errorMessage()));
+            /* ResourcePolicy is not enabled in all regions, we should handle unsupported operation exception */
+            if(e.statusCode() == RESOURCE_POLICY_UNSUPPORTED_ERR_STATUS_CODE &&
                     e.awsErrorDetails().errorMessage().contains(RESOURCE_POLICY_UNSUPPORTED_ERROR)) {
                 logger.log(e.getMessage());
                 return noOpNamespaceResourcePoliy(awsRequest);
             } else {
                 throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
             }
-        } catch (RedshiftException e) {
-            /* This error handling is required for backward compatibility. Without this exception handling, existing customers creating
-            or updating their clusters will see an error with permission issues - "is not authorized to perform: redshift:GetResourcePolicy",
-            as Read handler is trying to hit getResourcePolicy APIs to get namespaceResourcePolicy details.*/
-            if(!containsResourcePolicy && e.statusCode() == GET_RESOURCE_POLICY_ERR_STATUS_CODE &&
-                    e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
-                logger.log(String.format("RedshiftException:  %s", e.getMessage()));
-                return noOpNamespaceResourcePoliy(awsRequest);
-            } else {
-                throw new CfnGeneralServiceException(e);
-            }
-        } catch (SdkClientException | AwsServiceException e ) {
+        } catch (AwsServiceException | SdkClientException e) {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
         logger.log(String.format("%s  resource policy has successfully been read.", ResourceModel.TYPE_NAME));
