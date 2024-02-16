@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWS::Redshift::ClusterParameterGroup",
     "language": "java",
-    "runtime": "java8",
+    "runtime": "java17",
     "entrypoint": "software.amazon.redshift.clusterparametergroup.HandlerWrapper::handleRequest",
     "testEntrypoint": "software.amazon.redshift.clusterparametergroup.HandlerWrapper::testEntrypoint",
     "settings": {

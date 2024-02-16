@@ -12,12 +12,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.redshift.endpointaccess.HandlerWrapper::handleRequest
-      Runtime: java8
+      Runtime: java17
       CodeUri: ./target/aws-redshift-endpointaccess-handler-1.0-SNAPSHOT.jar
 
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.redshift.endpointaccess.HandlerWrapper::testEntrypoint
-      Runtime: java8
+      Runtime: java17
       CodeUri: ./target/aws-redshift-endpointaccess-handler-1.0-SNAPSHOT.jar

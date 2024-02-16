@@ -11,7 +11,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.redshift.clustersubnetgroup.HandlerWrapper::handleRequest
-      Runtime: java8
+      Runtime: java17
       MemorySize: 256
       CodeUri: ./target/aws-redshift-clustersubnetgroup-handler-1.0-SNAPSHOT.jar
 
@@ -19,6 +19,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.redshift.clustersubnetgroup.HandlerWrapper::testEntrypoint
-      Runtime: java8
+      Runtime: java17
       MemorySize: 256
       CodeUri: ./target/aws-redshift-clustersubnetgroup-handler-1.0-SNAPSHOT.jar

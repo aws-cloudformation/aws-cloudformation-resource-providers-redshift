@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWS::Redshift::ClusterSubnetGroup",
     "language": "java",
-    "runtime": "java8",
+    "runtime": "java17",
     "entrypoint": "software.amazon.redshift.clustersubnetgroup.HandlerWrapper::handleRequest",
     "testEntrypoint": "software.amazon.redshift.clustersubnetgroup.HandlerWrapper::testEntrypoint",
     "settings": {
