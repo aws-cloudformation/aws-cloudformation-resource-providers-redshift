@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWS::Redshift::ScheduledAction",
     "language": "java",
-    "runtime": "java8",
+    "runtime": "java17",
     "entrypoint": "software.amazon.redshift.scheduledaction.HandlerWrapper::handleRequest",
     "testEntrypoint": "software.amazon.redshift.scheduledaction.HandlerWrapper::testEntrypoint",
     "settings": {

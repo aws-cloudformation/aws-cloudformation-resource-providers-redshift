@@ -2,7 +2,7 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWS::Redshift::EventSubscription",
     "language": "java",
-    "runtime": "java8",
+    "runtime": "java17",
     "entrypoint": "software.amazon.redshift.eventsubscription.HandlerWrapper::handleRequest",
     "testEntrypoint": "software.amazon.redshift.eventsubscription.HandlerWrapper::testEntrypoint",
     "settings": {
