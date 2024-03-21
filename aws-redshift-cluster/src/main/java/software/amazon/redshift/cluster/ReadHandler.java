@@ -180,7 +180,18 @@ public class ReadHandler extends BaseHandlerStd {
             } else {
                 throw new CfnInvalidRequestException(ResourceModel.TYPE_NAME, e);
             }
-        } catch (AwsServiceException | SdkClientException e) {
+        } catch (RedshiftException e) {
+            /* This error handling is required for backward compatibility. Without this exception handling, existing customers creating
+            or updating their clusters will see an error with permission issues - "is not authorized to perform: redshift:GetResourcePolicy",
+            as Read handler is trying to hit getResourcePolicy APIs to get namespaceResourcePolicy details.*/
+          if(!containsResourcePolicy && e.statusCode() == GET_RESOURCE_POLICY_ERR_STATUS_CODE &&
+              e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
+            logger.log(String.format("RedshiftException:  %s", e.getMessage()));
+            return noOpNamespaceResourcePoliy(awsRequest);
+          } else {
+            throw new CfnGeneralServiceException(e);
+          }
+        } catch (SdkClientException | AwsServiceException e ) {
             throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
         logger.log(String.format("%s  resource policy has successfully been read.", ResourceModel.TYPE_NAME));
