@@ -184,15 +184,19 @@ public class ReadHandler extends BaseHandlerStd {
             /* This error handling is required for backward compatibility. Without this exception handling, existing customers creating
             or updating their clusters will see an error with permission issues - "is not authorized to perform: redshift:GetResourcePolicy",
             as Read handler is trying to hit getResourcePolicy APIs to get namespaceResourcePolicy details.*/
-          if(!containsResourcePolicy && e.statusCode() == GET_RESOURCE_POLICY_ERR_STATUS_CODE &&
-              e.awsErrorDetails().errorMessage().contains(GET_RESOURCE_POLICY_ERROR)) {
-            logger.log(String.format("RedshiftException:  %s", e.getMessage()));
-            return noOpNamespaceResourcePoliy(awsRequest);
-          } else {
-            throw new CfnGeneralServiceException(e);
-          }
-        } catch (SdkClientException | AwsServiceException e ) {
-            throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
+            /* This commit catches all the RedshiftException if NamespaceResourcePolicy is not in the CFN template,
+             which might catch more exceptions than intended, we're doing this to unblock existing customers who
+             don't specify the resource policy at all.
+             We'll see if this all-inclusive catch makes sense, then make changes if needed.
+             */
+            if(!containsResourcePolicy) {
+                logger.log(String.format("RedshiftException:  %s", e.getMessage()));
+                return noOpNamespaceResourcePoliy(awsRequest);
+            } else {
+                throw new CfnGeneralServiceException(e);
+            }
+          } catch (SdkClientException | AwsServiceException e ) {
+              throw new CfnGeneralServiceException(ResourceModel.TYPE_NAME, e);
         }
         logger.log(String.format("%s  resource policy has successfully been read.", ResourceModel.TYPE_NAME));
         return getResponse;
