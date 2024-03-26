@@ -1,5 +1,6 @@
 {
     "CREATE": {
+        "/SubscriptionName": "redshift-event-subscription-contract-V2",
         "/SnsTopicArn": "{{RedshiftEventSubscriptionContractSns}}",
         "/SourceIds": [],
         "/Tags": [],
