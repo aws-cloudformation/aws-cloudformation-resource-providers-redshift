@@ -108,9 +108,11 @@ import java.util.Optional;
 import java.util.HashMap;
 import java.util.stream.Stream;
 
+import static software.amazon.redshift.cluster.Translator.DEFAULT_TRACK_NAME;
+import static software.amazon.redshift.cluster.Translator.shouldModifyMaintenanceTrack;
+
 public class UpdateHandler extends BaseHandlerStd {
     private Logger logger;
-    private final String RESOURCE_NAME_PREFIX = "arn:aws:redshift:";
 
     /*
     Any 1 or 1+ attribute(s) value(s) change(s) will trigger a modifyClusterRequest,
@@ -118,32 +120,54 @@ public class UpdateHandler extends BaseHandlerStd {
 
     Detectable meaning we only support modifyClusterRequest if the included attributes in Cluster model change.
      */
-    public static final String[] DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE = new String[] {
-            "AllowVersionUpgrade",
-            "AutomatedSnapshotRetentionPeriod",
-            "AvailabilityZone",
-            "AvailabilityZoneRelocation",
-            "ClusterSecurityGroups",
-            "ClusterVersion",
-            "ElasticIp",
-            "Encrypted",
-            "EnhancedVpcRouting",
-            "HsmClientCertificateIdentifier",
-            "HsmConfigurationIdentifier",
-            "KmsKeyId",
-            "MaintenanceTrackName",
-            "ManualSnapshotRetentionPeriod",
-            "Port",
-            "PreferredMaintenanceWindow",
-            "PubliclyAccessible",
-            "VpcSecurityGroupIds",
-            "MultiAZ",
-            "ManageMasterPassword",
-            "MasterPasswordSecretKmsKeyId"
-    };
-    public static final String[] DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE = new String[] {
-            "MasterUserPassword"
-    };
+    enum DetectableModifyClusterAttribute {
+        // insensitive fields
+        ALLOW_VERSION_UPGRADE("AllowVersionUpgrade"),
+        AUTOMATED_SNAPSHOT_RETENTION_PERIOD("AutomatedSnapshotRetentionPeriod"),
+        AVAILABILITY_ZONE("AvailabilityZone"),
+        AVAILABILITY_ZONE_RELOCATION("AvailabilityZoneRelocation"),
+        CLUSTER_SECURITY_GROUPS("ClusterSecurityGroups"),
+        CLUSTER_VERSION("ClusterVersion"),
+        ELASTIC_IP("ElasticIp"),
+        ENCRYPTED("Encrypted"),
+        ENHANCED_VPC_ROUTING("EnhancedVpcRouting"),
+        HSM_CLIENT_CERTIFICATE_IDENTIFIER("HsmClientCertificateIdentifier"),
+        HSM_CONFIGURATION_IDENTIFIER("HsmConfigurationIdentifier"),
+        KMS_KEY_ID("KmsKeyId"),
+        MAINTENANCE_TRACK_NAME("MaintenanceTrackName"),
+        MANUAL_SNAPSHOT_RETENTION_PERIOD("ManualSnapshotRetentionPeriod"),
+        PORT("Port"),
+        PREFERRED_MAINTENANCE_WINDOW("PreferredMaintenanceWindow"),
+        PUBLICLY_ACCESSIBLE("PubliclyAccessible"),
+        VPC_SECURITY_GROUP_IDS("VpcSecurityGroupIds"),
+        MULTI_AZ("MultiAZ"),
+        MANAGE_MASTER_PASSWORD("ManageMasterPassword"),
+        MASTER_PASSWORD_SECRET_KMS_KEY_ID("MasterPasswordSecretKmsKeyId"),
+        // sensitive fields
+        MASTER_USER_PASSWORD("MasterUserPassword", true);
+
+        private final String stringValue;
+        private final boolean isSensitiveField;
+
+        // Constructor to set the string value for each constant
+        DetectableModifyClusterAttribute(String stringValue, boolean isSensitiveField) {
+            this.stringValue = stringValue;
+            this.isSensitiveField = isSensitiveField;
+        }
+
+        DetectableModifyClusterAttribute(String stringValue) {
+            this.stringValue = stringValue;
+            this.isSensitiveField = false;
+        }
+
+        public String getStringValue() {
+            return this.stringValue;
+        }
+
+        public boolean isSensitiveField() {
+            return this.isSensitiveField;
+        }
+    }
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -979,30 +1003,40 @@ public class UpdateHandler extends BaseHandlerStd {
     As always, never log anything sensitive :)
      */
     private boolean shouldModifyCluster(ResourceModel oldModel, ResourceModel newModel) {
-        // any 1 or more attribute value change regardless of sensitive/insensitive,
-        // will trigger a modifyClusterRequest
-        // get combined attributes (insensitive + sensitive)
-        final String[] allAttributes = Stream
-                .concat(
-                        Arrays.stream(DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE),
-                        Arrays.stream(DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE)
-                ).toArray(String[]::new);
-
         boolean shouldModifyCluster = false;
-
         logger.log("Checking cluster attribute values changes for ModifyCluster...");
 
         // for loop to log every attribute's value change for debugging
-        for (String attribute : allAttributes) {
+        for (DetectableModifyClusterAttribute attributeEnum : DetectableModifyClusterAttribute.values()) {
+            final String attribute = attributeEnum.getStringValue();
+
+            boolean attributeValueChanged;
+
             final Object oldModelValue = getAttributeValue(oldModel, attribute);
             final Object newModelValue = getAttributeValue(newModel, attribute);
 
-            boolean attributeValueChanged = ObjectUtils.notEqual(oldModelValue, newModelValue);
+            // if we don't provide any track name when we call create-cluster API,
+            // the default track name is "current"
+            // when cx updates the CFN template to include a track name, "current",
+            // we used to call modify-cluster with track("current"),
+            // and we'd get exception "track is already on 'current'".
+            // The following check is to avoid this unnecessary update call
+
+            // There is potentially better/cleaner solutions to provide default value for CFN property,
+            // but it'll take a while to set up.
+            // we will revisit this once CFN team tells us more how it works
+
+            // we only need to check if attributeValueChanged is true (when modify-cluster is potentially needed)
+            if (attributeEnum == DetectableModifyClusterAttribute.MAINTENANCE_TRACK_NAME) {
+                attributeValueChanged = shouldModifyMaintenanceTrack(oldModel, newModel);
+            } else {
+                attributeValueChanged = ObjectUtils.notEqual(oldModelValue, newModelValue);
+            }
 
             // if an attribute changed, we log both values,
             // i.e. "PubliclyAccessible change from true to false"
             if (attributeValueChanged) {
-                if (Arrays.asList(DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE).contains(attribute)) {
+                if (attributeEnum.isSensitiveField()) {
                     // Be CAREFUL, we don't log any sensitive attribute values
                     logger.log(String.format("Sensitive attribute %s changed", attribute));
                 } else {

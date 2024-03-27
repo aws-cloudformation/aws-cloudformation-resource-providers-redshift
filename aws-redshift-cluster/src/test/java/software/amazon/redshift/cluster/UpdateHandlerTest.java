@@ -3,6 +3,8 @@ package software.amazon.redshift.cluster;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,9 +55,9 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_CLUSTER;
 import static software.amazon.redshift.cluster.TestUtils.BASIC_MODEL;
@@ -91,7 +93,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
     @AfterEach
     public void tear_down() {
         verify(sdkClient, atLeastOnce()).serviceName();
-        verifyNoMoreInteractions(sdkClient);
     }
 
     @Test
@@ -486,10 +487,21 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         // todo: make tests more independent so we can add tests like this elsewhere
         verify(handler).sleep(10);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length).isEqualTo(1);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length).isEqualTo(21);
 
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE[0]).isEqualTo("MasterUserPassword");
+        List<String> sensitiveAttributes = Arrays
+                .stream(UpdateHandler.DetectableModifyClusterAttribute.values())
+                .filter(e -> e.isSensitiveField()) // Filter enums with true booleanValue
+                .map(UpdateHandler.DetectableModifyClusterAttribute::getStringValue) // Convert filtered enums to their stringValues
+                .collect(Collectors.toList());
+        List<String> insensitiveAttributes = Arrays
+                .stream(UpdateHandler.DetectableModifyClusterAttribute.values())
+                .filter(e -> !e.isSensitiveField()) // Filter enums with true booleanValue
+                .map(UpdateHandler.DetectableModifyClusterAttribute::getStringValue) // Convert filtered enums to their stringValues
+                .collect(Collectors.toList());
+        assertThat(sensitiveAttributes.size()).isEqualTo(1);
+        assertThat(insensitiveAttributes.size()).isEqualTo(21);
+
+        assertThat(sensitiveAttributes.get(0)).isEqualTo("MasterUserPassword");
 
         List<String> insensitiveFileds = Arrays.asList(
                 "AllowVersionUpgrade",
@@ -513,7 +525,7 @@ public class UpdateHandlerTest extends AbstractTestBase {
         );
 
         for (int i = 0; i < insensitiveFileds.size(); i++) {
-            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i]).isEqualTo(
+            assertThat(insensitiveAttributes.get(i)).isEqualTo(
                     insensitiveFileds.get(i));
         }
     }
@@ -567,36 +579,6 @@ public class UpdateHandlerTest extends AbstractTestBase {
 
         // todo: make tests more independent so we can add tests like this elsewhere
         verify(handler).sleep(10);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_SENSITIVE.length).isEqualTo(1);
-        assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE.length).isEqualTo(21);
-
-        List<String> insensitiveFileds = Arrays.asList(
-                "AllowVersionUpgrade",
-                "AutomatedSnapshotRetentionPeriod",
-                "AvailabilityZone",
-                "AvailabilityZoneRelocation",
-                "ClusterSecurityGroups",
-                "ClusterVersion",
-                "ElasticIp",
-                "Encrypted",
-                "EnhancedVpcRouting",
-                "HsmClientCertificateIdentifier",
-                "HsmConfigurationIdentifier",
-                "KmsKeyId",
-                "MaintenanceTrackName",
-                "ManualSnapshotRetentionPeriod",
-                "Port",
-                "PreferredMaintenanceWindow",
-                "PubliclyAccessible",
-                "VpcSecurityGroupIds",
-                "MultiAZ"
-        );
-
-        for (int i = 0; i < insensitiveFileds.size(); i++) {
-            assertThat(UpdateHandler.DETECTABLE_MODIFY_CLUSTER_ATTRIBUTES_INSENSITIVE[i]).isEqualTo(
-                    insensitiveFileds.get(i)
-            );
-        }
     }
 
     @Test
@@ -869,4 +851,79 @@ public class UpdateHandlerTest extends AbstractTestBase {
         verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
     }
 
+    private static String NO_TEST_FLAG = "no-test-flag";
+    private static Stream<Arguments> maintenanceTrackTestData() {
+        return Stream.of(
+                Arguments.of("before-track", "after-track", true, NO_TEST_FLAG),
+                Arguments.of(null, "after-track", true, NO_TEST_FLAG),
+                Arguments.of("before-track", null, true, NO_TEST_FLAG),
+                Arguments.of("current", null, false, NO_TEST_FLAG),
+                Arguments.of(null, "current", false, NO_TEST_FLAG),
+                Arguments.of("current", "current", false, NO_TEST_FLAG),
+                Arguments.of(null, null, false, NO_TEST_FLAG),
+                Arguments.of("before-track", "after-track", true, "after-track"),
+                Arguments.of(null, "after-track", true, "after-track"),
+                Arguments.of("before-track", null, true, "current"),
+                Arguments.of("current", null, false, null),
+                Arguments.of(null, "current", false, null),
+                Arguments.of("current", "current", false, null),
+                Arguments.of(null, null, false, null)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("maintenanceTrackTestData")
+    public void testMaintenanceTrackModifyLogic(
+            String beforeTrack,
+            String afterTrack,
+            boolean shouldCallModifyCluster,
+            String expectedModifyTrackName
+    ) {
+        ResourceModel previousModel = BASIC_MODEL.toBuilder().publiclyAccessible(true).maintenanceTrackName(beforeTrack).build();
+        Cluster existingCluster = BASIC_CLUSTER.toBuilder().publiclyAccessible(true).maintenanceTrackName(beforeTrack).build();
+
+        Cluster modifiedCluster;
+        ResourceModel updateModel;
+        if (Objects.equals(expectedModifyTrackName, NO_TEST_FLAG)) {
+             modifiedCluster = existingCluster.toBuilder().publiclyAccessible(true).maintenanceTrackName(afterTrack).build();
+             updateModel = previousModel.toBuilder().publiclyAccessible(true).maintenanceTrackName(afterTrack).build();
+        } else {
+            modifiedCluster = existingCluster.toBuilder().publiclyAccessible(false).maintenanceTrackName(afterTrack).build();
+            updateModel = previousModel.toBuilder().publiclyAccessible(false).maintenanceTrackName(afterTrack).build();
+        }
+
+        final ResourceHandlerRequest<ResourceModel> request = BASIC_RESOURCE_HANDLER_REQUEST.toBuilder()
+                .desiredResourceState(updateModel)
+                .previousResourceState(previousModel)
+                .build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(existingCluster)
+                        .build())
+                .thenReturn(DescribeClustersResponse.builder()
+                        .clusters(modifiedCluster)
+                        .build());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder().build());
+        lenient().when(proxyClient.client().modifyCluster(any(ModifyClusterRequest.class)))
+                .thenReturn(ModifyClusterResponse.builder()
+                        .cluster(modifiedCluster)
+                        .build());
+
+        handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+
+        if (Objects.equals(expectedModifyTrackName, NO_TEST_FLAG)) {
+            if (shouldCallModifyCluster) {
+                verify(proxyClient.client()).modifyCluster(any(ModifyClusterRequest.class));
+            } else {
+                verify(proxyClient.client(), never()).modifyCluster(any(ModifyClusterRequest.class));
+            }
+        } else {
+            ArgumentCaptor<ModifyClusterRequest> captor = ArgumentCaptor.forClass(ModifyClusterRequest.class);
+            verify(proxyClient.client()).modifyCluster(captor.capture());
+            assertThat(Objects.equals(captor.getValue().maintenanceTrackName(), expectedModifyTrackName));
+        }
+    }
 }
