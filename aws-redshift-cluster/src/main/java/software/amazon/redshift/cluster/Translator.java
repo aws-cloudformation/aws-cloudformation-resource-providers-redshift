@@ -4,6 +4,7 @@ import com.amazonaws.util.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.AquaConfiguration;
@@ -76,6 +77,8 @@ public class Translator {
   private static String CLUSTER_TYPE_SINGLE_NODE = "single-node";
   private static String CLUSTER_TYPE_MULTI_NODE = "multi-node";
   private static String MULTIAZ_ENABLED = "Enabled";
+
+  public static String DEFAULT_TRACK_NAME = "current";
   /**
    * Request to create a resource
    * @param model resource model
@@ -112,7 +115,7 @@ public class Translator {
             .aquaConfigurationStatus(model.getAquaConfigurationStatus())
             .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod())
             .enhancedVpcRouting(model.getEnhancedVpcRouting())
-            .maintenanceTrackName(model.getMaintenanceTrackName())
+            .maintenanceTrackName(model.getMaintenanceTrackName() == null ? DEFAULT_TRACK_NAME : model.getMaintenanceTrackName())
             .multiAZ(model.getMultiAZ())
             .manageMasterPassword(model.getManageMasterPassword())
             .masterPasswordSecretKmsKeyId(model.getMasterPasswordSecretKmsKeyId())
@@ -690,6 +693,44 @@ public class Translator {
     return null;
   }
 
+  // if we don't provide any track name when we call create-cluster API,
+  // the default track name is "current"
+  // when cx updates the CFN template to include a track name, "current",
+  // we used to call modify-cluster with track("current"),
+  // and we'd get exception "track is already on 'current'".
+  // The following check is to avoid this unnecessary update call
+  static boolean shouldModifyMaintenanceTrack(final ResourceModel oldModel, final ResourceModel newModel) {
+    final String oldTrackName = oldModel.getMaintenanceTrackName();
+    final String newTrackName = newModel.getMaintenanceTrackName();
+
+    if (Objects.equals(oldTrackName, newTrackName)) {
+      return false;
+    }
+
+    if (oldTrackName != null && newTrackName != null) {
+      return !newTrackName.equals(oldTrackName);
+    } else if (oldTrackName == null) {
+      // if newTrackName is "current", no need to modify,
+      // because when trackName = null, we create cluster using "current" track
+      return !newTrackName.equals(DEFAULT_TRACK_NAME);
+    } else {
+      // newTrackName == null
+      return !oldTrackName.equals(DEFAULT_TRACK_NAME);
+    }
+  }
+
+  static String getModifyMaintenanceTrack(final ResourceModel oldModel, final ResourceModel newModel) {
+    // if we don't need to modify the cluster,
+    // we can't pass in the track name,
+    // otherwise modify-cluster API fails with "Cluster is already on xyz track already" exception
+    if (!shouldModifyMaintenanceTrack(oldModel, newModel)) {
+      return null;
+    }
+
+    // we need to update the track
+    return newModel.getMaintenanceTrackName() == null ? DEFAULT_TRACK_NAME : newModel.getMaintenanceTrackName();
+  }
+
   /**
    * Request to update properties of a previously created resource
    * @param model resource model
@@ -718,7 +759,7 @@ public class Translator {
             .manualSnapshotRetentionPeriod(model.getManualSnapshotRetentionPeriod() == null || model.getManualSnapshotRetentionPeriod().equals(prevModel.getManualSnapshotRetentionPeriod()) ? null : model.getManualSnapshotRetentionPeriod())
             .clusterVersion(model.getClusterVersion() == null || model.getClusterVersion().equals(prevModel.getClusterVersion()) ? null : model.getClusterVersion())
             .elasticIp(model.getElasticIp() == null || model.getElasticIp().equals(prevModel.getElasticIp()) ? null : model.getElasticIp())
-            .maintenanceTrackName(model.getMaintenanceTrackName() == null || model.getMaintenanceTrackName().equals(prevModel.getMaintenanceTrackName()) ? null : model.getMaintenanceTrackName())
+            .maintenanceTrackName(getModifyMaintenanceTrack(prevModel, model))
             .enhancedVpcRouting(model.getEnhancedVpcRouting() == null || model.getEnhancedVpcRouting().equals(prevModel.getEnhancedVpcRouting()) ? null : model.getEnhancedVpcRouting())
             .multiAZ(model.getMultiAZ() == null || model.getMultiAZ().equals(prevModel.getMultiAZ()) ? null : model.getMultiAZ())
             .manageMasterPassword(model.getManageMasterPassword())
