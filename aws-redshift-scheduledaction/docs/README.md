@@ -49,8 +49,6 @@ _Required_: Yes
 
 _Type_: String
 
-_Pattern_: <code>^(?=^[a-z][a-z0-9]*(-[a-z0-9]+)*$).{1,60}$</code>
-
 _Update requires_: [Replacement](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-replacement)
 
 #### TargetAction
@@ -88,8 +86,6 @@ The description of the scheduled action.
 _Required_: No
 
 _Type_: String
-
-_Pattern_: <code>^(?=^[\x09\x0a\x0d\x20-\xff]*$).{1,255}$</code>
 
 _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-updating-stacks-update-behaviors.html#update-no-interrupt)
 
