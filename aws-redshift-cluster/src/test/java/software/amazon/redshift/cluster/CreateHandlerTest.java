@@ -144,9 +144,10 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     @Test
-    public void testCreateClusterAndEnableLogging() {
+    public void testCreateClusterAndEnableS3Logging() {
+        // Arrange
         ResourceModel model = createClusterRequestModel();
-        model.setLoggingProperties(LOGGING_PROPERTIES);
+        model.setLoggingProperties(LOGGING_PROPERTIES_S3);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)
@@ -158,11 +159,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().createCluster(any(CreateClusterRequest.class))).thenReturn(createClusterResponseSdk());
 
         when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
-                .thenReturn(EnableLoggingResponse.builder()
-                        .bucketName(BUCKET_NAME)
-                        .loggingEnabled(true)
-                        .lastSuccessfulDeliveryTime(Instant.now())
-                        .build());
+            .thenReturn(createS3EnableLoggingResponseSdk());
 
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseSdk());
 
@@ -174,6 +171,44 @@ public class CreateHandlerTest extends AbstractTestBase {
                         .build());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
+        // Act, Assert
+        handleRequestAndVerifyEnableLogging(request);
+    }
+
+    @Test
+    public void testCreateClusterAndEnableCWLogging() {
+        // Arrange
+        ResourceModel model = createClusterRequestModel();
+        model.setLoggingProperties(LOGGING_PROPERTIES_CW);
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+            .desiredResourceState(model)
+            .region(AWS_REGION)
+            .logicalResourceIdentifier("logicalId")
+            .clientRequestToken("token")
+            .build();
+
+        when(proxyClient.client().createCluster(any(CreateClusterRequest.class))).thenReturn(createClusterResponseSdk());
+
+        when(proxyClient.client().enableLogging(any(EnableLoggingRequest.class)))
+            .thenReturn(createCWEnableLoggingResponseSdk());
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class))).thenReturn(describeClustersResponseSdk());
+
+        when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
+                .thenReturn(DescribeLoggingStatusResponse.builder()
+                        .logDestinationType(LOG_DESTINATION_TYPE_CW)
+                        .logExports(LOG_EXPORTS_TYPES)
+                        .loggingEnabled(true)
+                        .lastSuccessfulDeliveryTime(Instant.now())
+                        .build());
+        when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
+
+        // Act, Assert
+        handleRequestAndVerifyEnableLogging(request);
+    }
+
+    private void handleRequestAndVerifyEnableLogging(ResourceHandlerRequest<ResourceModel> request) {
         ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
 
         assertThat(response).isNotNull();
@@ -192,6 +227,8 @@ public class CreateHandlerTest extends AbstractTestBase {
                 isEqualTo(request.getDesiredResourceState().getClusterNamespaceArn());
         assertThat(response.getResourceModel().getClusterIdentifier()).
                 isEqualTo(request.getDesiredResourceState().getClusterIdentifier());
+        assertThat(response.getResourceModel().getLoggingProperties()).
+                isEqualTo(request.getDesiredResourceState().getLoggingProperties());
         verify(proxyClient.client()).createCluster(any(CreateClusterRequest.class));
         verify(proxyClient.client(), times(4))
                 .describeClusters(any(DescribeClustersRequest.class));

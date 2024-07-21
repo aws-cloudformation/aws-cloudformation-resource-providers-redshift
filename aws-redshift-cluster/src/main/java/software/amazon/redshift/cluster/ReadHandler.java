@@ -74,6 +74,8 @@ public class ReadHandler extends BaseHandlerStd {
                             .makeServiceCall(this::describeLoggingStatus)
                             .done(enableLoggingResponse -> {
                                 LoggingProperties loggingProperties = LoggingProperties.builder()
+                                        .logDestinationType(enableLoggingResponse.logDestinationTypeAsString())
+                                        .logExports(enableLoggingResponse.logExports())
                                         .bucketName(enableLoggingResponse.bucketName())
                                         .s3KeyPrefix(enableLoggingResponse.s3KeyPrefix())
                                         .build();
