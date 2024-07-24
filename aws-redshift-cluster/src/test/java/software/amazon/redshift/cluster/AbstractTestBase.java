@@ -1,8 +1,11 @@
 package software.amazon.redshift.cluster;
 
+import com.google.common.collect.ImmutableList;
 import java.lang.UnsupportedOperationException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.awscore.AwsRequest;
@@ -35,15 +38,18 @@ public class AbstractTestBase {
   protected static final String CLUSTER_NAMESPACE_ARN;
   protected static final String NAMESPACE_POLICY;
   protected static final String NAMESPACE_POLICY_EMPTY;
+  protected static final String LOG_DESTINATION_TYPE_CW;
   protected static final ResourcePolicy RESOURCE_POLICY;
   protected static final ResourcePolicy RESOURCE_POLICY_EMPTY;
-  protected static final LoggingProperties LOGGING_PROPERTIES;
+  protected static final LoggingProperties LOGGING_PROPERTIES_S3;
+  protected static final LoggingProperties LOGGING_PROPERTIES_CW;
   protected static final LoggingProperties LOGGING_PROPERTIES_DISABLED;
   protected static final software.amazon.awssdk.services.redshift.model.Tag TAG;
-  protected  static final Integer DEFER_MAINTENANCE_DURATION;
-  protected  static final String DEFER_MAINTENANCE_IDENTIFIER;
-  protected  static final String DEFER_MAINTENANCE_START_TIME;
-  protected  static final String DEFER_MAINTENANCE_END_TIME;
+  protected static final Integer DEFER_MAINTENANCE_DURATION;
+  protected static final String DEFER_MAINTENANCE_IDENTIFIER;
+  protected static final String DEFER_MAINTENANCE_START_TIME;
+  protected static final String DEFER_MAINTENANCE_END_TIME;
+  protected static final List<String> LOG_EXPORTS_TYPES;
 
   static {
     MOCK_CREDENTIALS = new Credentials("accessKey", "secretKey", "token");
@@ -67,6 +73,8 @@ public class AbstractTestBase {
     DEFER_MAINTENANCE_START_TIME = "2023-12-10T00:00:00Z";
     DEFER_MAINTENANCE_END_TIME = "2024-01-19T00:00:00Z";
     SNAPSHOT_IDENTIFIER = "redshift-cluster-1-snapshot";
+    LOG_DESTINATION_TYPE_CW = "cloudwatch";
+    LOG_EXPORTS_TYPES = ImmutableList.of("connectionlog", "useractivitylog", "userlog");
 
     RESOURCE_POLICY = ResourcePolicy.builder()
             .resourceArn(CLUSTER_NAMESPACE_ARN)
@@ -79,12 +87,19 @@ public class AbstractTestBase {
             .build();
 
 
-    LOGGING_PROPERTIES = LoggingProperties.builder()
+    LOGGING_PROPERTIES_S3 = LoggingProperties.builder()
             .bucketName(BUCKET_NAME)
             .s3KeyPrefix("test")
             .build();
 
+    LOGGING_PROPERTIES_CW = LoggingProperties.builder()
+            .logDestinationType(LOG_DESTINATION_TYPE_CW)
+            .logExports(LOG_EXPORTS_TYPES)
+            .build();
+
     LOGGING_PROPERTIES_DISABLED = LoggingProperties.builder()
+            .logDestinationType(null)
+            .logExports(new ArrayList<>())
             .bucketName(null)
             .s3KeyPrefix(null)
             .build();
@@ -213,6 +228,23 @@ public class AbstractTestBase {
   public static CreateClusterResponse createClusterResponseSdk() {
     return CreateClusterResponse.builder()
             .cluster(responseCluster())
+            .build();
+  }
+
+  public static EnableLoggingResponse createS3EnableLoggingResponseSdk() {
+    return EnableLoggingResponse.builder()
+            .bucketName(BUCKET_NAME)
+            .loggingEnabled(true)
+            .lastSuccessfulDeliveryTime(Instant.now())
+            .build();
+  }
+
+  public static EnableLoggingResponse createCWEnableLoggingResponseSdk() {
+    return EnableLoggingResponse.builder()
+            .logDestinationType(LOG_DESTINATION_TYPE_CW)
+            .logExports(LOG_EXPORTS_TYPES)
+            .loggingEnabled(true)
+            .lastSuccessfulDeliveryTime(Instant.now())
             .build();
   }
 

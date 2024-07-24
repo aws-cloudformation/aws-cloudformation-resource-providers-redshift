@@ -128,11 +128,14 @@ public class Translator {
    * @return awsRequest the aws service request to create a resource
    */
   static EnableLoggingRequest translateToEnableLoggingRequest(final ResourceModel model) {
-    String s3KeyPrefix = model.getLoggingProperties().getS3KeyPrefix().lastIndexOf("/")
-            == model.getLoggingProperties().getS3KeyPrefix().length() - 1 ? model.getLoggingProperties().getS3KeyPrefix()
-            : model.getLoggingProperties().getS3KeyPrefix() + "/";
+    String s3KeyPrefix = model.getLoggingProperties().getS3KeyPrefix();
+    if (s3KeyPrefix != null) { // S3 key prefix can be empty if it is CW logging
+      s3KeyPrefix = s3KeyPrefix.lastIndexOf("/") == s3KeyPrefix.length() - 1 ? s3KeyPrefix : s3KeyPrefix + "/";
+    }
     return EnableLoggingRequest.builder()
             .clusterIdentifier(model.getClusterIdentifier())
+            .logDestinationType(model.getLoggingProperties().getLogDestinationType())
+            .logExports(model.getLoggingProperties().getLogExports())
             .bucketName(model.getLoggingProperties().getBucketName())
             .s3KeyPrefix(s3KeyPrefix)
             .build();
@@ -293,6 +296,8 @@ public class Translator {
    */
   static ResourceModel translateFromDescribeLoggingResponse(final DescribeLoggingStatusResponse awsResponse) {
       LoggingProperties loggingProperties = LoggingProperties.builder()
+              .logDestinationType(awsResponse.logDestinationTypeAsString())
+              .logExports(awsResponse.logExports())
               .bucketName(awsResponse.bucketName())
               .s3KeyPrefix(awsResponse.s3KeyPrefix())
               .build();

@@ -187,8 +187,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         List<String> prevModelIamRoles = Arrays.asList(IAM_ROLE_ARN, roleToRemove);
 
         LoggingProperties loggingProperties = LoggingProperties.builder()
-                .bucketName(BUCKET_NAME)
-                .s3KeyPrefix("test")
+                .logDestinationType(LOG_DESTINATION_TYPE_CW)
+                .logExports(LOG_EXPORTS_TYPES)
                 .build();
 
         List<Tag> newModelTags = Arrays.asList(tag);
@@ -303,6 +303,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         assertThat(response.getResourceModel().getIamRoles()).isEqualTo(request.getDesiredResourceState().getIamRoles());
         assertThat(response.getResourceModel().getLoggingProperties().getBucketName()).isNull();
         assertThat(response.getResourceModel().getLoggingProperties().getS3KeyPrefix()).isNull();
+        assertThat(response.getResourceModel().getLoggingProperties().getLogDestinationType()).isNull();
+        assertThat(response.getResourceModel().getLoggingProperties().getLogExports()).isNullOrEmpty();
         assertThat(response.getResourceModel().getNumberOfNodes()).isEqualTo(previousModel.getNumberOfNodes()*2);
 
         assertThat(response.getResourceModels()).isNull();
@@ -336,8 +338,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         List<String> newModelIamRoles = Arrays.asList(IAM_ROLE_ARN, roleToAdd);
 
         LoggingProperties loggingProperties = LoggingProperties.builder()
-                .bucketName(BUCKET_NAME)
-                .s3KeyPrefix("test/")
+                .logDestinationType(LOG_DESTINATION_TYPE_CW)
+                .logExports(LOG_EXPORTS_TYPES)
                 .build();
 
         ResourceModel updateModel = BASIC_MODEL.toBuilder()
@@ -419,8 +421,8 @@ public class UpdateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
                 .thenReturn(DescribeLoggingStatusResponse.builder()
                         .loggingEnabled(true)
-                        .bucketName(BUCKET_NAME)
-                        .s3KeyPrefix("test/")
+                        .logDestinationType(LOG_DESTINATION_TYPE_CW)
+                        .logExports(LOG_EXPORTS_TYPES)
                         .build());
         //call back
         response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
