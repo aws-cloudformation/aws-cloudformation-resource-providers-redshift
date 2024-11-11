@@ -15,5 +15,8 @@
         "codegen_template_path": "guided_aws",
         "protocolVersion": "2.0.0"
     },
-    "executableEntrypoint": "software.amazon.redshift.cluster.HandlerWrapperExecutable"
+    "logProcessorEnabled": "true",
+    "executableEntrypoint": "software.amazon.redshift.cluster.HandlerWrapperExecutable",
+    "contractSettings": {},
+    "canarySettings": {}
 }

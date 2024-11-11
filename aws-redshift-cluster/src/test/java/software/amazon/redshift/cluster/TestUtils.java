@@ -14,6 +14,7 @@ public class TestUtils {
     final static String AWS_PARTITION = "aws";
     final static String AWS_ACCOUNT_ID ="1111";
     final static String CLUSTER_IDENTIFIER = "redshift-cluster-1";
+    final static String CLUSTER_NAMESPACE_UUID = "a1234-b5678";
     final static String CLUSTER_IDENTIFIER_COMPLETE = "redshift-cluster-2";
     final static String MASTER_USERNAME = "master";
     final static String MASTER_USERPASSWORD = "Test1234";
@@ -26,7 +27,7 @@ public class TestUtils {
     final static String MULTIAZ_ENABLED = "Enabled";
     final static String MULTIAZ_DISABLED = "Disabled";
     final static String MASTER_PASSWORD_SECRET_KMS_KEY_ID = "master-password-secret-kms-key-id";
-    final static String MASTER_PASSWORD_SECRET_ARN = "secret-arn";
+    final static String MASTER_PASSWORD_SECRET_ARN = "arn:aws:secretsmanager:" + AWS_REGION + ":" + AWS_ACCOUNT_ID + ":secret/" + CLUSTER_NAMESPACE_UUID;
 
     final static Cluster BASIC_CLUSTER = Cluster.builder()
             .clusterStatus("available")

@@ -8,6 +8,7 @@ import software.amazon.cloudformation.proxy.StdCallbackContext;
 @lombok.EqualsAndHashCode(callSuper = true)
 public class CallbackContext extends StdCallbackContext {
     String namespaceArn = null;
+    String masterPasswordSecretArn = null;
     LoggingProperties loggingProperties;
     boolean callBackForReboot = false;
     boolean callBackForDelete = false;
@@ -21,9 +22,18 @@ public class CallbackContext extends StdCallbackContext {
     boolean callbackAfterClusterRestore = false;
     boolean callbackAfterAfterClusterParameterGroupNameModify = false;
 
+
     public void setNamespaceArn(String namespaceArn) {this.namespaceArn = namespaceArn; }
 
     public String getNamespaceArn() { return namespaceArn; }
+
+    public String getMasterPasswordSecretArn() {
+        return masterPasswordSecretArn;
+    }
+
+    public void setMasterPasswordSecretArn(String masterPasswordSecretArn) {
+        this.masterPasswordSecretArn = masterPasswordSecretArn;
+    }
 
     public void setLoggingProperties(LoggingProperties loggingProperties) {
         this.loggingProperties = loggingProperties;
