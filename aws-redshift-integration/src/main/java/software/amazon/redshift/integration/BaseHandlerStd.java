@@ -1,6 +1,5 @@
 package software.amazon.redshift.integration;
 
-import com.google.common.collect.ImmutableMap;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
 import software.amazon.awssdk.services.redshift.model.Cluster;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
@@ -9,16 +8,15 @@ import software.amazon.awssdk.services.redshift.model.ZeroETLIntegrationStatus;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnNotStabilizedException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
-import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+import com.amazonaws.arn.Arn;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
 
@@ -47,6 +45,8 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   /** Custom handler config, mostly to facilitate faster unit test */
   final HandlerConfig config;
 
+  protected Logger logger;
+
   public BaseHandlerStd() {
     this(HandlerConfig.builder().build());
   }
@@ -61,6 +61,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final ResourceHandlerRequest<ResourceModel> request,
     final CallbackContext callbackContext,
     final Logger logger) {
+    this.logger = logger;
     return handleRequest(
       proxy,
       request,
@@ -98,6 +99,22 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
   }
 
   protected boolean isRedshiftClusterActive(final ResourceModel model, final ProxyClient<RedshiftClient> proxyClient) {
+    try {
+      if (isCrossAccountIntegration(model)) {
+        // we don't have a good way to make cross account AWS calls now
+
+        // it usually takes a few seconds for cluster to be active,
+        // for the same account integration, we check the cluster status directly,
+        // for cross account, we'll wait for 1 min for cluster to be active
+        sleepInSeconds(60);
+        return true;
+      }
+    } catch (Exception ex) {
+      logger.log("Failed to parse source or target ARN " + ex.getMessage());
+      sleepInSeconds(60);
+      return true;
+    }
+
     final Cluster targetCluster = proxyClient.injectCredentialsAndInvokeV2(
                     DescribeClustersRequest.builder().build(),
                     proxyClient.client()::describeClusters).clusters().stream()
@@ -145,6 +162,22 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
               context.setIntegrationArn(arn);
               return ProgressEvent.progress(resourceModel, context);
             });
+  }
+
+  public static boolean isCrossAccountIntegration(final ResourceModel model) {
+      Optional<String> sourceAccount = getAccountIdFromArn(model.getSourceArn());
+      Optional<String> targetAccount = getAccountIdFromArn(model.getTargetArn());
+
+      if (sourceAccount.isPresent() && targetAccount.isPresent()) {
+        return !sourceAccount.get().equals(targetAccount.get());
+      }
+
+      return false;
+  }
+
+  private static Optional<String> getAccountIdFromArn(String arnString) {
+    Arn arn = Arn.fromString(arnString);
+    return Optional.of(arn.getAccountId());
   }
 
   // with the existing dependencies,
