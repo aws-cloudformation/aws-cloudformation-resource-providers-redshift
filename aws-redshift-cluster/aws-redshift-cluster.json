@@ -414,6 +414,7 @@
             "permissions": [
                 "iam:PassRole",
                 "iam:CreateServiceLinkedRole",
+                "kms:*",
                 "redshift:DescribeClusters",
                 "redshift:CreateCluster",
                 "redshift:RestoreFromClusterSnapshot",
@@ -443,7 +444,11 @@
                 "ec2:DescribeAvailabilityZones",
                 "ec2:DescribeNetworkAcls",
                 "ec2:DescribeRouteTables",
-                "cloudwatch:PutMetricData"
+                "cloudwatch:PutMetricData",
+                "secretsmanager:CreateSecret",
+                "secretsmanager:TagResource",
+                "secretsmanager:RotateSecret",
+                "secretsmanager:DescribeSecret"
             ],
             "timeoutInMinutes": 2160
         },
@@ -460,6 +465,7 @@
         "update": {
             "permissions": [
                 "iam:PassRole",
+                "kms:*",
                 "redshift:DescribeClusters",
                 "redshift:ModifyCluster",
                 "redshift:ModifyClusterIamRoles",
@@ -485,7 +491,13 @@
                 "redshift:PutResourcePolicy",
                 "redshift:GetResourcePolicy",
                 "redshift:DeleteResourcePolicy",
-                "cloudwatch:PutMetricData"
+                "cloudwatch:PutMetricData",
+                "secretsmanager:CreateSecret",
+                "secretsmanager:TagResource",
+                "secretsmanager:RotateSecret",
+                "secretsmanager:DescribeSecret",
+                "secretsmanager:UpdateSecret",
+                "secretsmanager:DeleteSecret"
             ],
             "timeoutInMinutes": 2160
         },
@@ -493,7 +505,11 @@
             "permissions": [
                 "redshift:DescribeTags",
                 "redshift:DescribeClusters",
-                "redshift:DeleteCluster"
+                "redshift:DeleteCluster",
+                "redshift:DeleteResourcePolicy",
+                "kms:RetireGrant",
+                "secretsmanager:DescribeSecret",
+                "secretsmanager:DeleteSecret"
             ],
             "timeoutInMinutes": 2160
         },

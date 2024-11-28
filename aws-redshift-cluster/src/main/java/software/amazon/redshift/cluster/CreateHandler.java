@@ -51,6 +51,7 @@ import software.amazon.awssdk.services.redshift.model.SnapshotScheduleNotFoundEx
 import software.amazon.awssdk.services.redshift.model.TagLimitExceededException;
 import software.amazon.awssdk.services.redshift.model.UnauthorizedOperationException;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.cloudformation.exceptions.CfnAlreadyExistsException;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
@@ -78,6 +79,7 @@ public class CreateHandler extends BaseHandlerStd {
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
         final ProxyClient<RedshiftClient> proxyClient,
+        final ProxyClient<SecretsManagerClient> secretsManagerProxyClient,
         final Logger logger) {
 
         this.logger = logger;
@@ -162,7 +164,7 @@ public class CreateHandler extends BaseHandlerStd {
                     }
                     return progress;
                 })
-                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, logger));
+                .then(progress -> new ReadHandler().handleRequest(proxy, request, callbackContext, proxyClient, secretsManagerProxyClient, logger));
     }
 
     private RestoreFromClusterSnapshotResponse restoreFromClusterSnapshot(

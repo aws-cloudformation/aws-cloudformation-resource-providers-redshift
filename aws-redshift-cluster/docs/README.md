@@ -447,9 +447,9 @@ _Update requires_: [No interruption](https://docs.aws.amazon.com/AWSCloudFormati
 
 #### SnapshotCopyRetentionPeriod
 
-The number of days to retain automated snapshots in the destination region after they are copied from the source region.
+The number of days to retain automated snapshots in the destination region after they are copied from the source region. 
 
- Default is 7.
+ Default is 7. 
 
  Constraints: Must be at least 1 and no more than 35.
 
@@ -701,3 +701,4 @@ The Amazon Resource Name (ARN) of the cluster namespace.
 #### MasterPasswordSecretArn
 
 The Amazon Resource Name (ARN) for the cluster's admin user credentials secret.
+
