@@ -14,6 +14,7 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.pagination.sync.SdkIterable;
 import software.amazon.awssdk.services.redshift.RedshiftClient;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.redshift.model.*;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.Credentials;
@@ -31,6 +32,7 @@ public class AbstractTestBase {
   protected static final String CLUSTER_NAMESPACE_UUID;
   protected static final String MASTER_USERNAME;
   protected static final String MASTER_USERPASSWORD;
+  protected static final String MASTER_USERPASSWORD_SECRET_ARN;
   protected static final String NODETYPE;
   protected static final int NUMBER_OF_NODES;
   protected static final String BUCKET_NAME;
@@ -66,6 +68,7 @@ public class AbstractTestBase {
     BUCKET_NAME = "bucket-enable-logging";
     IAM_ROLE_ARN = "arn:aws:iam::" + AWS_ACCOUNT_ID + ":role/cfn_migration_test_IAM_role";
     CLUSTER_NAMESPACE_ARN = "arn:aws:redshift:" + AWS_REGION + ":" + AWS_ACCOUNT_ID + ":namespace/" + CLUSTER_NAMESPACE_UUID;
+    MASTER_USERPASSWORD_SECRET_ARN = "arn:aws:secretsmanager:" + AWS_REGION + ":" + AWS_ACCOUNT_ID + ":secret/" + CLUSTER_NAMESPACE_UUID;
     NAMESPACE_POLICY = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Resource\": \"*\",\"Action\":\"test:test\"}]}";
     NAMESPACE_POLICY_EMPTY = "{}";
     DEFER_MAINTENANCE_DURATION = 40;
@@ -152,6 +155,49 @@ public class AbstractTestBase {
     };
   }
 
+  static ProxyClient<SecretsManagerClient> MOCK_PROXY_SECRETS_MANAGER (
+          final AmazonWebServicesClientProxy proxy,
+          final SecretsManagerClient sdkClient) {
+    return new ProxyClient<SecretsManagerClient>() {
+      @Override
+      public <RequestT extends AwsRequest, ResponseT extends AwsResponse> ResponseT
+      injectCredentialsAndInvokeV2(RequestT request, Function<RequestT, ResponseT> requestFunction) {
+        return proxy.injectCredentialsAndInvokeV2(request, requestFunction);
+      }
+
+      @Override
+      public <RequestT extends AwsRequest, ResponseT extends AwsResponse>
+      CompletableFuture<ResponseT>
+      injectCredentialsAndInvokeV2Async(RequestT request, Function<RequestT, CompletableFuture<ResponseT>> requestFunction) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public <RequestT extends AwsRequest, ResponseT extends AwsResponse, IterableT extends SdkIterable<ResponseT>>
+      IterableT
+      injectCredentialsAndInvokeIterableV2(RequestT request, Function<RequestT, IterableT> requestFunction) {
+        return proxy.injectCredentialsAndInvokeIterableV2(request, requestFunction);
+      }
+
+      @Override
+      public <RequestT extends AwsRequest, ResponseT extends AwsResponse> ResponseInputStream<ResponseT>
+      injectCredentialsAndInvokeV2InputStream(RequestT requestT, Function<RequestT, ResponseInputStream<ResponseT>> function) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public <RequestT extends AwsRequest, ResponseT extends AwsResponse> ResponseBytes<ResponseT>
+      injectCredentialsAndInvokeV2Bytes(RequestT requestT, Function<RequestT, ResponseBytes<ResponseT>> function) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      public SecretsManagerClient client() {
+        return sdkClient;
+      }
+    };
+  }
+
   public static Cluster basicCluster(){
     return Cluster.builder()
             .clusterStatus("available")
@@ -174,6 +220,13 @@ public class AbstractTestBase {
   public static Cluster responseCluster() {
     return basicCluster().toBuilder()
             .clusterNamespaceArn(CLUSTER_NAMESPACE_ARN)
+            .build();
+  }
+
+  public static Cluster responseManagedPasswordCluster() {
+    return basicCluster().toBuilder()
+            .clusterNamespaceArn(CLUSTER_NAMESPACE_ARN)
+            .masterPasswordSecretArn(MASTER_USERPASSWORD_SECRET_ARN)
             .build();
   }
 
@@ -225,6 +278,35 @@ public class AbstractTestBase {
             .build();
   }
 
+  public static ResourceModel createClusterManagedPasswordResponseModel() {
+    return ResourceModel.builder()
+            .clusterIdentifier(CLUSTER_IDENTIFIER)
+            .clusterNamespaceArn(CLUSTER_NAMESPACE_ARN)
+            .masterUsername(MASTER_USERNAME)
+            .masterPasswordSecretArn(MASTER_USERPASSWORD_SECRET_ARN)
+            .nodeType(NODETYPE)
+            .numberOfNodes(NUMBER_OF_NODES)
+            .clusterType("multi-node")
+            .allowVersionUpgrade(true)
+            .automatedSnapshotRetentionPeriod(0)
+            .encrypted(false)
+            .enhancedVpcRouting(false)
+            .manualSnapshotRetentionPeriod(1)
+            .publiclyAccessible(false)
+            .clusterSecurityGroups(Collections.emptyList())
+            .iamRoles(Collections.emptyList())
+            .vpcSecurityGroupIds(Collections.emptyList())
+            .tags(Collections.emptyList())
+            .build();
+  }
+
+  public static DescribeClustersResponse describeClustersManagedPasswordResponseSdk() {
+
+    return DescribeClustersResponse.builder()
+            .clusters(responseCluster())
+            .build();
+  }
+
   public static CreateClusterResponse createClusterResponseSdk() {
     return CreateClusterResponse.builder()
             .cluster(responseCluster())
@@ -251,6 +333,12 @@ public class AbstractTestBase {
   public static DescribeClustersResponse describeClustersResponseSdk() {
     return DescribeClustersResponse.builder()
             .clusters(responseCluster())
+            .build();
+  }
+
+  public static DescribeClustersResponse describeManagedPasswordClustersResponseSdk() {
+    return DescribeClustersResponse.builder()
+            .clusters(responseManagedPasswordCluster())
             .build();
   }
 
