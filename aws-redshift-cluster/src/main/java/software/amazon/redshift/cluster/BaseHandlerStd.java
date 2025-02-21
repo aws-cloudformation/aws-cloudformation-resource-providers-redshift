@@ -23,6 +23,10 @@ import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 import software.amazon.cloudformation.proxy.delay.Constant;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretResponse;
+import com.amazonaws.util.StringUtils;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -73,6 +77,7 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
       request,
       callbackContext != null ? callbackContext : new CallbackContext(),
       proxy.newProxy(ClientBuilder::getClient),
+      proxy.newProxy(ClientBuilder::secretsManagerClient),
       logger
     );
   }
@@ -82,8 +87,47 @@ public abstract class BaseHandlerStd extends BaseHandler<CallbackContext> {
     final ResourceHandlerRequest<ResourceModel> request,
     final CallbackContext callbackContext,
     final ProxyClient<RedshiftClient> proxyClient,
+    final ProxyClient<SecretsManagerClient> secretsManagerProxyClient,
     final Logger logger);
 
+
+  protected boolean isClusterSecretDeleted (final ProxyClient<SecretsManagerClient> secretsManagerProxyClient, CallbackContext context) {
+    String clusterSecretArn = context.getMasterPasswordSecretArn();
+
+    // For namespaces that aren't opted in to Redshift Managed Passwords, AdminPasswordSecretArn is null
+    if (StringUtils.isNullOrEmpty(clusterSecretArn)) {
+      return true;
+    }
+
+    DescribeSecretRequest describeSecretRequest = DescribeSecretRequest.builder().secretId(clusterSecretArn).build();
+    try {
+      secretsManagerProxyClient.injectCredentialsAndInvokeV2(describeSecretRequest, secretsManagerProxyClient.client()::describeSecret);
+    } catch (final software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException e) {
+      return true;
+    }
+    return false;
+  }
+
+  protected String getClusterSecretArn(final ProxyClient<RedshiftClient> proxyClient, final String clusterIdentifier) {
+    String clusterSecretArn = null;
+    DescribeClustersResponse describeClustersResponse = null;
+
+    DescribeClustersRequest awsRequest = DescribeClustersRequest.builder().clusterIdentifier(clusterIdentifier).build();
+
+    try {
+      describeClustersResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusters);
+      Cluster cluster = describeClustersResponse.clusters()
+              .stream()
+              .findAny()
+              .orElse(Cluster.builder().build());
+
+      clusterSecretArn = cluster.masterPasswordSecretArn();
+
+    } catch (final ClusterNotFoundException e) {
+      // do nothing here, we will handle this in .handleError part of the handler instead
+    }
+    return clusterSecretArn;
+  }
 
   protected boolean isClusterActive (final ProxyClient<RedshiftClient> proxyClient, ResourceModel model, CallbackContext cxt) {
     DescribeClustersRequest awsRequest =

@@ -25,6 +25,12 @@
             <artifactId>redshift</artifactId>
             <version>2.21.44</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/secretsmanager -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>secretsmanager</artifactId>
+            <version>2.22.5</version>
+        </dependency>
         <!-- https://mvnrepository.com/artifact/software.amazon.cloudformation/aws-cloudformation-rpdk-java-plugin -->
         <dependency>
             <groupId>software.amazon.cloudformation</groupId>

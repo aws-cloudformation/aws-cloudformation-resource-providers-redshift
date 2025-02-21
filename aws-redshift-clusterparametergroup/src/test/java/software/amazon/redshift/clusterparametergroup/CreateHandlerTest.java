@@ -10,6 +10,8 @@ import software.amazon.awssdk.services.redshift.model.CreateClusterParameterGrou
 import software.amazon.awssdk.services.redshift.model.CreateClusterParameterGroupResponse;
 import software.amazon.awssdk.services.redshift.model.CreateTagsRequest;
 import software.amazon.awssdk.services.redshift.model.CreateTagsResponse;
+import software.amazon.awssdk.services.redshift.model.DeleteTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DeleteTagsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersRequest;
@@ -31,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.AWS_REGION;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.CLUSTER_PARAMETER_GROUP;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.COMPLETE_MODEL;
@@ -103,6 +106,8 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getErrorCode()).isNull();
 
         verify(proxyClient.client()).createClusterParameterGroup(any(CreateClusterParameterGroupRequest.class));
+        verify(proxyClient.client(), times(2)).describeTags(any(DescribeTagsRequest.class));
         verify(proxyClient.client()).describeClusterParameterGroups(any(DescribeClusterParameterGroupsRequest.class));
+
     }
 }

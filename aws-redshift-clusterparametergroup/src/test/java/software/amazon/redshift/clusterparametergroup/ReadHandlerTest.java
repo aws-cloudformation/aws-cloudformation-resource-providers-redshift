@@ -10,6 +10,8 @@ import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGr
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParameterGroupsResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClusterParametersResponse;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsRequest;
+import software.amazon.awssdk.services.redshift.model.DescribeTagsResponse;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -26,6 +28,7 @@ import static software.amazon.redshift.clusterparametergroup.TestUtils.AWS_REGIO
 import static software.amazon.redshift.clusterparametergroup.TestUtils.CLUSTER_PARAMETER_GROUP;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.COMPLETE_MODEL;
 import static software.amazon.redshift.clusterparametergroup.TestUtils.DESIRED_RESOURCE_TAGS;
+import static software.amazon.redshift.clusterparametergroup.TestUtils.DESCRIBE_TAGS_RESPONSE_CREATING;
 
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest extends AbstractTestBase {
@@ -57,6 +60,9 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeClusterParameterGroupsResponse.builder()
                         .parameterGroups(CLUSTER_PARAMETER_GROUP)
                         .build());
+
+        when(proxyClient.client().describeTags(any(DescribeTagsRequest.class)))
+                .thenReturn(DESCRIBE_TAGS_RESPONSE_CREATING);
 
         final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
                 .desiredResourceState(model)

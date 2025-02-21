@@ -160,13 +160,14 @@ public class Translator {
      * @param awsResponse the aws service describe resource response
      * @return awsRequest the aws service request to update tags of a resource
      */
-    static ResourceModel translateFromReadTagsResponse(final DescribeTagsResponse awsResponse) {
-        return ResourceModel.builder()
-                .tags(translateToModelTags(awsResponse.taggedResources()
+    static ResourceModel translateFromReadTagsResponse(final ResourceModel model,
+                                                       final DescribeTagsResponse awsResponse) {
+        model.setTags(translateToModelTags(awsResponse.taggedResources()
                         .stream()
                         .map(TaggedResource::tag)
-                        .collect(Collectors.toList())))
-                .build();
+                        .collect(Collectors.toList())));
+        return model;
+
     }
 
     /**
