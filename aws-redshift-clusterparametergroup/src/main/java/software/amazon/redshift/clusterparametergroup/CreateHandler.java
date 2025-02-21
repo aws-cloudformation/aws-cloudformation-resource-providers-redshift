@@ -28,7 +28,6 @@ import com.google.common.collect.Maps;
 
 public class CreateHandler extends BaseHandlerStd {
     private static final int MAX_CLUSTER_PARAMETER_GROUP_NAME_LENGTH = 255;
-    private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,

@@ -16,7 +16,6 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class ReadHandler extends BaseHandlerStd {
-    private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
@@ -26,25 +25,33 @@ public class ReadHandler extends BaseHandlerStd {
             final Logger logger) {
 
         this.logger = logger;
+        final ResourceModel model = request.getDesiredResourceState();
+        final String resourceName = String.format("arn:%s:redshift:%s:%s:parametergroup:%s", request.getAwsPartition(), request.getRegion(), request.getAwsAccountId(), model.getParameterGroupName());
 
-        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
-                .then(progress -> proxy.initiate(String.format("%s::Read::ReadInstance", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+        return ProgressEvent.progress(model, callbackContext)
+                .then(progress -> proxy.initiate(String.format("%s::Read::ReadParameterGroup", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToReadRequest)
                         .makeServiceCall(this::describeClusterParameterGroups)
                         .handleError(this::describeClusterParameterGroupsErrorHandler)
-                        .done(awsResponse -> ProgressEvent.<ResourceModel, CallbackContext>builder()
-                                .callbackContext(callbackContext)
-                                .callbackDelaySeconds(0)
-                                .resourceModel(Translator.translateFromReadResponse(awsResponse))
-                                .status(OperationStatus.IN_PROGRESS)
-                                .build())
+                        .done(awsResponse -> {
+                            return ProgressEvent.progress(Translator.translateFromReadResponse(awsResponse), callbackContext);
+                        })
                 )
-
                 .then(progress -> proxy.initiate(String.format("%s::Read::ReadParameters", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(Translator::translateToReadParametersRequest)
                         .makeServiceCall(this::describeClusterParameters)
                         .handleError(this::describeClusterParametersErrorHandler)
-                        .done(awsResponse -> ProgressEvent.defaultSuccessHandler(Translator.translateFromReadParametersResponse(awsResponse, progress.getResourceModel()))));
+                        .done(awsResponse -> {
+                            return ProgressEvent.progress(Translator.translateFromReadParametersResponse(awsResponse, progress.getResourceModel()), callbackContext);
+                        })
+                )
+                .then(progress -> proxy.initiate(String.format("%s::Read::ReadTags", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                        .translateToServiceRequest(resourceModel -> Translator.translateToReadTagsRequest(resourceName))
+                        .makeServiceCall(this::readTags)
+                        .handleError(this::operateTagsErrorHandler)
+                        .done((tagsRequest, tagsResponse, client, resourceModel, context) -> {
+                            return ProgressEvent.defaultSuccessHandler(Translator.translateFromReadTagsResponse(resourceModel, tagsResponse));
+                        }));
     }
 
     private DescribeClusterParameterGroupsResponse describeClusterParameterGroups(final DescribeClusterParameterGroupsRequest awsRequest,
@@ -75,8 +82,11 @@ public class ReadHandler extends BaseHandlerStd {
     private DescribeClusterParametersResponse describeClusterParameters(final DescribeClusterParametersRequest awsRequest,
                                                                         final ProxyClient<RedshiftClient> proxyClient) {
         DescribeClusterParametersResponse awsResponse;
+        logger.log("Describe Cluster Parameters before call");
+        logger.log(awsRequest.toString());
         awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeClusterParameters);
 
+        logger.log(awsResponse.toString());
         logger.log(String.format("%s's Parameters has successfully been read.", ResourceModel.TYPE_NAME));
         return awsResponse;
     }
