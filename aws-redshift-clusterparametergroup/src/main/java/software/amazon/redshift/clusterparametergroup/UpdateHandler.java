@@ -41,8 +41,6 @@ public class UpdateHandler extends BaseHandlerStd {
     private static final String WLM_JSON_CONFIGURATION = "wlm_json_configuration";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private Logger logger;
-
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
             final AmazonWebServicesClientProxy proxy,
             final ResourceHandlerRequest<ResourceModel> request,
@@ -76,10 +74,9 @@ public class UpdateHandler extends BaseHandlerStd {
                         .done((tagsRequest, tagsResponse, client, model, context) -> ProgressEvent.<ResourceModel, CallbackContext>builder()
                                 .callbackContext(callbackContext)
                                 .callbackDelaySeconds(0)
-                                .resourceModel(Translator.translateFromReadTagsResponse(tagsResponse))
+                                .resourceModel(Translator.translateFromReadTagsResponse(model, tagsResponse))
                                 .status(OperationStatus.IN_PROGRESS)
                                 .build()))
-
                 .then(progress -> proxy.initiate(String.format("%s::Update::UpdateTags", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
                         .translateToServiceRequest(model -> Translator.translateToUpdateTagsRequest(desiredTags, currentTags, resourceName))
                         .makeServiceCall(this::updateTags)
@@ -262,54 +259,6 @@ public class UpdateHandler extends BaseHandlerStd {
         }
     }
 
-    private DescribeTagsResponse readTags(final DescribeTagsRequest awsRequest,
-                                          final ProxyClient<RedshiftClient> proxyClient) {
-        DescribeTagsResponse awsResponse;
-        awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest, proxyClient.client()::describeTags);
-
-        logger.log(String.format("%s's tags have successfully been read.", ResourceModel.TYPE_NAME));
-        return awsResponse;
-    }
-
-    private CreateTagsResponse updateTags(final ModifyTagsRequest awsRequest,
-                                          final ProxyClient<RedshiftClient> proxyClient) {
-        CreateTagsResponse awsResponse = null;
-
-        if (awsRequest.getDeleteOldTagsRequest().tagKeys().isEmpty()) {
-            logger.log(String.format("No tags would be deleted for the resource: %s.", ResourceModel.TYPE_NAME));
-
-        } else {
-            proxyClient.injectCredentialsAndInvokeV2(awsRequest.getDeleteOldTagsRequest(), proxyClient.client()::deleteTags);
-            logger.log(String.format("Delete tags for the resource: %s.", ResourceModel.TYPE_NAME));
-        }
-
-        if (awsRequest.getCreateNewTagsRequest().tags().isEmpty()) {
-            logger.log(String.format("No tags would be created for the resource: %s.", ResourceModel.TYPE_NAME));
-
-        } else {
-            awsResponse = proxyClient.injectCredentialsAndInvokeV2(awsRequest.getCreateNewTagsRequest(), proxyClient.client()::createTags);
-            logger.log(String.format("Create tags for the resource: %s.", ResourceModel.TYPE_NAME));
-        }
-
-        return awsResponse;
-    }
-
-    private ProgressEvent<ResourceModel, CallbackContext> operateTagsErrorHandler(final Object awsRequest,
-                                                                                  final Exception exception,
-                                                                                  final ProxyClient<RedshiftClient> client,
-                                                                                  final ResourceModel model,
-                                                                                  final CallbackContext context) {
-        if (exception instanceof ResourceNotFoundException) {
-            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
-
-        } else if (exception instanceof InvalidTagException ||
-                exception instanceof InvalidClusterStateException) {
-            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.InvalidRequest);
-
-        } else {
-            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.GeneralServiceException);
-        }
-    }
 
     private ResetClusterParameterGroupResponse resetClusterParameterGroup(final ResetClusterParameterGroupRequest awsRequest,
                                                                           final ProxyClient<RedshiftClient> proxyClient) {

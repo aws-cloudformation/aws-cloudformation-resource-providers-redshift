@@ -13,11 +13,11 @@ Resources:
     Properties:
       Handler: software.amazon.redshift.clusterparametergroup.HandlerWrapper::handleRequest
       Runtime: java17
-      CodeUri: ./target/aws-redshift-clusterparametergroup-handler-1.0-SNAPSHOT.jar
+      CodeUri: ./target/aws-redshift-clusterparametergroup-1.0.jar
 
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
       Handler: software.amazon.redshift.clusterparametergroup.HandlerWrapper::testEntrypoint
       Runtime: java17
-      CodeUri: ./target/aws-redshift-clusterparametergroup-handler-1.0-SNAPSHOT.jar
+      CodeUri: ./target/aws-redshift-clusterparametergroup-1.0.jar

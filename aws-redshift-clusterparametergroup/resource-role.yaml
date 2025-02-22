@@ -49,6 +49,7 @@ Resources:
                 - "redshift:DeleteClusterParameterGroup"
                 - "redshift:DeleteTags"
                 - "redshift:DescribeClusterParameterGroups"
+                - "redshift:DescribeClusterParameters"
                 - "redshift:DescribeTags"
                 - "redshift:ModifyClusterParameterGroup"
                 - "redshift:ResetClusterParameterGroup"
