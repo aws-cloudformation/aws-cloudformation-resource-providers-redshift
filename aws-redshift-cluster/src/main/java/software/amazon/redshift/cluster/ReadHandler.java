@@ -19,6 +19,7 @@ import software.amazon.awssdk.services.redshift.model.RedshiftException;
 import software.amazon.awssdk.services.redshift.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.redshift.model.ResourcePolicy;
 import software.amazon.awssdk.services.redshift.model.UnsupportedOperationException;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.cloudformation.exceptions.CfnGeneralServiceException;
 import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
 import software.amazon.cloudformation.exceptions.CfnNotFoundException;
@@ -29,6 +30,7 @@ import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
 import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
+
 
 public class ReadHandler extends BaseHandlerStd {
     private Logger logger;
@@ -45,6 +47,7 @@ public class ReadHandler extends BaseHandlerStd {
         final ResourceHandlerRequest<ResourceModel> request,
         final CallbackContext callbackContext,
         final ProxyClient<RedshiftClient> proxyClient,
+        final ProxyClient<SecretsManagerClient> secretsManagerProxyClient,
         final Logger logger) {
 
         this.logger = logger;

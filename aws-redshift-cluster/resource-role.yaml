@@ -52,6 +52,8 @@ Resources:
                 - "ec2:ModifyVpcEndpoint"
                 - "iam:CreateServiceLinkedRole"
                 - "iam:PassRole"
+                - "kms:*"
+                - "kms:RetireGrant"
                 - "redshift:CreateCluster"
                 - "redshift:CreateTags"
                 - "redshift:DeleteCluster"
@@ -81,6 +83,12 @@ Resources:
                 - "redshift:RestoreFromClusterSnapshot"
                 - "redshift:ResumeCluster"
                 - "redshift:RotateEncryptionKey"
+                - "secretsmanager:CreateSecret"
+                - "secretsmanager:DeleteSecret"
+                - "secretsmanager:DescribeSecret"
+                - "secretsmanager:RotateSecret"
+                - "secretsmanager:TagResource"
+                - "secretsmanager:UpdateSecret"
                 Resource: "*"
 Outputs:
   ExecutionRoleArn:

@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.redshift.model.DescribeLoggingStatusRespo
 import software.amazon.awssdk.services.redshift.model.Endpoint;
 import software.amazon.awssdk.services.redshift.model.GetResourcePolicyRequest;
 import software.amazon.awssdk.services.redshift.model.VpcSecurityGroupMembership;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static software.amazon.redshift.cluster.TestUtils.MASTER_PASSWORD_SECRET_ARN;
 
 @ExtendWith(MockitoExtension.class)
 public class ReadHandlerTest extends AbstractTestBase {
@@ -42,6 +44,9 @@ public class ReadHandlerTest extends AbstractTestBase {
 
     @Mock
     private ProxyClient<RedshiftClient> proxyClient;
+
+    @Mock
+    private ProxyClient<SecretsManagerClient> secretsManagerProxyClient;
 
     @Mock
     RedshiftClient sdkClient;
@@ -74,7 +79,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class))).thenReturn(describeLoggingStatusFalseResponseSdk());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         response.getResourceModel().setLoggingProperties(LOGGING_PROPERTIES_DISABLED);
 
@@ -150,7 +155,7 @@ public class ReadHandlerTest extends AbstractTestBase {
                 .desiredResourceState(BASIC_MODEL)
                 .build();
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
 
@@ -177,7 +182,7 @@ public class ReadHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class))).thenReturn(describeLoggingStatusFalseResponseSdk());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getResourcePolicyResponseSdk());
 
-        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        final ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         response.getResourceModel().setLoggingProperties(LOGGING_PROPERTIES_DISABLED);
 

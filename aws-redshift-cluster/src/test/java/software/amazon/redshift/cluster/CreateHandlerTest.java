@@ -21,6 +21,7 @@ import software.amazon.awssdk.services.redshift.model.ModifyClusterMaintenanceRe
 import software.amazon.awssdk.services.redshift.model.PutResourcePolicyRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotRequest;
 import software.amazon.awssdk.services.redshift.model.RestoreFromClusterSnapshotResponse;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -55,6 +56,9 @@ public class CreateHandlerTest extends AbstractTestBase {
 
     @Mock
     private ProxyClient<RedshiftClient> proxyClient;
+
+    @Mock
+    private ProxyClient<SecretsManagerClient> secretsManagerProxyClient;
 
     @Mock
     RedshiftClient sdkClient;
@@ -117,7 +121,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
 
@@ -125,7 +129,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -209,13 +213,13 @@ public class CreateHandlerTest extends AbstractTestBase {
     }
 
     private void handleRequestAndVerifyEnableLogging(ResourceHandlerRequest<ResourceModel> request) {
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -280,7 +284,7 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         response.getResourceModel().setMasterUserPassword(MASTER_USERPASSWORD);
 
@@ -288,7 +292,7 @@ public class CreateHandlerTest extends AbstractTestBase {
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -329,13 +333,13 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
 
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -376,13 +380,13 @@ public class CreateHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeLoggingStatus(any(DescribeLoggingStatusRequest.class)))
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
 
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -422,13 +426,13 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
@@ -474,13 +478,13 @@ public class CreateHandlerTest extends AbstractTestBase {
                 .thenReturn(DescribeLoggingStatusResponse.builder().loggingEnabled(false).build());
         when(proxyClient.client().getResourcePolicy(any(GetResourcePolicyRequest.class))).thenReturn(getEmptyResourcePolicyResponseSdk());
 
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);

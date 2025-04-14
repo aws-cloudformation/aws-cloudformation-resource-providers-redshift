@@ -10,6 +10,8 @@ import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRe
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupResponse;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersRequest;
 import software.amazon.awssdk.services.redshift.model.DescribeClustersResponse;
+import software.amazon.awssdk.services.secretsmanager.model.DescribeSecretRequest;
+import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.OperationStatus;
 import software.amazon.cloudformation.proxy.ProgressEvent;
@@ -44,7 +46,13 @@ public class DeleteHandlerTest extends AbstractTestBase {
     private ProxyClient<RedshiftClient> proxyClient;
 
     @Mock
+    private ProxyClient<SecretsManagerClient> secretsManagerProxyClient;
+
+    @Mock
     RedshiftClient sdkClient;
+
+    @Mock
+    SecretsManagerClient secretsManagerSdkClient;
 
     private DeleteHandler handler;
 
@@ -52,8 +60,12 @@ public class DeleteHandlerTest extends AbstractTestBase {
     public void setup() {
         handler = new DeleteHandler();
         proxy = new AmazonWebServicesClientProxy(logger, MOCK_CREDENTIALS, () -> Duration.ofSeconds(600).toMillis());
+
         sdkClient = mock(RedshiftClient.class);
         proxyClient = MOCK_PROXY(proxy, sdkClient);
+
+        secretsManagerSdkClient = mock(SecretsManagerClient.class);
+        secretsManagerProxyClient = MOCK_PROXY_SECRETS_MANAGER(proxy, secretsManagerSdkClient);
     }
 
     @AfterEach
@@ -81,14 +93,52 @@ public class DeleteHandlerTest extends AbstractTestBase {
         when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
                 .thenThrow(ClusterNotFoundException.class);
 
-        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, logger);
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
 
-        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, logger);
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
 
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
+        assertThat(response.getResourceModel()).isEqualTo(null);
+        assertThat(response.getResourceModels()).isNull();
+        assertThat(response.getMessage()).isNull();
+        assertThat(response.getErrorCode()).isNull();
+    }
+
+    @Test
+    public void handleRequest_WithManagedPasswords() {
+
+        final ResourceModel model = BASIC_MODEL;
+
+        final ResourceHandlerRequest<ResourceModel> request = ResourceHandlerRequest.<ResourceModel>builder()
+                .desiredResourceState(model)
+                .region(AWS_REGION)
+                .logicalResourceIdentifier("logicalId")
+                .clientRequestToken("token")
+                .snapshotRequested(false)
+                .build();
+
+        when(proxyClient.client().describeClusters(any(DescribeClustersRequest.class)))
+                .thenReturn(describeManagedPasswordClustersResponseSdk()).thenThrow(ClusterNotFoundException.class);
+
+        when(proxyClient.client().deleteCluster(any(DeleteClusterRequest.class)))
+                .thenReturn(DeleteClusterResponse.builder().build());
+
+        when(secretsManagerProxyClient.client().describeSecret(any(DescribeSecretRequest.class)))
+                .thenThrow(software.amazon.awssdk.services.secretsmanager.model.ResourceNotFoundException.class);
+
+        ProgressEvent<ResourceModel, CallbackContext> response = handler.handleRequest(proxy, request, new CallbackContext(), proxyClient, secretsManagerProxyClient, logger);
+
+        assertThat(response).isNotNull();
+        assertThat(response.getStatus()).isEqualTo(OperationStatus.IN_PROGRESS);
+        assertThat(response.getCallbackDelaySeconds()).isEqualTo(30);
+
+        response = handler.handleRequest(proxy, request, response.getCallbackContext(), proxyClient, secretsManagerProxyClient, logger);
         assertThat(response).isNotNull();
         assertThat(response.getStatus()).isEqualTo(OperationStatus.SUCCESS);
         assertThat(response.getCallbackDelaySeconds()).isEqualTo(0);
