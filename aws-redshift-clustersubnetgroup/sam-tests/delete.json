@@ -1,0 +1,8 @@
+{
+  "desiredResourceState": {
+    "ClusterSubnetGroupName": "cfn-subnet-group-1"
+  },
+  "previousResourceState": null,
+  "logicalResourceIdentifier": "cfn-subnet-group-1",
+  "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe"
+}

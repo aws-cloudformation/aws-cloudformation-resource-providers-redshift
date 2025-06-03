@@ -6,8 +6,6 @@ import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupRe
 import software.amazon.awssdk.services.redshift.model.DeleteClusterSubnetGroupResponse;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetGroupStateException;
 import software.amazon.awssdk.services.redshift.model.InvalidClusterSubnetStateException;
-import software.amazon.cloudformation.exceptions.CfnInvalidRequestException;
-import software.amazon.cloudformation.exceptions.CfnNotFoundException;
 import software.amazon.cloudformation.proxy.AmazonWebServicesClientProxy;
 import software.amazon.cloudformation.proxy.HandlerErrorCode;
 import software.amazon.cloudformation.proxy.Logger;
@@ -16,40 +14,53 @@ import software.amazon.cloudformation.proxy.ProxyClient;
 import software.amazon.cloudformation.proxy.ResourceHandlerRequest;
 
 public class DeleteHandler extends BaseHandlerStd {
-    private Logger logger;
 
     protected ProgressEvent<ResourceModel, CallbackContext> handleRequest(
-        final AmazonWebServicesClientProxy proxy,
-        final ResourceHandlerRequest<ResourceModel> request,
-        final CallbackContext callbackContext,
-        final ProxyClient<RedshiftClient> proxyClient,
-        final Logger logger) {
+            final AmazonWebServicesClientProxy proxy,
+            final ResourceHandlerRequest<ResourceModel> request,
+            final CallbackContext callbackContext,
+            final ProxyClient<RedshiftClient> proxyClient,
+            final Logger logger) {
 
         this.logger = logger;
 
-        final ResourceModel model = request.getDesiredResourceState();
-        return ProgressEvent.progress(model, callbackContext)
-            .then(progress ->
-                    proxy.initiate("AWS-Redshift-ClusterSubnetGroup::Delete", proxyClient, model, callbackContext)
-                    .translateToServiceRequest(Translator::translateToDeleteRequest)
-                    .makeServiceCall(this::deleteResource)
-                    .handleError((deleteDbSubnetGroupRequest, exception, client, resourceModel, cxt) -> {
-                        if (exception instanceof ClusterSubnetGroupNotFoundException) {
-                            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
-                        }
-                        throw exception;
-                    })
-                    .done((deleteClusterSubnetGroupRequest, deleteClusterSubnetGroupResponse, client, resourceModel, cxt)
-                            -> ProgressEvent.defaultSuccessHandler(null)));
+        return ProgressEvent.progress(request.getDesiredResourceState(), callbackContext)
+                .then(progress ->
+                        proxy.initiate(String.format("%s::Delete", CALL_GRAPH_TYPE_NAME), proxyClient, progress.getResourceModel(), progress.getCallbackContext())
+                                .translateToServiceRequest(Translator::translateToDeleteRequest)
+                                .makeServiceCall(this::deleteClusterSubnetGroup)
+                                .handleError(this::deleteClusterSubnetGroupErrorHandler)
+                                .progress()
+                )
+                .then(progress -> ProgressEvent.defaultSuccessHandler(null));
     }
 
-    private DeleteClusterSubnetGroupResponse deleteResource(
-        final DeleteClusterSubnetGroupRequest deleteRequest,
-        final ProxyClient<RedshiftClient> proxyClient) {
-        DeleteClusterSubnetGroupResponse awsResponse = proxyClient.injectCredentialsAndInvokeV2(deleteRequest,
-                proxyClient.client()::deleteClusterSubnetGroup);
-        logger.log(String.format("%s [%s] Deleted Successfully", ResourceModel.TYPE_NAME, deleteRequest.clusterSubnetGroupName()));
+    private DeleteClusterSubnetGroupResponse deleteClusterSubnetGroup(
+            final DeleteClusterSubnetGroupRequest awsRequest,
+            final ProxyClient<RedshiftClient> proxyClient) {
 
+        DeleteClusterSubnetGroupResponse awsResponse = proxyClient.injectCredentialsAndInvokeV2(
+                awsRequest,
+                proxyClient.client()::deleteClusterSubnetGroup);
+
+        logger.log(String.format("%s successfully deleted.", ResourceModel.TYPE_NAME));
         return awsResponse;
+    }
+
+    private ProgressEvent<ResourceModel, CallbackContext> deleteClusterSubnetGroupErrorHandler(
+            final DeleteClusterSubnetGroupRequest awsRequest,
+            final Exception exception,
+            final ProxyClient<RedshiftClient> client,
+            final ResourceModel model,
+            final CallbackContext context) {
+
+        if (exception instanceof ClusterSubnetGroupNotFoundException) {
+            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.NotFound);
+        } else if (exception instanceof InvalidClusterSubnetGroupStateException ||
+                exception instanceof InvalidClusterSubnetStateException) {
+            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.ResourceConflict);
+        } else {
+            return ProgressEvent.defaultFailureHandler(exception, HandlerErrorCode.GeneralServiceException);
+        }
     }
 }

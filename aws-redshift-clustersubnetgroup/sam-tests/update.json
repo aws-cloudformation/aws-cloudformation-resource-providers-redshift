@@ -1,0 +1,31 @@
+{
+  "desiredResourceState": {
+    "ClusterSubnetGroupName": "cfn-subnet-group-4",
+    "Description": "Updated Subnet Group Description",
+    "SubnetIds": [
+      "subnet-0d1b9f96842cb5777"
+    ],
+    "Tags": [
+      {
+        "Key": "Environment",
+        "Value": "Production"
+      }
+    ]
+  },
+  "previousResourceState": {
+    "ClusterSubnetGroupName": "cfn-subnet-group-4",
+    "Description": "Test Subnet Group Description",
+    "SubnetIds": [
+      "subnet-0ddbac69e73569727",
+      "subnet-0d1b9f96842cb5777"
+    ],
+    "Tags": [
+      {
+        "Key": "Environment",
+        "Value": "Test"
+      }
+    ]
+  },
+  "logicalResourceIdentifier": "MySubnetGroup",
+  "clientRequestToken": "4b90a7e4-b790-456b-a937-0cfdfa211dfe"
+}
